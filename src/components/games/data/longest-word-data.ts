@@ -1,8 +1,8 @@
 /**
  * Dictionnaires du jeu « Le Mot le Plus Long » (longest-word).
- * Deux banques de mots courants (~2 500 par langue), mots de 3 à 9 lettres,
- * stockés SANS ACCENTS sous forme d'une seule chaîne séparée par des espaces,
- * découpée en Set à l'initialisation du module.
+ * Deux banques de mots courants — ~1 640 mots français et ~5 450 mots anglais,
+ * mots de 3 à 9 lettres, stockés SANS ACCENTS sous forme d'une seule chaîne
+ * séparée par des espaces, découpée en Set à l'initialisation du module.
  * Les accents sont normalisés à la saisie (é→e, à→a, ç→c…) : « clé » se tape « cle ».
  * Le français et l'anglais ont leurs propres banques : vraie adaptation par langue.
  */
@@ -10,7 +10,7 @@
 /* ==================== Français ==================== */
 
 const FR_RAW = `
-air ami ans arc art age axe bac bal bar bas bec ble bol bon bot bus but cap car cas cle coq cor cou cri cru cuh
+air ami ans arc art age axe bac bal bar bas bec ble bol bon bot bus but cap car cas cle coq cor cou cri cru
 des dix dit don dos duc dur eau epi est ete fee fer feu fil fin fit foi fou gai gaz gel gre gui ici ile jet jeu jus
 lac lin lis lit loi lot mai mal mer mes met mie mil mis moi mon mot mou mur net nez nid nom non nue oie ont oui pan
 par pas peu pie pin pis plu pot pou que qui rat riz roc roi rue sac sec sel ses set six ski soi sol son sos sot sou
@@ -23,102 +23,102 @@ drole dune eaux ecru epee etre face fade faim fait faux fard fete fils fini flan
 fume gage gant gare gaze gens gite gras grec gril gris grue gout hall hate haut hier huit iris jade joli joue jour
 jury kilo kaki lame lard lave leur leve lien lieu lion lire loup luxe main mais mare marc mars meme mere mets mien
 mieux mine mise mode mois mont monte mort moto muse nage naif nain noir noix nord note nous oeil oeuf onde ouvre
-ours outil page paie pain pair paix pale pari pate pave pays peau plan plat plein pion pire plue pont porc port prof
+ours outil page paie pain pair paix pale pari pate pave pays peau plan plat plein pion pire pont porc port prof
 pull quoi rage rame reve rime rire rive robe rose roti roue ruse sable sage sain sale sang sans saut seau seul seve
 sexe sien soir soie soin soif sole sort sous suie table tard tete thym tige toit tonne tort tour tout tribu trou
 type vase veau velo vent vers vert vide ville vite voeu voie voix vote vrai yeux aout sont vont fait doit dit fut
 mit pars part dort veut peux sais sait suis seras etes vais dois dis voir haut gros dure aide aime boit court dort
 ours mots
-abalte abondent accroc accroi achete acheter acier acide acreage acteur actif action adieu adieu admis adulte
-adverbe aeree affaire affine affole agneau agree aiguille aide aimer ainsi ainee airain aisen aisne aisse ajuste
-ajusta alaise album alcool alene alerte algue aligne alleluia allait allume alors alose alte amande amener ambitieux
+abondent accroc accroit achete acheter acier acide acteur actif action adieu adieu admis adulte
+adverbe aeree affaire affine affole agneau agree aiguille aide aimer ainsi ainee airain ajuste
+ajusta album alcool alene alerte algue aligne alleluia allait allume alors alose amande amener ambitieux
 amical amie amitie ample amuser analyse ananas ancien ancre ane animal annee annonce annuel anonyme apaisement
-appareil appel apporter arbre arbuste ardeur argent armoire arrive arrow article artiste aspect assiette assure
+appareil appel apporter arbre arbuste ardeur argent armoire arrive article artiste aspect assiette assure
 atelier attaque aubaine aucune audace auge aulne aune aussi autant automne autour avance avenir avion avoir avocat
 bague baie baisse balai balcon baleine balcon balle ballon bambou banane banc bande banjo banquise barbe baril
-barque basque basse bataille bateau battr battu baudet beaute becquet besoin belette belle benoit berceau berger
+barque basque basse bataille bateau battu baudet beaute becquet besoin belette belle benoit berceau berger
 besace betail beurre bienfait bientot billet biseau bisou bison blanche blesse blond boisson boite bombe bonbon
-bondir bonheur bonnet bonté borde borne bosquet boston botte bouche boucle bouddha bougie boulanger boule bouleau
+bondir bonheur bonnet bonte borde borne bosquet boston botte bouche boucle bouddha bougie boulanger boule bouleau
 bourge? branche brave brebis breton brider briller broche brosse brute buche budget buffet buisson bureau butin
 cabane cable cacao cacher cahier caisse calcul calme camion campagne canal canard canne canon cantine caoutchouc
-capable cape capitale capitaine caresse carafe carre carriere carross cartable cascade casier casque casse casserole
+capable cape capitale capitaine caresse carafe carre carriere cartable cascade casier casque casse casserole
 castor cause cave cedre celebre cense centaine centime cerveau chaise chaleur chameau champ champagne chandelle
 chanson chant chapelle charbon charme charrue chateau chaud chausson cheval chien chiffre chimie chose chouette
-cidre ciel cigne cimetiere cinema cirque citron citoyen civil clarte classe cle clavier client climat cloche clou
+cidre ciel cygne cimetiere cinema cirque citron citoyen civil clarte classe cle clavier client climat cloche clou
 coaguler cobalt cobra cochon cocotte coeur coherence colere colibri colis collant college collier colombe colonel
-combat comedia commande commerce commode compas complet compter concert conduit confiance conge connaissance
+combat commande commerce commode compas complet compter concert conduit confiance conge connaissance
 conseil console conte contraste copain coq corail corde corniche corridor costume coton couche coude couleur
 couleuvre coupable courage couronne courant courrier cours court couteau coutume couvert crabe craie crainte
 cran crayon createur creche credo creer crime croiser creme crevette creux crique cuisine cuir cuisse cuisiner
 culte culture curieux cymbale danse danger danois dauphin debat debut decembre decider declarer decor dedans deesse
-defense degre dejeuner delicate demande demeure demi demon depart depense deeper dernier desert design desir dessin
-destin detruire deuil deuxieme devant devenir devoir diable dialogue diamant dictionnaire dieu diff difference
-digital dimanche dinde direction direment disciple discuter distance dix docteur douceau douleur doux doze dragon
+defense degre dejeuner delicate demande demeure demi demon depart depense dernier desert design desir dessin
+destin detruire deuil deuxieme devant devenir devoir diable dialogue diamant dictionnaire dieu difference
+digital dimanche dinde direction disciple discuter distance dix docteur douceau douleur doux dragon
 drapeau drame droit duvet dynamique eau ecart echelle eclair ecole economie ecorce ecouter ecran ecriture edifice
 editer education effet effort egal egare elections eleve elle elite elle emeute emporte energique enfant enfin
 enregistrer ensemble ensuite entendre entrance enveloppe epee epais epaule epee epicerie epine epoque epreuve
 equipe erreur escalier esclave espece espoir esprit essai essence etablir etagere etang etape ete eternel ethnie
 etroit etoile etrangle etre etude europe examen except exces excuse exemple exercice exiger experience explorer
-express face facile facon facteur faiblesse facilement faim faire faitaleur falaise fanfare farine fatigue faucon
-faveur fecond felicite femme fenetre fer ferme ferner fete feuille fevrier fiance ficelle fidete figure filet fille
-film final enfin finance finde flacon flamme flatter fleur flute foire folie fonction fond fontaine football force
+express face facile facon facteur faiblesse facilement faim faire falaise fanfare farine fatigue faucon
+faveur fecond felicite femme fenetre fer ferme fete feuille fevrier fiance ficelle figure filet fille
+film final enfin finance flacon flamme flatter fleur flute foire folie fonction fond fontaine football force
 foret forger formel fosse fouet foulard foule fourmi foyer fraise franchir frapper fromage front fruit fuir fume
-fumee futs galerie galerie garage garcon garden garder garnir gazette geant gelatin general genie genou gentil
+fumee futs galerie galerie garage garcon garder garnir gazette geant gelatine general genie genou gentil
 geographie gorge gorge gouter goutte graine grand grange granit grave grec grille grimace gronder gros grue guide
-guerre guichet guitare habitude hache hairs haleine hameau hangar harmonie hasard haut hauteur herbe heritage
+guerre guichet guitare habitude hache haleine hameau hangar harmonie hasard haut hauteur herbe heritage
 heros heure hiver homard homme hommage honneur honorer honte hopital horaire horloge horrible hotel houille houppe
-houx humain humide hutte idol image imiter imperatif importance important importer impression imprimer incident
-inconnu indiquer industrie infanter influence information inhabite initiale innocence insecte instant installer
-instruire instrument intelligence intention interet inventer invitation irre irr religieux jamais jardin jaune
+houx humain humide hutte image imiter imperatif importance important importer impression imprimer incident
+inconnu indiquer industrie influence information inhabite initiale innocence insecte instant installer
+instruire instrument intelligence intention interet inventer invitation religieux jamais jardin jaune
 jeter jeune joie jouer jouet jour journal juillet juin jumeau juste kayak laboratoire lac laine lait lancer langue
-lanterne laque large larme lasse lecture lecture lettre leur levain leve lever levure liane liberal libre liberty
-librairie licence liege lieu ligne ligue lili linge lisiere liste litre livre logique long longe longer lotion
+lanterne laque large larme lasse lecture lecture lettre leur levain leve lever levure liane liberal libre
+librairie licence liege lieu ligne ligue linge lisiere liste litre livre logique long longe longer lotion
 louange louer loup lourd lueur lundi lutte lycee machin machine magasin magma mai mais maladie mammifere manche
-mandat manger manifold maniere manipulation manteaumanuel marbre marche mardi marée marin mariage marin marquer
-marron mars marty masse match matin maudit mechant medaille medecin meilleur melange membre memoire menacer mendiant
-mentir mercredi mere merveille message mesure metal metre meuble meule miauler micro mid muit migrant milieu mille
+mandat manger maniere manipulation marbre marche mardi maree marin mariage marin marquer
+marron mars masse match matin maudit mechant medaille medecin meilleur melange membre memoire menacer mendiant
+mentir mercredi mere merveille message mesure metal metre meuble meule miauler micro migrant milieu mille
 million mince mine mineral minute miracle misere mission mistral moche mode modele moderne moine moins mois
-moisson moitie molecule moment monde monsieur montagne monte monter montre montu morceau mordre moitie moitie
+moisson moitie molecule moment monde monsieur montagne monte monter montre morceau mordre moitie moitie
 molette monarque monnaie mont moi montage moral morceau mors mort mosaique motif mouche moufle mouille mousse
 moustache muer mue musaraigne museau musee musicien museau mystere mystique nage nager nager naiade naissance
-naissance naitre nappe nature naufrage naval naviguer navire neige nerf nerveux nester neveu nid nickel noble noces
+naissance naitre nappe nature naufrage naval naviguer navire neige nerf nerveux neveu nid nickel noble noces
 noeud noir noix nombre nommer nord norme notable noter notre nouvelle noyau nuage nuire nul nuque objet obsession
-occasion occuper ocean octobre odeur offrir oiseau olivier ombre omission ombrage oncle onde ongle opengl opera
+occasion occuper ocean octobre odeur offrir oiseau olivier ombre omission ombrage oncle onde ongle opera
 operation opinion opportun opprime orage orange orchidee ordinaire ordonner oreille organe orgueil origine orme
 ornement orthographe ouate oublier ours outil outrage outre ouverture ouvrier page pagaille pain paix palette palais
-pale palefroi palmier panache panier panique panneau pansement papa papier paquet paradi paraitre parcelle parole
-parrain parti partie passage passe passion pate patate pateau paturage patin patio patrie patte paupiere pauvre
-pavot payer pays peace peau peigne peinture pelican pelle pellet pelouse pencher pendule penee pensee pente
-pepper percer perdre perennial perdrix periode permission perle permis personne pesant peser petale petrole
-pety peuplier pharmacie phrase piano piece pierre pieu pilote piment pinceau pinte pion pion pion pion pipa piqure
+pale palefroi palmier panache panier panique panneau pansement papa papier paquet paraitre parcelle parole
+parrain parti partie passage passe passion pate patate paturage patin patio patrie patte paupiere pauvre
+pavot payer pays peau peigne peinture pelican pelle pelouse pencher pendule pensee pente
+percer perdre perdrix periode permission perle permis personne pesant peser petale petrole
+peuplier pharmacie phrase piano piece pierre pieu pilote piment pinceau pinte pion pion pion pion piqure
 pire pistil piste place plaine plaisance plaisir planete planque plante plaque platane plateau plein pleurer pleuvoir
-pliage plomb plonger pluie plume plum pocket poche poele poele poem poeme poet poid poids poele point poire poivre
-pole policier poli politesse pommade pomme pompe pardon pont popila populaire porc port port portail porte portefeuille
+pliage plomb plonger pluie plume poche poele poele poeme poids poele point poire poivre
+pole policier poli politesse pommade pomme pompe pardon pont populaire porc port port portail porte portefeuille
 portrait potage poteau poubelle poudre poule poulet poulpe poumon pourpre poursuite poussin poutre pouvoir pratique
-prairie précis precipice prendre presque presse pret pretend prix profond progrès projet promesse prompt prononcer
-propre prospère prouver provision prudence prune public puissance puits pull pulpe pupitre pured pyjama python
-quand quart quatorze quatre quinzaine quitter quoi rabais race radeau radis rafter rage raide raisin rame rampe
-ranch raoul rapide rappel requin rire raison ralentir ralbum rames rancune ranger raper rapides rare rature ravage
+prairie precis precipice prendre presque presse pret pretend prix profond progres projet promesse prompt prononcer
+propre prospere prouver provision prudence prune public puissance puits pull pulpe pupitre pyjama python
+quand quart quatorze quatre quinzaine quitter quoi rabais race radeau radis rage raide raisin rame rampe
+ranch rapide rappel requin rire raison ralentir rames rancune ranger raper rapides rare rature ravage
 rayon reaction realite recolte record recette recevoir recherche recit reconnaitre recreation recu redire reduire
 reflet regard regime region regret reine relever religion remarque remede souvenir remercier remorque remplir
-rencontre rendez renard renoncer rentrer reparier repartir reparer reponse reposer reprise requete reserve resister
+rencontre rendez renard renoncer rentrer repartir reparer reponse reposer reprise requete reserve resister
 resolu respect ressort restaurant resultat retard reve rever reveil revenir revue rhume riche rideau ridicule rien
 rigide rime rincer riposte rire risquer rive riviere robot rock roman ronces ronde rose roseau rosee rot ronde route
-royal ruban rubis rude ruelle ruer ruf ruine ruser rustique sable sabot sabre sacerdoce sacrifice sage sain saison
+royal ruban rubis rude ruelle ruer ruine ruser rustique sable sabot sabre sacerdoce sacrifice sage sain saison
 sale salon salut samedi sanction sante sapin sardine satin saucisse saule sauvage sauver savant savoir scene secher
-secours secret section securite seize selon semaine sembler semence semis sentir separe serment serpente serrure
+secours secret section securite seize selon semaine sembler semence semis sentir separe serment serrure
 serviette seuil sevrage sien signer signal silence simple sincere singe sieste sirop situation sociale soldat
 soleil solide solution sombre sommeil somme sonner sonnette sonde sortir souci soufre soulier soupcon souple
 sourcil sourd sourire sous souvenir souvent spectacle vitesse sport stable stade stand etoile sujet super surf
 sureau surprise svelte table tableau tabouret taille talon tant tapis tarte tas taupe teint temps tenir tendre
-tennis tente terme terminal terre terreur tete texte theatre theme theorie thyme tige timbre tirer tissu titre
+tennis tente terme terminal terre terreur tete texte theatre theme theorie tige timbre tirer tissu titre
 toast toile toit tomate tombe tondre tonneau torse tort toit tousser tour tourisme tourner tout toucher toujours
-tracé trace train trait traitre trancher tranquille transport travail traverse trente trepas tresor tribu tricot
+trace train trait traitre trancher tranquille transport travail traverse trente trepas tresor tribu tricot
 trone trottoir trou troupe troupeau vrai tuyau type ulcere uni usage usine ustensile utile vacances vache vain
 vaincre vaisseau val valeur valve vanne vapeur varier vase vaste veau velo vendange vendre venelle venir vent
 vente ventre verbe verre vers vert verte veste vetement viande victoire video vieux vigne vil village ville
-vinaigre violence violin violette violin virage visite vite vitre vivre voeu voici voie voix voile voir voisin
-volaille voler volet volonte vos votre vouloir voyage vrai vraiment wagon water zebre zeste zone zoo
+vinaigre violence violette virage visite vite vitre vivre voeu voici voie voix voile voir voisin
+volaille voler volet volonte vos votre vouloir voyage vrai vraiment wagon zebre zeste zone zoo
 `
 
 /* ==================== Anglais ==================== */
@@ -208,12 +208,12 @@ angle angry ankle annoy antic anvil apart aphid apple apply apron aptly arbor ar
 arose array arrow ashen ashes aside askew atlas atom attach attic audio audit augur aunt? avail avert avoid await
 awake award aware awash awful awoke axial axiom bacon badge bagel baggy bail bakes baldy baled bales balks balls
 balmy banal bands banjo banks barge barks barns barrels basic basin baste batch bathe baton bawdy beach beads beady
-beard bears beast beats becky begun beiges bells belly belts bends beret berry berth beset betas betel bevel bezel
+beard bears beast beats begun beiges bells belly belts bends beret berry berth beset betas betel bevel bezel
 bible bicep bidder bikes bilge bills binge birch birds birth bison black blade blame bland blank blare blast blaze
 bleak bleat bleed bleep blend bless blimp blind blink bliss blitz bloat blocks bloke blond blood bloom blown blues
 bluff blunt blurb blurt blush board boast bobby bogus boils bolts bonds bones bonus books boost booth boots bored
 botch bough bound bowed bowl? bowls boxer boxes brace brack braid brain brake brand brash brass brave bravo brawl
-brawn bread break breed breeze brega brick bride brief brine bring brink briny broad broil broke brood brook broom
+brawn bread break breed breeze brick bride brief brine bring brink briny broad broil broke brood brook broom
 brought brown brunt brush budge buggy build built bulge bulky bulls bumpy bunks bunny burly burnt burst buses bushy
 butte buxom buyer cabin cable cacao caches cadet cagey cairn calf? calif call? calls calms camel cameo camps canal
 candy caned canes canoes canon canopy cards cargo carol carts carve cases casks caste catch cater cause caved caver
@@ -229,9 +229,9 @@ cubby cubic cuffs cumin curbs curds cured cures curio curls curly curse curve cu
 dairy daisy dance dandy dared darts dashy data? dated dates dawns dazed deals deans dears debar debit debug debut
 decal decay decks decor decoy decry deeds deems defer deign deity delay delta demon demur denim dense depth derby
 desks deter deuce devil dials diary dimes diner dingy dire? dirs ditch dived diver dives dizzy docks dodge doers
-doest dogs? doled doles dolls dolly donor donut dough dover doves dowdy dozen draft drain drake drama drank drape
+doest dogs? doled doles dolls dolly donor donut dough doves dowdy dozen draft drain drake drama drank drape
 drawl drawn draws dregs dress dried drier drift drill drink drips drips drive droll drone drool droop drops dross
-drove drown drugs drums dryly ducal ducky duel? dues? duets dummy dumpy dunce dusk? dusty Dutch duvet dwarf dwell
+drove drown drugs drums dryly ducal ducky duel? dues? duets dummy dumpy dunce dusk? dusty duvet dwarf dwell
 dwelt dyers dying eager eagle early earns earth eased easel eases eaten eater ebbed echos edged edges edict edify
 eight eject elbow elder elect elegy elfin elite elope elude elves ember emcee emend emery emoji empty enact ended
 enema enemy enjoy ennui ensue enter entry envoy epoxy equal equip erase erect erode erupt essay ether ethic ethos
@@ -252,17 +252,17 @@ grove growl grown grows gruel gruff grunt guard guava guess guest guide guild gu
 gulps gumbo gummy guppy gushy gusto gusty gutsy gypsy gyres habit hairy halls halts hands handy hangs happy hardy
 harem haste hasty hatch hated hates hauls haunt haven havoc hawks hazel heads heals heaps heard hears heart heath
 heave heavy hedge hefty heels heist helix hello hells helms helps hemps hence herbs herds heron hexed hicks hides
-higher hilly hinges hints hippo hirth hires hitch hived hives hoard hobby hockey hoist hoked holds holes homage
+higher hilly hinges hints hippo hires hitch hived hives hoard hobby hockey hoist holds holes homage
 honed honed honest honey honor hooks hoops hoots hoped hopes horde horns horse hosed hosts hotel hotly hound hours
-house hovel hover howdy human humid humor hunch hunts hurly hurt? hushy husks hasty hydra hydrant hymns icily icing
+house hovel hover howdy human humid humor hunch hunts hurly hurt? husks hasty hydra hydrant hymns icily icing
 ideal ideas idiom idiot idler idyll igloo image imbue imply inbox incur index inept inert infer ingot inlay inlet
 inner input irate irked irons irony islet issue itchy items ivory jacks jaded jazzy jeans jelly jerks jewel joins
 joint joist joker jolly joust judge juice juicy jumbo jumps junky juror kapok kayak kebob keels keeps kempt kennel
-kests khaki kicks kills kinds kings kinks kiosk kites kitty knack knead kneed kneel knelt knife knits knobs knock
+khaki kicks kills kinds kings kinks kiosk kites kitty knack knead kneed kneel knelt knife knits knobs knock
 knoll knots known knows koala labor laced laces lacks lakes lambs lamps lands lanes lanky lapel lapse large larva
 lasso lasts latch later lathe laths laugh lawns layer leads leafy leaks leaks leans leaps learn lease leash least
 leave ledge leech lefty legal lemon lends leper level lever light liked likes lilac limes limbs lined linen liner
-lines links lions lippy lisle listy lithe litre lived liver lives llama loads loamy loath loans lobby local locks
+lines links lions lippy lisle lithe litre lived liver lives llama loads loamy loath loans lobby local locks
 locus lodge lofty logic login loopy loose lorry loser loses lotus lousy loved loves lower loyal lucid lucks lumpy
 lunar lunch lungs lurch lured lures lurks lying lyres maces macho macro madam magic magma maize major maker makes
 males mall? malls mango manly manor maple march mares marks marry marsh masks mason masts match mated mates math?
@@ -289,11 +289,11 @@ purse pushy putty pylon pygmy quack quail quake qualm quart quash quasi queens q
 quiet quill quilt quirk quite quota quote rabbi rabid races racks radar radii radio radon rafts rage? ragged raid?
 rails rains rainy raise rally ranch range rangy ranks rants rapid rare? rash? rated rates ratio ratty raven rayon
 razor reach react reads ready realm reaps rebel rebus recap recur reedy reefs refer regal reign relax relay relic
-remit remix renal renew repay repel reply repos reres repro rerun reset resin rests retro retry reuse revel revue
+remit remix renal renew repay repel reply repos repro rerun reset resin rests retro retry reuse revel revue
 rhino rhyme rider rides ridge rifle right rigid rigor riled riles rings rinse rips? risen rises risks rites rival
 river rivet roach roads roar? roast robed robes robin robot rocks rocky rodeo rods? rogue rolls roman roomy roost
 roots ropes rosa? rosin rotor rouge rough round rouse route rover rows? royal ruddy ruins rules rumba rumor rupee
-rural rusty sable sadly safer sails saint sakes salad sales salon salsa salty salute samed sands sandy saner sappy
+rural rusty sable sadly safer sails saint sakes salad sales salon salsa salty salute sands sandy saner sappy
 sassy satin sauce sauna saved saves savor savory scale scalp scaly scamp scant scare scarf scary scene scent scoff
 scold scone scoop scoot scope score scorn scour scout scowl scram scrap screw scrub scuba scuff seals seams seats
 sedan sedge seeks seems seize sells semen sends sense serif serum setup seven sever sewer shack shade shady shaft
@@ -314,10 +314,10 @@ stint stoic stoke stole stomp stone stony stood stool stoop stops store stork st
 stray strips strum strut stuck studs study stuff stump stung stunk stunt style suave sugar suite suits sulky sully
 sumac sunny super surge sut? swamp swans swarm swath swear sweat sweep sweet swell swept swift swims swine swing
 swipe swirl swish swoon swoop sword swore sworn syrup table tacit tacks taffy tails taint taken taker takes tales
-talks tally talon tamed tango tangy tanks taped tapes tards tasks taste tasty taunt taut? teach teaks teal? teams
-tears tease teeth tempo tenor tense tenth tepee tepid terms terse tests thanx thank thaws theft their theme there
+talks tally talon tamed tango tangy tanks taped tapes tasks taste tasty taunt taut? teach teaks teal? teams
+tears tease teeth tempo tenor tense tenth tepee tepid terms terse tests thank thaws theft their theme there
 these thick thief thigh thing think third thong thorn those three threw throb throw thrum thuds thumb thump thyme
-tiara tibia tidal tided tides tier? tiger tight tiled tiles till? tilt? timer times tinge tinfo tints tipsy tired
+tiara tibia tidal tided tides tier? tiger tight tiled tiles till? tilt? timer times tinge tints tipsy tired
 titles toads toast today toddy toils token tolls tombs tonal toned tones tongs tonic tools tooth toots topic torso
 total totem touch tough tours towel tower towns toxic toxin trace track tract trade trail train trait tramp traps
 trash trawl tread treat trees trek? trend triad trial tribe trice trick tried tries trill trims trios tripe trite
@@ -330,7 +330,7 @@ visit visor vista vital vivid vixen vocal vodka vogue voice voila? voled? vowel 
 wafts wager wages wagon waist waits waked waken walks walls waltz wands waned wants wards wares warms warns warts
 washy wasps waste watch water watts waver waxes weary weave wedge weedy weighs weird wells welsh whack whale wharf
 wheat wheel whelp where which whiff while whims whirl whisk white whole whose widen wider widow width wield wilds
-wills wilts wince winch winds windy wines wings winks wiped wiper wires wiry wisps wised wisps witch wits? woken
+wills wilts wince winch winds windy wines wings winks wiped wiper wires wiry wisps wisps witch wits? woken
 woman women woody wooed words works world worms worry worse worst worth would wound woven wrath wreak wreck wrest
 wried? wring writ? yacht yahoo yearn years yeast yells yield yolks young yours youth yummy zappy zebra zests zesty
 zippy zoned zooms

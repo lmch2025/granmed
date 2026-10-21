@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BarChart3, CalendarCheck, Dumbbell, Flame, History, RotateCcw, Share2, Undo2 } from 'lucide-react'
+import { BarChart3, CalendarCheck, Crosshair, Dumbbell, Flame, History, RotateCcw, Share2, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
@@ -190,14 +190,22 @@ const KEY_CLASS: Record<LetterState, string> = {
   absent: 'border-stone-500/50 bg-stone-400/90 text-white dark:bg-stone-600',
 }
 
+/** Taille de tuile adaptative : la grille + le clavier tiennent dans
+ *  calc(100dvh − 220px) (chrome Task 9 ≈ 190 px + marge). Plafonnée par la
+ *  largeur (11.5 vw ≈ 45 px à 390 px) pour ne jamais déborder horizontalement,
+ *  plancher 32 px sur les écrans très courts. */
+const TILE_SIZE =
+  'h-[clamp(32px,min(11.5vw,(100dvh_-_460px)/6),56px)] w-[clamp(32px,min(11.5vw,(100dvh_-_460px)/6),56px)]'
+
 const L_FR = {
   dailyBadge: 'Défi du jour',
+  dailyShort: 'Défi',
   practiceBadge: 'Entraînement',
   practiceHint: 'Partie libre — ne compte ni pour le défi du jour, ni pour la série.',
-  streakLabel: 'Série',
+  triesLeft: 'essais restants',
   winRate: 'Réussite',
   bestTries: 'Meilleur score',
-  playDaily: 'Retour au défi',
+  playDailyShort: 'Défi',
   practiceBtn: 'Entraînement',
   newWord: 'Nouveau mot',
   incomplete: 'Mot incomplet — 5 lettres nécessaires.',
@@ -226,12 +234,13 @@ const L_FR = {
 
 const L_EN = {
   dailyBadge: 'Daily challenge',
+  dailyShort: 'Daily',
   practiceBadge: 'Practice',
   practiceHint: 'Free play — counts neither for the daily challenge nor for the streak.',
-  streakLabel: 'Streak',
+  triesLeft: 'tries left',
   winRate: 'Win rate',
   bestTries: 'Best solve',
-  playDaily: 'Back to the daily word',
+  playDailyShort: 'Daily',
   practiceBtn: 'Practice',
   newWord: 'New word',
   incomplete: 'Not enough letters — 5 letters required.',
@@ -279,7 +288,8 @@ interface DWStats {
 interface DWSave {
   v: number
   stats: DWStats
-  daily: DWDaily | null
+  /** v2 : défi en cours par langue (le mot du jour diffère FR/EN). v1 (hérité) : DWDaily | null. */
+  daily: Partial<Record<Lang, DWDaily>> | DWDaily | null
 }
 
 function defaultStats(): DWStats {
@@ -326,6 +336,61 @@ function parseStats(raw: unknown): DWStats {
   }
 }
 
+/** Assainit une entrée de défi quotidien. */
+function sanitizeDaily(raw: unknown): DWDaily | null {
+  if (!raw || typeof raw !== 'object') return null
+  const e = raw as Partial<DWDaily>
+  if (e.lang !== 'fr' && e.lang !== 'en') return null
+  if (typeof e.date !== 'string' || !Array.isArray(e.guesses)) return null
+  return {
+    date: e.date,
+    lang: e.lang,
+    guesses: e.guesses.filter((g) => typeof g === 'string' && g.length === 5),
+    counted: e.counted === true,
+  }
+}
+
+/** Accepte les deux formes de sauvegarde : v1 (DWDaily | null) et v2 (par langue). */
+function parseDailyMap(raw: unknown): Partial<Record<Lang, DWDaily>> {
+  const out: Partial<Record<Lang, DWDaily>> = {}
+  if (!raw || typeof raw !== 'object') return out
+  const asMap = raw as Partial<Record<Lang, unknown>>
+  const entries = 'fr' in asMap || 'en' in asMap ? Object.values(asMap) : [raw]
+  for (const e of entries) {
+    const d = sanitizeDaily(e)
+    if (d) out[d.lang] = d
+  }
+  return out
+}
+
+/** Applique un résultat quotidien aux stats. Retourne null si déjà comptabilisé aujourd'hui. */
+function withDailyResult(
+  prev: DWStats,
+  won: boolean,
+  tries: number,
+  word: string,
+  today: string,
+): DWStats | null {
+  if (prev.history[today]) return null
+  const s: DWStats = {
+    ...prev,
+    distribution: [...prev.distribution],
+    history: { ...prev.history, [today]: { word, tries, won } },
+  }
+  s.gamesPlayed += 1
+  s.lastPlayedDate = today
+  if (won) {
+    s.wins += 1
+    s.distribution[tries - 1] += 1
+    s.currentStreak = prev.lastWonDate === dateKeyOffset(-1) ? prev.currentStreak + 1 : 1
+    s.maxStreak = Math.max(s.maxStreak, s.currentStreak)
+    s.lastWonDate = today
+  } else {
+    s.currentStreak = 0
+  }
+  return s
+}
+
 function fmtDate(dk: string, lang: Lang): string {
   const [y, m, d] = dk.split('-').map((v) => Number.parseInt(v, 10))
   if (!y || !m || !d) return dk
@@ -367,7 +432,7 @@ export default function DailyWordGame() {
   const [current, setCurrent] = useState('')
   const [phase, setPhase] = useState<'playing' | 'won' | 'lost'>('playing')
   const [revealIdx, setRevealIdx] = useState(5)
-  const [shakeRow, setShakeRow] = useState(false)
+  const [shakeCount, setShakeCount] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
   const [stats, setStats] = useState<DWStats>(defaultStats)
@@ -377,8 +442,9 @@ export default function DailyWordGame() {
   const genRef = useRef(0)
   const playCountedRef = useRef(false)
   const statsRef = useRef<DWStats>(defaultStats())
-  const dailyRef = useRef<DWDaily | null>(null)
+  const dailyMapRef = useRef<Partial<Record<Lang, DWDaily>>>({})
   const lastWordRef = useRef('')
+  const timersRef = useRef<Set<number>>(new Set())
 
   const REVEAL_STEP = reduce ? 60 : 200
 
@@ -387,17 +453,29 @@ export default function DailyWordGame() {
     setStats(s)
   }
 
-  function persist(s: DWStats, d: DWDaily | null) {
-    saveSave<DWSave>(gameId, { v: 1, stats: s, daily: d })
+  function persist(s: DWStats, d: Partial<Record<Lang, DWDaily>>) {
+    saveSave<DWSave>(gameId, { v: 2, stats: s, daily: d })
   }
 
   /** Timer protégé par une génération : les callbacks meurent si une nouvelle partie démarre. */
   function schedule(fn: () => void, ms: number) {
     const gen = genRef.current
-    window.setTimeout(() => {
+    const id = window.setTimeout(() => {
+      timersRef.current.delete(id)
       if (genRef.current === gen) fn()
     }, ms)
+    timersRef.current.add(id)
   }
+
+  /* --- Nettoyage des timers en attente au démontage --- */
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      genRef.current++
+      for (const id of timers) window.clearTimeout(id)
+      timers.clear()
+    }
+  }, [])
 
   /* --- Restauration (callback asynchrone post-mount, conforme react-hooks/set-state-in-effect) --- */
   useEffect(() => {
@@ -407,28 +485,33 @@ export default function DailyWordGame() {
       const today = todayKey()
       const save = loadSave<DWSave>(gameId)
       const s = parseStats(save?.stats)
-      const d = save?.daily
+      const ans = wordForDate(lang, today)
       genRef.current++
       lockRef.current = false
-      setAnswer(wordForDate(lang, today))
+      setAnswer(ans)
       setCurrent('')
       setMessage(null)
-      setShakeRow(false)
+      setShakeCount(0)
       setRevealIdx(5)
       setMode('daily')
       applyStats(s)
-      if (d && d.date === today && d.lang === lang && Array.isArray(d.guesses)) {
-        dailyRef.current = d
+      const map = parseDailyMap(save?.daily)
+      dailyMapRef.current = map
+      const d = map[lang] ?? null
+      let restoredPhase: 'playing' | 'won' | 'lost' = 'playing'
+      if (d && d.date === today) {
         playCountedRef.current = d.counted
-        const gs = d.guesses.filter((g) => typeof g === 'string' && g.length === 5)
-        setGuesses(gs)
-        const ans = wordForDate(lang, today)
-        setPhase(gs.includes(ans) ? 'won' : gs.length >= 6 ? 'lost' : 'playing')
+        setGuesses(d.guesses)
+        restoredPhase = d.guesses.includes(ans) ? 'won' : d.guesses.length >= 6 ? 'lost' : 'playing'
       } else {
-        dailyRef.current = null
         playCountedRef.current = false
         setGuesses([])
-        setPhase('playing')
+      }
+      setPhase(restoredPhase)
+      /* Partie terminée mais non comptabilisée (rechargement pendant la révélation) :
+         on enregistre le résultat silencieusement, sans re-célébrer. */
+      if (d && d.date === today && restoredPhase !== 'playing' && !s.history[today]) {
+        recordDailyResult(ans, restoredPhase === 'won', d.guesses.length, d.guesses)
       }
       setReady(true)
     })
@@ -439,28 +522,29 @@ export default function DailyWordGame() {
 
   /* --- Saisie --- */
   function addLetter(ch: string) {
-    if (phase !== 'playing' || lockRef.current) return
+    if (!ready || phase !== 'playing' || lockRef.current) return
     if (current.length >= 5) return
     sfx.play('click', { volume: 0.3 })
     setCurrent(current + ch)
   }
 
   function removeLetter() {
-    if (phase !== 'playing' || lockRef.current) return
+    if (!ready || phase !== 'playing' || lockRef.current) return
     if (!current.length) return
+    sfx.play('click', { volume: 0.25 })
     setCurrent(current.slice(0, -1))
   }
 
   function flashInvalid(msg: string) {
     setMessage(msg)
-    setShakeRow(true)
+    setShakeCount((k) => k + 1) // remonte la ligne → relance l'animation shake
     sfx.play('wrong', { volume: 0.35 })
-    schedule(() => setShakeRow(false), 500)
+    navigator.vibrate?.(10)
     schedule(() => setMessage(null), 2200)
   }
 
   function submitGuess() {
-    if (phase !== 'playing' || lockRef.current) return
+    if (!ready || phase !== 'playing' || lockRef.current) return
     if (current.length !== 5) {
       flashInvalid(L.incomplete)
       return
@@ -482,10 +566,12 @@ export default function DailyWordGame() {
     setMessage(null)
     lockRef.current = true
     setRevealIdx(0)
+    sfx.play('pop', { volume: 0.5 })
+    navigator.vibrate?.(10)
     if (mode === 'daily') {
       const d: DWDaily = { date: todayKey(), lang, guesses: nextGuesses, counted: playCountedRef.current }
-      dailyRef.current = d
-      persist(statsRef.current, d)
+      dailyMapRef.current = { ...dailyMapRef.current, [lang]: d }
+      persist(statsRef.current, dailyMapRef.current)
     }
     for (let i = 0; i < 5; i++) {
       schedule(() => {
@@ -507,36 +593,22 @@ export default function DailyWordGame() {
     if (won) {
       sfx.play('win')
       setConfettiKey((k) => k + 1)
+      navigator.vibrate?.(10)
     } else {
       sfx.play('lose')
     }
-    if (mode === 'daily') finishDailyStats(won, tries, gs)
+    if (mode === 'daily') recordDailyResult(answer, won, tries, gs)
   }
 
-  function finishDailyStats(won: boolean, tries: number, gs: string[]) {
+  /** Enregistre le résultat du défi du jour : stats persistées + gamification (une seule fois par jour). */
+  function recordDailyResult(ans: string, won: boolean, tries: number, gs: string[]) {
     const today = todayKey()
-    const prev = statsRef.current
-    if (prev.history[today]) return // déjà comptabilisé aujourd'hui (robustesse)
-    const s: DWStats = {
-      ...prev,
-      distribution: [...prev.distribution],
-      history: { ...prev.history, [today]: { word: answer, tries, won } },
-    }
-    s.gamesPlayed += 1
-    s.lastPlayedDate = today
-    if (won) {
-      s.wins += 1
-      s.distribution[tries - 1] += 1
-      s.currentStreak = prev.lastWonDate === dateKeyOffset(-1) ? prev.currentStreak + 1 : 1
-      s.maxStreak = Math.max(s.maxStreak, s.currentStreak)
-      s.lastWonDate = today
-    } else {
-      s.currentStreak = 0
-    }
+    const s = withDailyResult(statsRef.current, won, tries, ans, today)
+    if (!s) return
     applyStats(s)
     const d: DWDaily = { date: today, lang, guesses: gs, counted: playCountedRef.current }
-    dailyRef.current = d
-    persist(s, d)
+    dailyMapRef.current = { ...dailyMapRef.current, [lang]: d }
+    persist(s, dailyMapRef.current)
     if (won) {
       addWin(gameId)
       addXp(25 + (6 - tries) * 5)
@@ -572,7 +644,7 @@ export default function DailyWordGame() {
     setPhase('playing')
     setRevealIdx(5)
     setMessage(null)
-    setShakeRow(false)
+    setShakeCount(0)
   }
 
   function backToDaily() {
@@ -580,21 +652,21 @@ export default function DailyWordGame() {
     genRef.current++
     lockRef.current = false
     const today = todayKey()
-    const d = dailyRef.current
+    const d = dailyMapRef.current[lang] ?? null
     const ans = wordForDate(lang, today)
     setMode('daily')
     setAnswer(ans)
-    const gs = d && d.date === today && d.lang === lang ? d.guesses : []
+    const gs = d && d.date === today ? d.guesses : []
     setGuesses(gs)
     setCurrent('')
     setRevealIdx(5)
     setMessage(null)
-    setShakeRow(false)
+    setShakeCount(0)
     setPhase(gs.includes(ans) ? 'won' : gs.length >= 6 ? 'lost' : 'playing')
     playCountedRef.current = d?.counted ?? false
   }
 
-  /* --- Clavier physique (listener rafraîchi à chaque rendu, jamais dans le corps d'effet) --- */
+  /* --- Clavier physique (listener rafraîchi à chaque rendu, jamais de setState dans l'effet) --- */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return
@@ -605,6 +677,8 @@ export default function DailyWordGame() {
       } else if (e.key === 'Backspace') {
         e.preventDefault()
         removeLetter()
+      } else if (e.key === ' ') {
+        e.preventDefault() // pas de scroll intempestif pendant la partie
       } else if (e.key.length === 1) {
         const ch = normalizeWord(e.key)
         if (ch.length === 1) addLetter(ch)
@@ -641,19 +715,23 @@ export default function DailyWordGame() {
     [guesses, answer],
   )
 
+  /** États du clavier (priorité vert > orange > gris). La dernière ligne révélée
+   *  ses couleurs colonne par colonne, au rythme du flip des tuiles. */
   const keyStates = useMemo(() => {
     const m = new Map<string, LetterState>()
     const rank: Record<LetterState, number> = { absent: 0, present: 1, correct: 2 }
     for (let r = 0; r < guesses.length; r++) {
+      const isLast = r === guesses.length - 1
       const sts = rowStatuses[r]
       for (let c = 0; c < 5; c++) {
+        if (isLast && c >= revealIdx) continue
         const ch = guesses[r][c]
         const prev = m.get(ch)
         if (!prev || rank[sts[c]] > rank[prev]) m.set(ch, sts[c])
       }
     }
     return m
-  }, [guesses, rowStatuses])
+  }, [guesses, rowStatuses, revealIdx])
 
   const archiveDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => dateKeyOffset(-1 - i)),
@@ -661,6 +739,7 @@ export default function DailyWordGame() {
   )
 
   const today = todayKey()
+  const triesLeft = Math.max(0, 6 - guesses.length)
   const effStreak =
     stats.lastWonDate === today || stats.lastWonDate === dateKeyOffset(-1) ? stats.currentStreak : 0
   const maxDist = Math.max(...stats.distribution, 1)
@@ -675,54 +754,72 @@ export default function DailyWordGame() {
     <div className="relative select-none">
       <Confetti fire={confettiKey} count={reduce ? 0 : 120} />
 
-      {/* Barre de mode */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* HUD compact : mode, n° du jour, série, essais restants */}
+      <div className="flex flex-wrap items-center gap-1.5">
         {mode === 'daily' ? (
-          <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-            <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-            {L.dailyBadge} · #{puzzleNumber(today)}
+          <span
+            title={L.dailyBadge}
+            className="flex h-9 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+          >
+            <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            {L.dailyShort} · #{puzzleNumber(today)}
           </span>
         ) : (
-          <span className="flex h-11 items-center gap-1.5 rounded-full bg-orange-100 px-3.5 text-sm font-bold text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
-            <Dumbbell className="h-4 w-4" aria-hidden="true" />
+          <span
+            title={L.practiceHint}
+            className="flex h-9 items-center gap-1.5 rounded-full bg-orange-100 px-3 text-xs font-bold text-orange-700 dark:bg-orange-500/20 dark:text-orange-300"
+          >
+            <Dumbbell className="h-3.5 w-3.5" aria-hidden="true" />
             {L.practiceBadge}
           </span>
         )}
         {mode === 'daily' && effStreak > 0 ? (
-          <span className="flex h-11 items-center gap-1.5 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold" title={L.currentStreak}>
-            <Flame className="h-4 w-4 text-orange-500" aria-hidden="true" />
-            {L.streakLabel} {effStreak}
+          <span
+            title={L.currentStreak}
+            className="flex h-9 items-center gap-1 rounded-full bg-secondary/70 px-2.5 text-xs font-semibold tabular-nums"
+          >
+            <Flame className="h-3.5 w-3.5 text-orange-500" aria-hidden="true" />
+            {effStreak}
           </span>
         ) : null}
-        <div className="ms-auto flex flex-wrap gap-2">
+        {phase === 'playing' && ready ? (
+          <span
+            title={`${triesLeft} ${L.triesLeft}`}
+            className="flex h-9 items-center gap-1 rounded-full bg-secondary/70 px-2.5 text-xs font-semibold tabular-nums"
+          >
+            <Crosshair className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            {triesLeft}/6
+          </span>
+        ) : null}
+        <div className="ms-auto flex flex-wrap gap-1.5">
           {mode === 'practice' ? (
-            <Button variant="secondary" size="lg" className="h-11 rounded-full" onClick={backToDaily}>
-              <Undo2 className="h-4 w-4" aria-hidden="true" />
-              {L.playDaily}
+            <Button variant="secondary" size="sm" className="h-9 gap-1.5 rounded-full px-3 text-xs" onClick={backToDaily}>
+              <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+              {L.playDailyShort}
             </Button>
           ) : (
-            <Button variant="secondary" size="lg" className="h-11 rounded-full" onClick={() => startPractice()}>
-              <Dumbbell className="h-4 w-4" aria-hidden="true" />
+            <Button variant="secondary" size="sm" className="h-9 gap-1.5 rounded-full px-3 text-xs" onClick={() => startPractice()}>
+              <Dumbbell className="h-3.5 w-3.5" aria-hidden="true" />
               {L.practiceBtn}
             </Button>
           )}
         </div>
       </div>
       {mode === 'practice' ? (
-        <p className="mt-1.5 text-xs text-muted-foreground">{L.practiceHint}</p>
+        <p className="mt-1 text-[11px] leading-tight text-muted-foreground">{L.practiceHint}</p>
       ) : null}
 
-      {/* Grille 6 × 5 */}
-      <div className="mt-4 flex flex-col items-center gap-1.5" role="grid" aria-label={L.boardLabel}>
+      {/* Grille 6 × 5 — compacte, jamais de scroll horizontal */}
+      <div className="mt-2 flex flex-col items-center gap-1" role="grid" aria-label={L.boardLabel}>
         {Array.from({ length: 6 }, (_, r) => {
           const submitted = r < guesses.length
           const isCurrentRow = r === guesses.length && phase === 'playing'
           const rowWord = submitted ? guesses[r] : isCurrentRow ? current : ''
           return (
             <div
-              key={r}
+              key={isCurrentRow ? `cur-${shakeCount}` : `row-${r}`}
               role="row"
-              className={cn('flex gap-1.5', shakeRow && isCurrentRow && 'anim-shake')}
+              className={cn('flex gap-1', isCurrentRow && shakeCount > 0 && 'anim-shake')}
             >
               {Array.from({ length: 5 }, (_, c) => {
                 const ch = rowWord[c] ?? ''
@@ -736,7 +833,7 @@ export default function DailyWordGame() {
                     key={c}
                     role="gridcell"
                     className={cn(
-                      'flex h-[clamp(42px,11vw,54px)] w-[clamp(42px,11vw,54px)] items-center justify-center rounded-lg border-2 text-2xl font-extrabold uppercase transition-colors',
+                      `${TILE_SIZE} flex items-center justify-center rounded-lg border-2 text-[clamp(15px,min(5.5vw,24px),26px)] font-extrabold uppercase transition-colors`,
                       st
                         ? TILE_CLASS[st]
                         : ch
@@ -754,24 +851,21 @@ export default function DailyWordGame() {
         })}
       </div>
 
-      {/* Message inline */}
-      <p className="mt-2 min-h-6 text-center text-sm font-semibold text-muted-foreground" aria-live="polite">
+      {/* Message inline (mot invalide, etc.) */}
+      <p className="mt-1.5 min-h-5 text-center text-xs font-semibold text-muted-foreground sm:text-sm" aria-live="polite">
         {message ?? ''}
       </p>
 
-      {/* Clavier virtuel */}
-      <div className="mx-auto w-full max-w-[500px] select-none" role="group" aria-label={L.keyboardLabel}>
+      {/* Clavier virtuel — saisie principale sur mobile, 3 rangées ≥ 40 px */}
+      <div className="mx-auto mt-1.5 w-full max-w-[500px] select-none" role="group" aria-label={L.keyboardLabel}>
         {KEYBOARDS[lang].map((row, ri) => (
-          <div key={ri} className="mb-[4px] flex justify-center gap-[3px] last:mb-0 sm:gap-1.5">
+          <div key={ri} className="flex justify-center gap-[3px] py-[2px] sm:gap-1.5">
             {ri === KEYBOARDS[lang].length - 1 ? (
               <button
                 type="button"
                 aria-label={L.enter}
-                onClick={() => {
-                  sfx.play('click', { volume: 0.4 })
-                  submitGuess()
-                }}
-                className="flex h-12 min-w-0 flex-[1.8] items-center justify-center rounded-lg border border-border bg-secondary text-[10px] font-bold shadow-sm transition-colors hover:bg-secondary/70 active:scale-95 sm:text-xs"
+                onClick={submitGuess}
+                className="flex h-11 min-w-0 flex-[1.8] touch-manipulation select-none items-center justify-center rounded-lg border border-border bg-secondary text-[10px] font-bold shadow-sm transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-95 sm:h-12 sm:text-xs"
               >
                 {L.enter}
               </button>
@@ -782,12 +876,9 @@ export default function DailyWordGame() {
                 <button
                   key={letter}
                   type="button"
-                  onClick={() => {
-                    sfx.play('click', { volume: 0.3 })
-                    addLetter(letter)
-                  }}
+                  onClick={() => addLetter(letter)}
                   className={cn(
-                    'flex h-12 min-w-0 flex-1 items-center justify-center rounded-lg border border-border bg-secondary text-sm font-bold shadow-sm transition-colors hover:bg-secondary/70 active:scale-95',
+                    'flex h-11 min-w-0 flex-1 touch-manipulation select-none items-center justify-center rounded-lg border border-border bg-secondary text-[13px] font-bold shadow-sm transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-95 sm:h-12 sm:text-sm',
                     st ? KEY_CLASS[st] : null,
                   )}
                 >
@@ -799,11 +890,8 @@ export default function DailyWordGame() {
               <button
                 type="button"
                 aria-label={L.backspace}
-                onClick={() => {
-                  sfx.play('click', { volume: 0.4 })
-                  removeLetter()
-                }}
-                className="flex h-12 min-w-0 flex-[1.8] items-center justify-center rounded-lg border border-border bg-secondary text-base font-bold shadow-sm transition-colors hover:bg-secondary/70 active:scale-95"
+                onClick={removeLetter}
+                className="flex h-11 min-w-0 flex-[1.8] touch-manipulation select-none items-center justify-center rounded-lg border border-border bg-secondary text-base font-bold shadow-sm transition-colors hover:bg-secondary/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-95 sm:h-12"
               >
                 ⌫
               </button>
@@ -817,7 +905,7 @@ export default function DailyWordGame() {
         <div
           role="status"
           className={cn(
-            'anim-rise mt-4 rounded-2xl border-2 p-5 text-center',
+            'anim-rise mt-3 rounded-2xl border-2 p-4 text-center sm:p-5',
             phase === 'won'
               ? 'border-emerald-300/60 bg-emerald-50/60 dark:border-emerald-500/30 dark:bg-emerald-500/10'
               : 'border-rose-300/60 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-500/10',
@@ -863,9 +951,9 @@ export default function DailyWordGame() {
         </div>
       ) : null}
 
-      {/* Statistiques + archives */}
+      {/* Statistiques + archives (sous la surface de jeu) */}
       {ready && hydrated ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <section className="rounded-2xl border bg-card/60 p-4" aria-label={L.statsTitle}>
             <h3 className="flex items-center gap-2 font-display text-sm font-bold">
               <BarChart3 className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -939,7 +1027,7 @@ export default function DailyWordGame() {
                       type="button"
                       aria-label={`${L.replay} — ${fmtDate(dk, lang)}`}
                       onClick={() => startPractice(wordForDate(lang, dk))}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      className="flex h-11 w-11 shrink-0 touch-manipulation select-none items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
                     >
                       <RotateCcw className="h-4 w-4" aria-hidden="true" />
                     </button>

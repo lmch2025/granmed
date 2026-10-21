@@ -1,0 +1,731 @@
+     1→'use client'
+     2→
+     3→import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+     4→import { Play, CalendarCheck, RotateCcw, Share2, Send, Timer, Trophy, Zap, Home } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useLang } from '@/lib/i18n'
+     8→import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
+     9→import { todayKey, mulberry32, seedFromString, shuffle, shareText, useReducedMotion } from '@/lib/utils-game'
+    10→import type { GameSEOContent } from '@/lib/games/types'
+    11→import { FR_WORDS, EN_WORDS, FR_LETTER_WEIGHTS, EN_LETTER_WEIGHTS } from '@/components/games/data/longest-word-data'
+    12→import { Button } from '@/components/ui/button'
+    13→import { Confetti } from '@/components/shared/confetti'
+    14→import { toast } from 'sonner'
+    15→
+    16→export const gameId = 'longest-word'
+    17→
+    18→/* ================= Contenu SEO bilingue ================= */
+    19→export const content: GameSEOContent = {
+    20→  tagline: {
+    21→    fr: 'Formez un maximum de mots avec 9 lettres tirées au hasard avant la fin des 60 secondes.',
+    22→    en: 'Build as many words as you can from 9 random letters before the 60 seconds run out.',
+    23→  },
+    24→  description: {
+    25→    fr: [
+    26→      'Le Mot le Plus Long est un jeu de lettres gratuit en ligne dans lequel vous recevez neuf lettres et devez former un maximum de mots valides en 60 secondes. Chaque mot rapporte des points proportionnels à sa longueur : un mot de 5 lettres vaut 5 points, un mot de 8 lettres compte double et un mot utilisant les 9 lettres vaut 45 points.',
+    27→      'À chaque partie, le tirage garantit au moins 3 voyelles et 3 consonnes, avec des fréquences proches des distributions du Scrabble. Tapez vos mots au clavier ou sur mobile : la validation vérifie la longueur minimale de 3 lettres, la disponibilité des lettres (doublons compris) et la présence du mot dans le dictionnaire de la langue.',
+    28→      'Le jeu existe en deux langues avec des banques de mots distinctes (environ 2 500 mots courants chacune) : la version française joue en français, la version anglaise en anglais. Le défi du jour propose le même tirage à tous les joueurs d’une même langue, et vos records (meilleur score, longueur du mot le plus long) sont sauvegardés sur votre appareil.',
+    29→    ],
+    30→    en: [
+    31→      'The Longest Word is a free online word game in which you receive nine letters and must build as many valid words as you can in 60 seconds. Each word scores points based on its length: a 5-letter word is worth 5 points, an 8-letter word counts double and a word using all 9 letters is worth 45 points.',
+    32→      'Every draw guarantees at least 3 vowels and 3 consonants, with frequencies close to Scrabble distributions. Type your words on keyboard or mobile: validation checks the 3-letter minimum, letter availability (duplicates included) and the presence of the word in the language’s dictionary.',
+    33→      'The game comes in two languages with separate word banks (about 2,500 common words each): the French version plays in French, the English version in English. The daily challenge gives everyone the same draw, and your records (best score, longest word length) are saved on your device.',
+    34→    ],
+    35→  },
+    36→  rules: {
+    37→    fr: [
+    38→      'Observez les 9 lettres tirées : le tirage contient toujours au moins 3 voyelles et 3 consonnes.',
+    39→      'Tapez un mot de 3 lettres minimum utilisant uniquement les lettres disponibles (chaque lettre ne peut servir qu’autant de fois qu’elle apparaît).',
+    40→      'Appuyez sur Entrée ou sur « Proposer » : si le mot est valide et pas déjà trouvé, il rejoint votre liste et rapporte des points.',
+    41→      'Un mot de 8 lettres compte double (16 points) ; un mot de 9 lettres utilise tout le tirage et vaut 45 points.',
+    42→      'Vous avez 60 secondes : les 5 dernières sont signalées par un tic-tac. À la fin, découvrez votre score, votre mot le plus long et le récapitulatif.',
+    43→    ],
+    44→    en: [
+    45→      'Look at the 9 drawn letters: every draw contains at least 3 vowels and 3 consonants.',
+    46→      'Type a word of at least 3 letters using only the available letters (each letter can only be used as many times as it appears).',
+    47→      'Press Enter or “Submit”: if the word is valid and not already found, it joins your list and scores points.',
+    48→      'An 8-letter word counts double (16 points); a 9-letter word uses the whole draw and is worth 45 points.',
+    49→      'You have 60 seconds: the last 5 are flagged by a ticking sound. At the end, see your score, your longest word and the full recap.',
+    50→    ],
+    51→  },
+    52→  controls: {
+    53→    fr: [
+    54→      'Clavier : tapez le mot (les accents sont acceptés, é = e), Entrée pour proposer. Le champ garde le focus après chaque mot.',
+    55→      'Souris / tactile : bouton « Proposer » à côté du champ de saisie.',
+    56→      'Aucun déplacement de lettres nécessaire : seul le mot tapé compte.',
+    57→    ],
+    58→    en: [
+    59→      'Keyboard: type the word (accents are accepted, é = e), press Enter to submit. The field keeps focus after each word.',
+    60→      'Mouse / touch: “Submit” button next to the input field.',
+    61→      'No letter dragging needed: only the typed word matters.',
+    62→    ],
+    63→  },
+    64→  features: {
+    65→    fr: [
+    66→      'Tirage pondéré équilibré : 3 à 6 voyelles garanties, fréquences inspirées du Scrabble.',
+    67→      'Compte à rebours de 60 secondes avec tic-tac sur les 5 dernières et pause automatique si vous changez d’onglet.',
+    68→      'Validation instantanée avec raison claire : trop court, lettres indisponibles, absent du dictionnaire ou déjà trouvé.',
+    69→      'Bonus spéciaux : mot de 8 lettres ×2, mot de 9 lettres ×5 avec célébration.',
+    70→      'Défi du jour : le même tirage pour tous les joueurs de la même langue, partageable (lettres et score, sans dévoiler les mots).',
+    71→      'Records sauvegardés (meilleur score, mot le plus long) et succès à débloquer.',
+    72→    ],
+    73→    en: [
+    74→      'Balanced weighted draw: 3 to 6 guaranteed vowels, Scrabble-inspired frequencies.',
+    75→      '60-second countdown with ticking on the last 5 seconds and automatic pause when you switch tabs.',
+    76→      'Instant validation with a clear reason: too short, letters unavailable, not in the dictionary or already found.',
+    77→      'Special bonuses: 8-letter word ×2, 9-letter word ×5 with a celebration.',
+    78→      'Daily challenge: the same draw for everyone in the same language, shareable (letters and score, without revealing the words).',
+    79→      'Saved records (best score, longest word) and achievements to unlock.',
+    80→    ],
+    81→  },
+    82→  tips: {
+    83→    fr: [
+    84→      'Commencez par repérer les terminaisons fréquentes (-ER, -TION, -MENT en français ; -ING, -ED, -ER en anglais) : elles débloquent des mots longs.',
+    85→      'Alternez mots courts rapides et recherche de mots longs : trois mots de 4 lettres valent mieux qu’une longue hésitation.',
+    86→      'Les pluriels et conjugaisons courantes sont souvent dans le dictionnaire : testez les déclinaisons d’un mot déjà trouvé.',
+    87→      'Gardez un œil sur les lettres doublées : elles permettent des doubles consonnes (LL, NN, SS…) souvent décisives.',
+    88→      'Si un mot de 9 lettres vous échappe à la fin, tentez un 8 lettres : compté double, il reste très rentable.',
+    89→    ],
+    90→    en: [
+    91→      'Start by spotting common endings (-ING, -ED, -ER, -TION): they unlock long words.',
+    92→      'Alternate quick short words with longer searches: three 4-letter words beat one long hesitation.',
+    93→      'Common plurals and inflections are often in the dictionary: test variations of a word you already found.',
+    94→      'Keep an eye on doubled letters: they enable double consonants (LL, NN, SS…) that are often decisive.',
+    95→      'If a 9-letter word escapes you at the end, try an 8-letter one: counted double, it stays very profitable.',
+    96→    ],
+    97→  },
+    98→  faq: {
+    99→    fr: [
+   100→      { q: 'Le jeu Le Mot le Plus Long est-il vraiment gratuit ?', a: 'Oui, le jeu est entièrement gratuit, sans inscription ni téléchargement, directement dans votre navigateur.' },
+   101→      { q: 'Pourquoi mon mot est-il refusé ?', a: 'Un mot refusé est soit trop court (3 lettres minimum), soit composé de lettres indisponibles dans le tirage, soit absent du dictionnaire du jeu, soit déjà trouvé. Le motif exact s’affiche sous le champ de saisie.' },
+   102→      { q: 'Comment les points sont-ils calculés ?', a: 'Chaque mot vaut sa longueur en points. Un mot de 8 lettres compte double (16 points) et un mot de 9 lettres, qui utilise tout le tirage, vaut 45 points.' },
+   103→      { q: 'Les accents sont-ils acceptés ?', a: 'Oui : la saisie normalise automatiquement les accents (é, è, à, ç…), le dictionnaire étant stocké sans accents. « clé » se tape donc indifféremment « cle » ou « clé ».' },
+   104→      { q: 'Le défi du jour est-il identique pour tous ?', a: 'Oui : le tirage du jour est généré de façon déterministe, donc identique pour tous les joueurs de la même langue. Il est validé dès que vous trouvez au moins un mot.' },
+   105→    ],
+   106→    en: [
+   107→      { q: 'Is The Longest Word really free?', a: 'Yes, the game is completely free, with no sign-up or download, straight in your browser.' },
+   108→      { q: 'Why is my word rejected?', a: 'A rejected word is either too short (3 letters minimum), uses letters unavailable in the draw, is missing from the game dictionary, or has already been found. The exact reason is displayed under the input field.' },
+   109→      { q: 'How are points calculated?', a: 'Each word is worth its length in points. An 8-letter word counts double (16 points) and a 9-letter word, using the whole draw, is worth 45 points.' },
+   110→      { q: 'Are accents accepted?', a: 'Yes: input automatically normalizes accents (é, è, à, ç…), the dictionary being stored without accents. You can type “cafe” or “café” alike.' },
+   111→      { q: 'Is the daily challenge the same for everyone?', a: 'Yes: the daily draw is generated deterministically, so it is identical for every player of the same language. It counts as complete as soon as you find at least one word.' },
+   112→    ],
+   113→  },
+   114→  records: {
+   115→    'best-score': { fr: 'Meilleur score', en: 'Best score' },
+   116→    'longest-word': { fr: 'Mot le plus long (lettres)', en: 'Longest word (letters)' },
+   117→  },
+   118→}
+   119→
+   120→/* ================= Constantes & helpers ================= */
+   121→
+   122→const ROUND_MS = 60000
+   123→const LETTER_COUNT = 9
+   124→const MIN_WORD_LEN = 3
+   125→const VOWELS = new Set(['a', 'e', 'i', 'o', 'u'])
+   126→
+   127→function wordsFor(lang: 'fr' | 'en'): ReadonlySet<string> {
+   128→  return lang === 'fr' ? FR_WORDS : EN_WORDS
+   129→}
+   130→
+   131→/** é→e, è→e, à→a, ç→c… et ligatures œ→oe, æ→ae. */
+   132→function foldAccents(s: string): string {
+   133→  return s
+   134→    .replace(/œ/g, 'oe')
+   135→    .replace(/Œ/g, 'OE')
+   136→    .replace(/æ/g, 'ae')
+   137→    .replace(/Æ/g, 'AE')
+   138→    .normalize('NFD')
+   139→    .replace(/[\u0300-\u036f]/g, '')
+   140→}
+   141→
+   142→/** Mot candidat : majuscules, sans accents, lettres A-Z uniquement. */
+   143→function normalizeWord(s: string): string {
+   144→  return foldAccents(s).toUpperCase().replace(/[^A-Z]/g, '')
+   145→}
+   146→
+   147→/** Points d'un mot : longueur ; 8 lettres ×2 ; 9 lettres (tout le tirage) ×5. */
+   148→function wordPoints(len: number): number {
+   149→  if (len === 9) return 45
+   150→  if (len === 8) return 16
+   151→  return len
+   152→}
+   153→
+   154→/** Tirage de 9 lettres : 3 à 6 voyelles (donc 3 à 6 consonnes), pondéré, ordre mélangé. */
+   155→function drawLetters(rand: () => number, weights: Record<string, number>): string[] {
+   156→  const vowelTarget = 3 + Math.floor(rand() * 4)
+   157→  const pick = (vowel: boolean): string => {
+   158→    const pool = Object.keys(weights).filter((k) => VOWELS.has(k) === vowel && weights[k] > 0)
+   159→    const total = pool.reduce((s, k) => s + weights[k], 0)
+   160→    let r = rand() * total
+   161→    for (const k of pool) {
+   162→      r -= weights[k]
+   163→      if (r <= 0) return k
+   164→    }
+   165→    return pool[pool.length - 1] ?? 'e'
+   166→  }
+   167→  const letters: string[] = []
+   168→  for (let i = 0; i < vowelTarget; i++) letters.push(pick(true))
+   169→  for (let i = 0; i < LETTER_COUNT - vowelTarget; i++) letters.push(pick(false))
+   170→  return shuffle(letters, rand).map((l) => l.toUpperCase())
+   171→}
+   172→
+   173→interface FoundWord {
+   174→  word: string
+   175→  points: number
+   176→}
+   177→
+   178→type ErrorKey = 'short' | 'letters' | 'dict' | 'dup'
+   179→
+   180→/* ================= Composant principal ================= */
+   181→export default function LongestWordGame() {
+   182→  const lang = useLang()
+   183→  const reduce = useReducedMotion()
+   184→  const dailyDone = useIsDailyDone(gameId)
+   185→  const addPlay = useProfileStore((s) => s.addPlay)
+   186→  const addWin = useProfileStore((s) => s.addWin)
+   187→  const addXp = useProfileStore((s) => s.addXp)
+   188→  const setBest = useProfileStore((s) => s.setBest)
+   189→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   190→  const completeDaily = useProfileStore((s) => s.completeDaily)
+   191→
+   192→  const [phase, setPhase] = useState<'menu' | 'playing' | 'end'>('menu')
+   193→  const [mode, setMode] = useState<'free' | 'daily'>('free')
+   194→  const [letters, setLetters] = useState<string[]>([])
+   195→  const [guess, setGuess] = useState('')
+   196→  const [error, setError] = useState<ErrorKey | null>(null)
+   197→  const [found, setFound] = useState<FoundWord[]>([])
+   198→  const [score, setScore] = useState(0)
+   199→  const [timeLeft, setTimeLeft] = useState(ROUND_MS)
+   200→  const [shake, setShake] = useState(false)
+   201→  const [nineFlash, setNineFlash] = useState<string | null>(null)
+   202→  const [confettiKey, setConfettiKey] = useState(0)
+   203→  const [endData, setEndData] = useState<{ score: number; longest: string | null; count: number; isRecord: boolean; daily: boolean } | null>(null)
+   204→
+   205→  const inputRef = useRef<HTMLInputElement>(null)
+   206→  const deadlineRef = useRef(0)
+   207→  const remainingRef = useRef(ROUND_MS)
+   208→  const lastSecondRef = useRef(61)
+   209→  const foundRef = useRef<FoundWord[]>([])
+   210→  const scoreRef = useRef(0)
+   211→  const longestLenRef = useRef(0)
+   212→  const endedRef = useRef(false)
+   213→  const flashTimerRef = useRef<number | null>(null)
+   214→
+   215→  const L = {
+   216→    fr: {
+   217→      freeGame: 'Partie libre',
+   218→      freeSub: '9 lettres au hasard, 60 secondes',
+   219→      dailyGame: 'Défi du jour',
+   220→      dailySub: 'Les mêmes 9 lettres pour tous',
+   221→      dailyDone: 'Défi du jour réussi',
+   222→      score: 'Score',
+   223→      found: 'Mots trouvés',
+   224→      noneYet: 'Aucun mot pour l’instant — à vous de jouer !',
+   225→      placeholder: 'Tapez un mot…',
+   226→      submit: 'Proposer',
+   227→      errShort: 'Trop court : 3 lettres minimum.',
+   228→      errLetters: 'Lettres indisponibles dans le tirage.',
+   229→      errDict: 'Ce mot n’est pas dans le dictionnaire.',
+   230→      errDup: 'Mot déjà trouvé !',
+   231→      endTitle: 'Temps écoulé !',
+   232→      longest: 'Mot le plus long',
+   233→      wordsFound: 'mots trouvés',
+   234→      playAgain: 'Rejouer',
+   235→      menu: 'Menu',
+   236→      share: 'Partager',
+   237→      newRecord: 'Nouveau record !',
+   238→      nineFlash: 'Toutes les lettres ! ×5',
+   239→      timeLeft: 'Temps restant',
+   240→      shareTitle: 'Granmed — Le Mot le Plus Long',
+   241→      copied: 'Copié !',
+   242→      play: 'Jouer',
+   243→      dailyLetters: 'Lettres',
+   244→    },
+   245→    en: {
+   246→      freeGame: 'Free game',
+   247→      freeSub: '9 random letters, 60 seconds',
+   248→      dailyGame: 'Daily challenge',
+   249→      dailySub: 'The same 9 letters for everyone',
+   250→      dailyDone: 'Daily challenge complete',
+   251→      score: 'Score',
+   252→      found: 'Words found',
+   253→      noneYet: 'No words yet — your turn to play!',
+   254→      placeholder: 'Type a word…',
+   255→      submit: 'Submit',
+   256→      errShort: 'Too short: 3 letters minimum.',
+   257→      errLetters: 'Letters not available in the draw.',
+   258→      errDict: 'This word is not in the dictionary.',
+   259→      errDup: 'Word already found!',
+   260→      endTitle: "Time's up!",
+   261→      longest: 'Longest word',
+   262→      wordsFound: 'words found',
+   263→      playAgain: 'Play again',
+   264→      menu: 'Menu',
+   265→      share: 'Share',
+   266→      newRecord: 'New personal best!',
+   267→      nineFlash: 'All nine letters! ×5',
+   268→      timeLeft: 'Time left',
+   269→      shareTitle: 'Granmed — The Longest Word',
+   270→      copied: 'Copied!',
+   271→      play: 'Play',
+   272→      dailyLetters: 'Letters',
+   273→    },
+   274→  }[lang]
+   275→
+   276→  const ERROR_TEXT: Record<ErrorKey, string> = {
+   277→    short: L.errShort,
+   278→    letters: L.errLetters,
+   279→    dict: L.errDict,
+   280→    dup: L.errDup,
+   281→  }
+   282→
+   283→  /* --- Focus du champ au lancement --- */
+   284→  useEffect(() => {
+   285→    if (phase === 'playing') inputRef.current?.focus()
+   286→  }, [phase])
+   287→
+   288→  /* --- Nettoyage du minuteur d'animation « 9 lettres » --- */
+   289→  useEffect(() => {
+   290→    return () => {
+   291→      if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current)
+   292→    }
+   293→  }, [])
+   294→
+   295→  const letterCounts = useMemo(() => {
+   296→    const m = new Map<string, number>()
+   297→    for (const l of letters) m.set(l, (m.get(l) ?? 0) + 1)
+   298→    return m
+   299→  }, [letters])
+   300→
+   301→  const sortedFound = useMemo(
+   302→    () => [...found].sort((a, b) => b.word.length - a.word.length || a.word.localeCompare(b.word)),
+   303→    [found],
+   304→  )
+   305→
+   306→  function canBuild(word: string): boolean {
+   307→    const counts = new Map(letterCounts)
+   308→    for (const ch of word) {
+   309→      const c = counts.get(ch) ?? 0
+   310→      if (c <= 0) return false
+   311→      counts.set(ch, c - 1)
+   312→    }
+   313→    return true
+   314→  }
+   315→
+   316→  const startGame = useCallback(
+   317→    (m: 'free' | 'daily') => {
+   318→      const weights = lang === 'fr' ? FR_LETTER_WEIGHTS : EN_LETTER_WEIGHTS
+   319→      const rand = m === 'daily' ? mulberry32(seedFromString(`${gameId}:${todayKey()}`)) : Math.random
+   320→      const drawn = drawLetters(rand, weights)
+   321→      setMode(m)
+   322→      setLetters(drawn)
+   323→      setGuess('')
+   324→      setError(null)
+   325→      setFound([])
+   326→      foundRef.current = []
+   327→      scoreRef.current = 0
+   328→      setScore(0)
+   329→      longestLenRef.current = 0
+   330→      endedRef.current = false
+   331→      remainingRef.current = ROUND_MS
+   332→      lastSecondRef.current = 61
+   333→      deadlineRef.current = Date.now() + ROUND_MS
+   334→      setTimeLeft(ROUND_MS)
+   335→      setNineFlash(null)
+   336→      setEndData(null)
+   337→      setPhase('playing')
+   338→      addPlay(gameId)
+   339→    },
+   340→    [lang, addPlay],
+   341→  )
+   342→
+   343→  /* --- Fin de manche (appelée depuis le callback du minuteur, jamais un effet) --- */
+   344→  const endRound = useCallback(() => {
+   345→    if (endedRef.current) return
+   346→    endedRef.current = true
+   347→    const foundWords = foundRef.current
+   348→    const sc = scoreRef.current
+   349→    const longestLen = longestLenRef.current
+   350→    const longest =
+   351→      foundWords.length > 0
+   352→        ? [...foundWords].sort((a, b) => b.word.length - a.word.length || a.word.localeCompare(b.word))[0].word
+   353→        : null
+   354→    let isRecord = false
+   355→    if (foundWords.length > 0) {
+   356→      isRecord = setBest(gameId, 'best-score', sc) || setBest(gameId, 'longest-word', longestLen)
+   357→    }
+   358→    addXp(Math.floor(sc / 3))
+   359→    if (foundWords.length >= 5) {
+   360→      addWin(gameId)
+   361→      sfx.play('win')
+   362→      setConfettiKey((k) => k + 1)
+   363→    } else if (foundWords.length === 0) {
+   364→      sfx.play('lose', { volume: 0.5 })
+   365→    }
+   366→    if (mode === 'daily' && foundWords.length >= 1) completeDaily(gameId)
+   367→    setEndData({ score: sc, longest, count: foundWords.length, isRecord, daily: mode === 'daily' })
+   368→    setPhase('end')
+   369→  }, [mode, setBest, addXp, addWin, completeDaily])
+   370→
+   371→  /* --- Compte à rebours (pause quand l'onglet est masqué) --- */
+   372→  useEffect(() => {
+   373→    if (phase !== 'playing') return
+   374→    const id = window.setInterval(() => {
+   375→      if (document.hidden) return
+   376→      const rem = Math.max(0, deadlineRef.current - Date.now())
+   377→      remainingRef.current = rem
+   378→      const whole = Math.ceil(rem / 1000)
+   379→      if (whole !== lastSecondRef.current) {
+   380→        lastSecondRef.current = whole
+   381→        if (whole > 0 && whole <= 5) sfx.play('tick')
+   382→      }
+   383→      if (rem <= 0) {
+   384→        endRound()
+   385→        return
+   386→      }
+   387→      setTimeLeft(rem)
+   388→    }, 250)
+   389→    const onVis = () => {
+   390→      if (!document.hidden && !endedRef.current && remainingRef.current > 0) {
+   391→        deadlineRef.current = Date.now() + remainingRef.current
+   392→      }
+   393→    }
+   394→    document.addEventListener('visibilitychange', onVis)
+   395→    return () => {
+   396→      window.clearInterval(id)
+   397→      document.removeEventListener('visibilitychange', onVis)
+   398→    }
+   399→  }, [phase, endRound])
+   400→
+   401→  /* --- Soumission d'un mot --- */
+   402→  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+   403→    e.preventDefault()
+   404→    if (phase !== 'playing') return
+   405→    const w = normalizeWord(guess)
+   406→    setGuess('')
+   407→    if (!w) return
+   408→    const fail = (key: ErrorKey) => {
+   409→      sfx.play('wrong', { volume: 0.35 })
+   410→      setError(key)
+   411→      setShake(true)
+   412→    }
+   413→    if (w.length < MIN_WORD_LEN) return fail('short')
+   414→    if (!canBuild(w)) return fail('letters')
+   415→    if (!wordsFor(lang).has(w.toLowerCase())) return fail('dict')
+   416→    if (foundRef.current.some((f) => f.word === w)) return fail('dup')
+   417→
+   418→    const len = w.length
+   419→    const points = wordPoints(len)
+   420→    const next = [...foundRef.current, { word: w, points }]
+   421→    foundRef.current = next
+   422→    setFound(next)
+   423→    scoreRef.current += points
+   424→    setScore(scoreRef.current)
+   425→    if (len > longestLenRef.current) longestLenRef.current = len
+   426→    setError(null)
+   427→    sfx.play('correct')
+   428→
+   429→    if (len === 9) {
+   430→      unlockBadge('longest-9')
+   431→      unlockBadge('longest-7')
+   432→      sfx.play('levelup')
+   433→      setConfettiKey((k) => k + 1)
+   434→      setNineFlash(w)
+   435→      if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current)
+   436→      flashTimerRef.current = window.setTimeout(() => setNineFlash(null), 2600)
+   437→    } else if (len >= 7) {
+   438→      unlockBadge('longest-7')
+   439→    }
+   440→    inputRef.current?.focus()
+   441→  }
+   442→
+   443→  async function onShare() {
+   444→    sfx.play('click')
+   445→    const url =
+   446→      typeof window !== 'undefined'
+   447→        ? `${window.location.href.split('#')[0]}#/${lang === 'fr' ? 'fr/mot-le-plus-long' : 'en/longest-word-game'}`
+   448→        : ''
+   449→    const sc = endData?.score ?? score
+   450→    let text: string
+   451→    if (endData?.daily && letters.length > 0) {
+   452→      text =
+   453→        lang === 'fr'
+   454→          ? `Défi du jour — Le Mot le Plus Long sur Granmed\n${L.dailyLetters} : ${letters.join(' ')}\nScore : ${sc} points. Peux-tu faire mieux ? ${url}`
+   455→          : `Daily challenge — The Longest Word on Granmed\n${L.dailyLetters}: ${letters.join(' ')}\nScore: ${sc} points. Can you beat that? ${url}`
+   456→    } else {
+   457→      const count = endData?.count ?? found.length
+   458→      const longest = endData?.longest ?? null
+   459→      text =
+   460→        lang === 'fr'
+   461→          ? `J’ai trouvé ${count} mots (le plus long : ${longest ?? '—'}) pour ${sc} points au Mot le Plus Long sur Granmed ! ${url}`
+   462→          : `I found ${count} words (longest: ${longest ?? '—'}) for ${sc} points in The Longest Word on Granmed! ${url}`
+   463→    }
+   464→    const ok = await shareText(L.shareTitle, text)
+   465→    if (ok) toast.success(L.copied)
+   466→  }
+   467→
+   468→  const secondsLeft = Math.ceil(timeLeft / 1000)
+   469→  const lowTime = secondsLeft <= 10
+   470→
+   471→  /* ================= Rendu ================= */
+   472→  return (
+   473→    <div className="relative select-none">
+   474→      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+   475→
+   476→      {/* Flash « 9 lettres » */}
+   477→      {nineFlash ? (
+   478→        <div key={nineFlash} className="anim-score pointer-events-none absolute inset-x-0 top-1/3 z-10 text-center">
+   479→          <span className="inline-block rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 font-display text-xl font-extrabold text-white shadow-xl sm:text-2xl">
+   480→            🎉 {nineFlash} — {L.nineFlash}
+   481→          </span>
+   482→        </div>
+   483→      ) : null}
+   484→
+   485→      {/* ===== Écran de menu ===== */}
+   486→      {phase === 'menu' ? (
+   487→        <div className="checkerboard flex min-h-[340px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
+   488→          <div className="flex gap-1.5" aria-hidden="true">
+   489→            {'GRANMED'.slice(0, 9).padEnd(9, ' ').split('').map((c, i) =>
+   490→              c === ' ' ? null : (
+   491→                <span
+   492→                  key={i}
+   493→                  className={cn(
+   494→                    'flex h-12 w-10 items-center justify-center rounded-xl border-2 border-primary/30 bg-card font-display text-xl font-extrabold text-primary',
+   495→                    reduce ? '' : 'anim-floaty',
+   496→                  )}
+   497→                  style={{ animationDelay: `${i * 0.25}s` }}
+   498→                >
+   499→                  {c}
+   500→                </span>
+   501→              ),
+   502→            )}
+   503→          </div>
+   504→          <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
+   505→          <div className="mt-2 flex w-full max-w-sm flex-col gap-2.5">
+   506→            {!dailyDone ? (
+   507→              <button
+   508→                type="button"
+   509→                onClick={() => {
+   510→                  sfx.play('pop')
+   511→                  startGame('daily')
+   512→                }}
+   513→                className="flex items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3.5 text-left transition-transform hover:scale-[1.01] dark:border-amber-500/25 dark:bg-amber-500/10"
+   514→              >
+   515→                <span className="text-2xl" aria-hidden="true">🎁</span>
+   516→                <span className="min-w-0 flex-1">
+   517→                  <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">
+   518→                    {L.dailyGame} — {todayKey()}
+   519→                  </span>
+   520→                  <span className="block text-xs text-muted-foreground">{L.dailySub}</span>
+   521→                </span>
+   522→                <span className="rounded-full bg-amber-500 px-3.5 py-2.5 text-xs font-bold text-white">{L.play}</span>
+   523→              </button>
+   524→            ) : (
+   525→              <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/60 bg-emerald-50/70 px-4 py-3.5 text-sm font-bold text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
+   526→                <CalendarCheck className="h-4 w-4" aria-hidden="true" /> {L.dailyDone} ✅
+   527→              </div>
+   528→            )}
+   529→            <button
+   530→              type="button"
+   531→              onClick={() => {
+   532→                sfx.play('click')
+   533→                startGame('free')
+   534→              }}
+   535→              className="flex items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 text-left transition-transform hover:scale-[1.01]"
+   536→            >
+   537→              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-orange-400 text-white">
+   538→                <Play className="h-5 w-5" aria-hidden="true" />
+   539→              </span>
+   540→              <span className="min-w-0 flex-1">
+   541→                <span className="block text-sm font-bold">{L.freeGame}</span>
+   542→                <span className="block text-xs text-muted-foreground">{L.freeSub}</span>
+   543→              </span>
+   544→              <span className="rounded-full bg-secondary px-3.5 py-2.5 text-xs font-bold">{L.play}</span>
+   545→            </button>
+   546→          </div>
+   547→        </div>
+   548→      ) : null}
+   549→
+   550→      {/* ===== Manche en cours ===== */}
+   551→      {phase === 'playing' ? (
+   552→        <div className="anim-rise">
+   553→          {/* Minuteur + score */}
+   554→          <div className="flex items-center justify-center gap-3">
+   555→            <span
+   556→              className={cn(
+   557→                'font-display text-4xl font-extrabold tabular-nums transition-colors sm:text-5xl',
+   558→                lowTime ? 'text-rose-500' : 'text-amber-500',
+   559→              )}
+   560→              role="timer"
+   561→              aria-label={`${L.timeLeft}: ${secondsLeft}s`}
+   562→            >
+   563→              {secondsLeft}
+   564→            </span>
+   565→            <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+   566→              <Zap className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+   567→              <span className="text-muted-foreground">{L.score}</span>
+   568→              <span className="tabular-nums">{score}</span>
+   569→            </span>
+   570→            {mode === 'daily' ? (
+   571→              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+   572→                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+   573→                {L.dailyGame}
+   574→              </span>
+   575→            ) : null}
+   576→          </div>
+   577→          {/* Barre de temps */}
+   578→          <div className="mx-auto mt-2 h-2 w-full max-w-md overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+   579→            <div
+   580→              className={cn('h-full rounded-full transition-[width] duration-300 ease-linear', lowTime ? 'bg-rose-400' : 'bg-amber-400')}
+   581→              style={{ width: `${Math.max(0, (timeLeft / ROUND_MS) * 100)}%` }}
+   582→            />
+   583→          </div>
+   584→
+   585→          {/* Lettres */}
+   586→          <div className="mx-auto mt-4 flex flex-wrap justify-center gap-1.5 sm:gap-2" aria-label={L.dailyLetters}>
+   587→            {letters.map((l, i) => (
+   588→              <div
+   589→                key={i}
+   590→                className="flex h-14 w-11 items-center justify-center rounded-xl border-2 border-primary/25 bg-gradient-to-br from-card to-secondary font-display text-2xl font-extrabold text-foreground shadow-sm sm:h-16 sm:w-13 sm:text-3xl"
+   591→              >
+   592→                {l}
+   593→              </div>
+   594→            ))}
+   595→          </div>
+   596→
+   597→          {/* Saisie */}
+   598→          <form onSubmit={onSubmit} className="mx-auto mt-4 flex max-w-md gap-2">
+   599→            <input
+   600→              ref={inputRef}
+   601→              type="text"
+   602→              value={guess}
+   603→              onChange={(e) => {
+   604→                setGuess(normalizeWord(e.target.value))
+   605→                setError(null)
+   606→              }}
+   607→              placeholder={L.placeholder}
+   608→              autoComplete="off"
+   609→              autoCorrect="off"
+   610→              autoCapitalize="characters"
+   611→              spellCheck={false}
+   612→              maxLength={9}
+   613→              aria-label={L.placeholder}
+   614→              onAnimationEnd={() => setShake(false)}
+   615→              className={cn(
+   616→                'h-12 w-full flex-1 rounded-xl border-2 bg-card px-4 text-center font-display text-lg font-bold tracking-widest uppercase focus:outline-none',
+   617→                error ? (shake ? 'anim-shake border-rose-300' : 'border-rose-300') : 'border-border focus:border-primary',
+   618→              )}
+   619→            />
+   620→            <Button type="submit" size="lg" className="h-12 shrink-0 rounded-xl px-4 sm:px-6">
+   621→              <Send className="h-4 w-4" aria-hidden="true" />
+   622→              <span className="hidden sm:inline">{L.submit}</span>
+   623→            </Button>
+   624→          </form>
+   625→
+   626→          {/* Raison d'invalidité */}
+   627→          {error ? (
+   628→            <p className="mt-2 text-center text-sm font-semibold text-rose-500" role="alert">
+   629→              {ERROR_TEXT[error]}
+   630→            </p>
+   631→          ) : null}
+   632→
+   633→          {/* Mots trouvés */}
+   634→          <div className="mt-4">
+   635→            <p className="mb-2 text-center text-sm font-semibold text-muted-foreground">
+   636→              {L.found} · {found.length}
+   637→            </p>
+   638→            {found.length === 0 ? (
+   639→              <p className="text-center text-sm text-muted-foreground/70">{L.noneYet}</p>
+   640→            ) : (
+   641→              <div className="nice-scroll mx-auto flex max-h-36 max-w-lg flex-wrap justify-center gap-1.5 overflow-y-auto px-1">
+   642→                {sortedFound.map((f) => (
+   643→                  <span
+   644→                    key={f.word}
+   645→                    className={cn(
+   646→                      'anim-pop-in rounded-full border px-2.5 py-1 text-sm font-bold',
+   647→                      f.word.length === 9
+   648→                        ? 'border-transparent bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+   649→                        : f.word.length === 8
+   650→                          ? 'border-amber-400 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+   651→                          : f.word.length === 7
+   652→                            ? 'border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-300'
+   653→                            : 'border-border bg-secondary/70 text-foreground',
+   654→                    )}
+   655→                  >
+   656→                    {f.word}
+   657→                    <span className="ms-1 text-xs opacity-70">{f.points}</span>
+   658→                  </span>
+   659→                ))}
+   660→              </div>
+   661→            )}
+   662→          </div>
+   663→        </div>
+   664→      ) : null}
+   665→
+   666→      {/* ===== Écran final ===== */}
+   667→      {phase === 'end' && endData ? (
+   668→        <div className="anim-rise rounded-2xl border-2 border-amber-300/60 bg-amber-50/50 p-6 text-center dark:border-amber-500/30 dark:bg-amber-500/10" role="status">
+   669→          <p className="font-display text-2xl font-extrabold text-amber-700 dark:text-amber-300">⏰ {L.endTitle}</p>
+   670→          <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
+   671→            <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.score} value={endData.score} />
+   672→            <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={L.longest} value={endData.longest ?? '—'} />
+   673→            <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={L.wordsFound} value={endData.count} />
+   674→            {endData.isRecord ? (
+   675→              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+   676→                <Trophy className="h-4 w-4" aria-hidden="true" /> {L.newRecord}
+   677→              </span>
+   678→            ) : null}
+   679→          </div>
+   680→          {endData.count > 0 ? (
+   681→            <div className="mt-4">
+   682→              <p className="mb-2 text-sm font-semibold text-muted-foreground">{L.found}</p>
+   683→              <div className="flex flex-wrap justify-center gap-1.5">
+   684→                {sortedFound.map((f) => (
+   685→                  <span
+   686→                    key={f.word}
+   687→                    className={cn(
+   688→                      'rounded-full border px-2.5 py-1 text-sm font-bold',
+   689→                      f.word.length === 9
+   690→                        ? 'border-transparent bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+   691→                        : f.word.length === 8
+   692→                          ? 'border-amber-400 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+   693→                          : f.word.length === 7
+   694→                            ? 'border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-300'
+   695→                            : 'border-border bg-secondary/70 text-foreground',
+   696→                    )}
+   697→                  >
+   698→                    {f.word}
+   699→                    <span className="ms-1 text-xs opacity-70">{f.points}</span>
+   700→                  </span>
+   701→                ))}
+   702→              </div>
+   703→            </div>
+   704→          ) : null}
+   705→          <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+   706→            <Button size="lg" className="rounded-full" onClick={() => startGame(mode)}>
+   707→              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.playAgain}
+   708→            </Button>
+   709→            <Button size="lg" variant="secondary" className="rounded-full" onClick={() => setPhase('menu')}>
+   710→              <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
+   711→            </Button>
+   712→            <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
+   713→              <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
+   714→            </Button>
+   715→          </div>
+   716→        </div>
+   717→      ) : null}
+   718→    </div>
+   719→  )
+   720→}
+   721→
+   722→function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+   723→  return (
+   724→    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+   725→      <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
+   726→      <span className="text-muted-foreground">{label}</span>
+   727→      <span className="tabular-nums">{value}</span>
+   728→    </span>
+   729→  )
+   730→}
+   731→

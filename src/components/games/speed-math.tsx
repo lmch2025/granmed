@@ -1,81 +1,86 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, CalendarCheck, Timer, Trophy, Flame, Target, Crosshair } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Play, RotateCcw, CalendarCheck, Timer, Trophy, Flame, Target, Crosshair, Delete, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, useReducedMotion } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
+import { Confetti } from '@/components/shared/confetti'
 
 export const gameId = 'speed-math'
 
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Enchaînez un maximum de calculs mentaux justes en 60 secondes, avec bonus de série et difficulté adaptative.',
-    en: 'Chain as many correct mental calculations as you can in 60 seconds, with streak bonuses and adaptive difficulty.',
+    fr: 'Tapez les bonnes réponses sur le pavé numérique : 60 secondes, bonus de série et fourchettes qui s’adaptent à vous.',
+    en: 'Type the right answers on the number pad: 60 seconds, streak bonuses and ranges that adapt to you.',
   },
   description: {
     fr: [
-      'Calcul Éclair est un jeu de calcul mental chronométré : pendant 60 secondes, les opérations s’enchaînent et vous choisissez la bonne réponse parmi quatre propositions. Chaque bonne réponse rapporte 10 points, augmentés d’un bonus quand votre série s’allonge (jusqu’à +20 au-delà de 10 bonnes réponses d’affilée).',
+      'Calcul Éclair est un jeu de calcul mental chronométré : pendant 60 secondes, les opérations s’enchaînent et vous tapez chaque résultat sur un grand pavé numérique pensé pour le pouce. La bonne réponse se valide automatiquement dès qu’elle est exacte ; chaque succès rapporte 10 points, augmentés d’un bonus quand votre série s’allonge (jusqu’à +20 au-delà de 10 bonnes réponses d’affilée).',
       'Trois niveaux sont proposés : Facile (additions et soustractions), Moyen (avec les tables de multiplication) et Difficile (toutes les opérations, divisions au résultat entier garanti). Tous les cinq succès consécutifs, les fourchettes de nombres s’élargissent légèrement : le jeu s’adapte à votre niveau.',
-      'Un sprint terminé enregistre votre score et votre nombre de bonnes réponses comme records, débloque des succès (25 et 40 bonnes réponses) et, chaque jour, un défi du jour propose la même série de questions à tous les joueurs.',
+      'Un sprint terminé enregistre votre score et votre nombre de bonnes réponses comme records, débloque des succès (25 et 40 bonnes réponses) et, chaque jour, un défi du jour propose la même série de calculs à tous les joueurs. Le chrono se met même en pause si vous changez d’onglet en cours de sprint.',
     ],
     en: [
-      'Speed Math is a timed mental-arithmetic game: for 60 seconds, operations come one after another and you pick the right answer from four options. Each correct answer earns 10 points, topped up with a bonus as your streak grows (up to +20 beyond 10 correct answers in a row).',
+      'Speed Math is a timed mental-arithmetic game: for 60 seconds, operations come one after another and you type each result on a large thumb-friendly number pad. The right answer validates itself as soon as it is exact; each success earns 10 points, topped up with a bonus as your streak grows (up to +20 beyond 10 correct answers in a row).',
       'Three levels are offered: Easy (additions and subtractions), Medium (with multiplication tables) and Hard (all operations, with divisions guaranteed to have whole-number results). Every five correct answers in a row, the number ranges widen slightly: the game adapts to your level.',
-      'A finished sprint saves your score and your correct-answer count as records, unlocks achievements (25 and 40 correct answers) and, every day, a daily challenge offers the same question series to all players.',
+      'A finished sprint saves your score and your correct-answer count as records, unlocks achievements (25 and 40 correct answers) and, every day, a daily challenge offers the same calculations to every player. The clock even pauses if you switch tabs mid-sprint.',
     ],
   },
   rules: {
     fr: [
       'Choisissez une difficulté : Facile, Moyen ou Difficile — ou lancez le défi du jour.',
       'Le sprint dure 60 secondes et démarre dès la première question.',
-      'Lisez l’opération « a ? b = ? » et touchez la bonne réponse parmi les 4 propositions.',
+      'Tapez le résultat sur le pavé : la bonne réponse se valide automatiquement dès qu’elle est exacte.',
       'Bonne réponse : +10 points, +5 / +10 / +20 de bonus à partir de 3 / 6 / 10 bonnes réponses d’affilée.',
-      'Mauvaise réponse : la série retombe à zéro et la bonne réponse s’affiche brièvement.',
-      'À la fin du chrono : score, nombre de bonnes réponses, meilleure série et précision sont enregistrés.',
+      'Mauvaise réponse ou validation prématurée : la série retombe à zéro et la bonne réponse s’affiche brièvement.',
+      'À la fin du chrono : score, bonnes réponses, meilleure série et précision sont enregistrés.',
     ],
     en: [
       'Pick a difficulty: Easy, Medium or Hard — or start the daily challenge.',
       'The sprint lasts 60 seconds and starts with the first question.',
-      'Read the operation “a ? b = ?” and tap the right answer among the 4 options.',
+      'Type the result on the pad: the right answer validates itself as soon as it is exact.',
       'Correct answer: +10 points, +5 / +10 / +20 bonus from 3 / 6 / 10 correct answers in a row.',
-      'Wrong answer: the streak falls back to zero and the right answer is briefly highlighted.',
+      'Wrong or premature answer: the streak falls back to zero and the right answer is briefly shown.',
       'When the clock ends: score, correct answers, best streak and accuracy are recorded.',
     ],
   },
   controls: {
     fr: [
-      'Mobile et tablette : touchez les grandes réponses (2 × 2).',
-      'Ordinateur : cliquez sur une réponse, ou utilisez les touches 1, 2, 3 et 4.',
+      'Mobile et tablette : tapez la réponse sur le pavé numérique 3×4 (grandes touches d’au moins 48 px).',
+      'Ordinateur : chiffres 0 à 9 au clavier, Retour arrière pour effacer, Entrée pour valider.',
       'La barre de temps se vide au fil du sprint ; un tic sonore retentit sur les 5 dernières secondes.',
+      'Le chrono se met en pause quand vous changez d’onglet, puis reprend sans perdre une seconde.',
     ],
     en: [
-      'Mobile & tablet: tap the large answers (2 × 2 grid).',
-      'Desktop: click an answer, or use the 1, 2, 3 and 4 keys.',
+      'Mobile & tablet: type the answer on the 3×4 number pad (large keys of at least 48 px).',
+      'Desktop: digits 0 to 9 on the keyboard, Backspace to erase, Enter to submit.',
       'The time bar empties as the sprint goes; a ticking sound rings out over the last 5 seconds.',
+      'The clock pauses when you switch tabs, then resumes without losing a second.',
     ],
   },
   features: {
     fr: [
       '3 difficultés : Facile, Moyen, Difficile (divisions à résultat entier)',
       'Difficulté adaptative : les fourchettes grandissent tous les 5 succès consécutifs',
-      'Bonus de série avec compteur de flammes animé',
-      'Barre de temps de 60 s et tic-tac sur les 5 dernières secondes',
+      'Pavé numérique géant 3×4 et clavier physique pris en charge',
+      'Bonus de série avec compteur de flammes animé et paliers sonores',
+      'Barre de temps de 60 s, tic-tac et pulsation sur les 5 dernières secondes',
       'Records de score et de bonnes réponses, succès 25 et 40',
-      'Défi du jour : la même série de questions pour tous les joueurs',
+      'Défi du jour : la même série de calculs pour tous les joueurs',
     ],
     en: [
       '3 difficulties: Easy, Medium, Hard (whole-number divisions)',
       'Adaptive difficulty: ranges grow every 5 correct answers in a row',
-      'Streak bonuses with an animated flame counter',
-      '60-second time bar and ticking over the last 5 seconds',
+      'Giant 3×4 number pad and physical keyboard support',
+      'Streak bonuses with an animated flame counter and sound milestones',
+      '60-second time bar, ticking and pulsing over the last 5 seconds',
       'Score and correct-answer records, 25 and 40 achievements',
-      'Daily challenge: the same question series for every player',
+      'Daily challenge: the same calculation series for every player',
     ],
   },
   tips: {
@@ -83,13 +88,13 @@ export const content: GameSEOContent = {
       'Visez la régularité plutôt que la vitesse : une erreur coûte la série ET 0,7 seconde d’affichage de la réponse.',
       'Pour multiplier par 9, multipliez par 10 puis retirez le nombre : 7 × 9 = 70 − 7 = 63.',
       'Pour diviser, pensez « combien de fois » : 56 ÷ 7, comptez 7, 14, 21… jusqu’à 56 : huit fois.',
-      'Éliminez d’abord les réponses manifestement trop grandes ou trop petites : deux choix restent rarement difficiles.',
+      'Décomposez les grands calculs : 47 + 38, c’est 47 + 40 − 2 = 85 — plus vite tapé que posé.',
     ],
     en: [
       'Aim for consistency over speed: one mistake costs your streak AND 0.7 seconds while the answer is shown.',
       'To multiply by 9, multiply by 10 then subtract the number: 7 × 9 = 70 − 7 = 63.',
       'To divide, think “how many times”: for 56 ÷ 7, count 7, 14, 21… up to 56: eight times.',
-      'First rule out answers that are clearly too big or too small: what remains is rarely hard to pick.',
+      'Break big sums down: 47 + 38 is 47 + 40 − 2 = 85 — faster typed than worked out on paper.',
     ],
   },
   faq: {
@@ -97,15 +102,17 @@ export const content: GameSEOContent = {
       { q: 'Les divisions tombent-elles toujours juste ?', a: 'Oui : en difficulté Difficile, chaque division est construite à partir du diviseur et du quotient, donc le résultat est toujours un nombre entier.' },
       { q: 'Comment fonctionne la difficulté adaptative ?', a: 'Tous les 5 succès consécutifs, les nombres des opérations suivantes s’étendent légèrement (par exemple jusqu’à 20+3 par tranche en Facile). Une erreur ramène la fourchette au niveau de votre série actuelle.' },
       { q: 'Comment les points sont-ils calculés ?', a: 'Chaque bonne réponse vaut 10 points, plus 5 à partir de 3 bonnes réponses consécutives, 10 à partir de 6, et 20 à partir de 10. Le score final rapporte la moitié de sa valeur en XP.' },
-      { q: 'Le défi du jour est-il identique pour tous ?', a: 'Oui : sa difficulté et sa série de questions sont générées de façon déterministe à partir de la date. Tous les joueurs voient les mêmes calculs jusqu’au lendemain.' },
-      { q: 'Puis-je jouer sur mon téléphone ?', a: 'Oui : les quatre réponses occupent une grille 2×2 de grands boutons, prévus pour le pouce.' },
+      { q: 'Faut-il appuyer sur Valider à chaque fois ?', a: 'Non : dès que le nombre tapé est exact, la réponse se valide toute seule. Le bouton Valider sert à soumettre une réponse plus courte, ou à révéler la solution quand on est bloqué.' },
+      { q: 'Le défi du jour est-il identique pour tous ?', a: 'Oui : sa difficulté et sa série de calculs sont générées de façon déterministe à partir de la date. Tous les joueurs voient les mêmes opérations jusqu’au lendemain.' },
+      { q: 'Puis-je jouer sur mon téléphone ?', a: 'Oui : le pavé numérique 3×4 offre de grandes touches pensées pour le pouce, et le clavier virtuel du système n’est jamais appelé.' },
     ],
     en: [
       { q: 'Do divisions always come out even?', a: 'Yes: in Hard difficulty, every division is built from the divisor and the quotient, so the result is always a whole number.' },
       { q: 'How does adaptive difficulty work?', a: 'Every 5 correct answers in a row, the numbers of the following operations stretch slightly (for example up to 20+3 per step in Easy). A mistake brings the range back to your current streak level.' },
       { q: 'How are points calculated?', a: 'Each correct answer is worth 10 points, plus 5 from 3 correct answers in a row, 10 from 6, and 20 from 10. The final score earns half its value in XP.' },
-      { q: 'Is the daily challenge identical for everyone?', a: 'Yes: its difficulty and question series are generated deterministically from the date. Every player sees the same calculations until tomorrow.' },
-      { q: 'Can I play on my phone?', a: 'Yes: the four answers fill a 2×2 grid of large, thumb-friendly buttons.' },
+      { q: 'Do I have to press Submit every time?', a: 'No: as soon as the typed number is exact, the answer validates itself. The Submit button is there to send a shorter answer, or to reveal the solution when you are stuck.' },
+      { q: 'Is the daily challenge identical for everyone?', a: 'Yes: its difficulty and calculation series are generated deterministically from the date. Every player sees the same operations until tomorrow.' },
+      { q: 'Can I play on my phone?', a: 'Yes: the 3×4 number pad offers large thumb-friendly keys, and the system’s virtual keyboard is never summoned.' },
     ],
   },
   records: {
@@ -123,10 +130,13 @@ interface Q {
   op: Op
   b: number
   answer: number
-  options: number[]
 }
 
 const SPRINT_MS = 60000
+/** Les réponses de toutes les difficultés tiennent sur 3 chiffres. */
+const MAX_DIGITS = 3
+/** Pavé 3×4 : 1-9, effacer, 0, valider. */
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0', 'ok'] as const
 
 function makeQuestion(diff: Diff, boost: number, rand: () => number): Q {
   const ri = (lo: number, hi: number) => lo + Math.floor(rand() * (hi - lo + 1))
@@ -170,6 +180,7 @@ function makeQuestion(diff: Diff, boost: number, rand: () => number): Q {
       a = ri(3, 12)
       b = ri(3, 9)
     } else {
+      // Division toujours exacte : construite à partir du quotient.
       op = '÷'
       b = ri(2, 9)
       const quotient = ri(2, 12 + boost * 2)
@@ -177,22 +188,7 @@ function makeQuestion(diff: Diff, boost: number, rand: () => number): Q {
     }
   }
   const answer = op === '+' ? a + b : op === '-' ? a - b : op === '×' ? a * b : a / b
-  // Distracteurs plausibles, tous différents et positifs ou nuls.
-  const candidates = shuffle(
-    [answer + 1, answer - 1, answer + 2, answer - 2, answer + 10, answer - 10, answer + 5, answer - 5, a, b, answer + 4, answer - 4],
-    rand,
-  )
-  const options = [answer]
-  for (const c of candidates) {
-    if (options.length >= 4) break
-    if (c >= 0 && !options.includes(c)) options.push(c)
-  }
-  let extra = 3
-  while (options.length < 4) {
-    extra += 3
-    if (!options.includes(answer + extra)) options.push(answer + extra)
-  }
-  return { a, op, b, answer, options: shuffle(options, rand) }
+  return { a, op, b, answer }
 }
 
 /** Série déterministe du défi du jour (difficulté tirée de la graine). */
@@ -207,6 +203,7 @@ function dailySeries(): { diff: Diff; questions: Q[] } {
 export default function SpeedMathGame() {
   const t = useT()
   const lang = useLang()
+  const reduce = useReducedMotion()
   const dailyDone = useIsDailyDone(gameId)
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
@@ -214,6 +211,7 @@ export default function SpeedMathGame() {
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
+  const records = useProfileStore((s) => s.profile.games[gameId]?.records)
 
   const [diff, setDiff] = useState<Diff>('medium')
   const [dailyMode, setDailyMode] = useState(false)
@@ -222,9 +220,13 @@ export default function SpeedMathGame() {
   const [score, setScore] = useState(0)
   const [correct, setCorrect] = useState(0)
   const [streak, setStreak] = useState(0)
-  const [answered, setAnswered] = useState<{ picked: number; ok: boolean } | null>(null)
+  const [typed, setTyped] = useState('')
+  const [feedback, setFeedback] = useState<{ ok: boolean; picked: number } | null>(null)
+  const [feedSeq, setFeedSeq] = useState(0)
+  const [gain, setGain] = useState<{ amount: number; seq: number } | null>(null)
   const [timeLeft, setTimeLeft] = useState(SPRINT_MS)
   const [over, setOver] = useState<{ score: number; correct: number; bestStreak: number; accuracy: number; isRecord: boolean } | null>(null)
+  const [confettiKey, setConfettiKey] = useState(0)
 
   const phaseRef = useRef<'idle' | 'playing' | 'over'>('idle')
   const endRef = useRef(0)
@@ -232,10 +234,19 @@ export default function SpeedMathGame() {
   const streakRef = useRef(0)
   const statsRef = useRef({ score: 0, correct: 0, wrong: 0, bestStreak: 0 })
   const qRef = useRef<Q | null>(null)
-  const answeredRef = useRef<{ picked: number; ok: boolean } | null>(null)
+  const typedRef = useRef('')
+  const lockRef = useRef(false)
   const dailyQsRef = useRef<Q[] | null>(null)
   const qIdxRef = useRef(0)
   const dailyModeRef = useRef(false)
+  const diffRef = useRef<Diff>('medium')
+  const pendingTRef = useRef(0)
+  const startAtRef = useRef(0)
+  const hideAtRef = useRef(0)
+
+  /* Défi du jour : calculé une seule fois par date (jamais à chaque rendu). */
+  const dailyKey = todayKey()
+  const dailyConfig = useMemo(() => dailySeries(), [dailyKey])
 
   const L = {
     fr: {
@@ -248,8 +259,11 @@ export default function SpeedMathGame() {
       bestStreak: 'Meilleure série',
       accuracy: 'Précision',
       wellDone: 'Sprint terminé !',
-      dailySprint: 'Sprint du jour',
       points: 'points',
+      keypad: 'Pavé numérique',
+      clear: 'Effacer',
+      submitKey: 'Valider',
+      yourBest: 'Votre record',
     },
     en: {
       easy: 'Easy',
@@ -261,12 +275,16 @@ export default function SpeedMathGame() {
       bestStreak: 'Best streak',
       accuracy: 'Accuracy',
       wellDone: 'Sprint complete!',
-      dailySprint: 'Daily sprint',
       points: 'points',
+      keypad: 'Number pad',
+      clear: 'Clear',
+      submitKey: 'Submit',
+      yourBest: 'Your best',
     },
   }[lang]
 
   const diffLabel = (d: Diff) => (d === 'easy' ? L.easy : d === 'medium' ? L.medium : L.hard)
+  const bestScore = records?.['best-score']?.value
 
   function goPhase(p: 'idle' | 'playing' | 'over') {
     phaseRef.current = p
@@ -274,8 +292,9 @@ export default function SpeedMathGame() {
   }
 
   function nextQuestion() {
-    setAnswered(null)
-    answeredRef.current = null
+    setFeedback(null)
+    typedRef.current = ''
+    setTyped('')
     if (dailyQsRef.current) {
       const list = dailyQsRef.current
       const nq = list[qIdxRef.current % list.length]
@@ -283,14 +302,21 @@ export default function SpeedMathGame() {
       qRef.current = nq
       setQ(nq)
     } else {
-      const nq = makeQuestion(diff, Math.floor(streakRef.current / 5), Math.random)
+      const nq = makeQuestion(diffRef.current, Math.floor(streakRef.current / 5), Math.random)
       qRef.current = nq
       setQ(nq)
     }
   }
 
   function start(d: Diff, daily = false) {
-    setDiff(d)
+    const now = Date.now()
+    if (now - startAtRef.current < 400) return // anti double-clic
+    startAtRef.current = now
+    if (pendingTRef.current) {
+      window.clearTimeout(pendingTRef.current)
+      pendingTRef.current = 0
+    }
+    lockRef.current = false
     setDailyMode(daily)
     dailyModeRef.current = daily
     statsRef.current = { score: 0, correct: 0, wrong: 0, bestStreak: 0 }
@@ -298,20 +324,23 @@ export default function SpeedMathGame() {
     setScore(0)
     setCorrect(0)
     setStreak(0)
-    setAnswered(null)
-    answeredRef.current = null
+    setFeedback(null)
+    setGain(null)
+    typedRef.current = ''
+    setTyped('')
     setOver(null)
     setTimeLeft(SPRINT_MS)
     lastSecRef.current = 61
+    hideAtRef.current = 0
     if (daily) {
-      const series = dailySeries()
-      dailyQsRef.current = series.questions
+      dailyQsRef.current = dailyConfig.questions
       qIdxRef.current = 1
-      qRef.current = series.questions[0]
-      setQ(series.questions[0])
+      qRef.current = dailyConfig.questions[0]
+      setQ(dailyConfig.questions[0])
     } else {
       dailyQsRef.current = null
       qIdxRef.current = 0
+      diffRef.current = d
       const first = makeQuestion(d, 0, Math.random)
       qRef.current = first
       setQ(first)
@@ -321,8 +350,9 @@ export default function SpeedMathGame() {
     addPlay(gameId)
   }
 
+  /** Fin de sprint — appelée depuis le callback du chrono (jamais depuis un effet). */
   function finish() {
-    if (phaseRef.current !== 'playing') return
+    if (phaseRef.current !== 'playing' || document.hidden) return
     goPhase('over')
     const s = statsRef.current
     const total = s.correct + s.wrong
@@ -330,6 +360,7 @@ export default function SpeedMathGame() {
     const rec1 = setBest(gameId, 'best-score', s.score)
     const rec2 = setBest(gameId, 'best-correct', s.correct)
     setOver({ score: s.score, correct: s.correct, bestStreak: s.bestStreak, accuracy, isRecord: rec1 || rec2 })
+    if (rec1 || rec2) setConfettiKey((k) => k + 1)
     sfx.play('win')
     addWin(gameId)
     addXp(Math.round(s.score / 2))
@@ -338,45 +369,81 @@ export default function SpeedMathGame() {
     if (dailyModeRef.current) completeDaily(gameId)
   }
 
-  function onAnswer(v: number) {
+  function submit(v: number) {
     const cur = qRef.current
-    if (!cur || answeredRef.current || phaseRef.current !== 'playing') return
+    if (!cur || lockRef.current || phaseRef.current !== 'playing') return
     const ok = v === cur.answer
+    lockRef.current = true
     if (ok) {
       sfx.play('correct', { volume: 0.7 })
+      navigator.vibrate?.(10)
       streakRef.current += 1
       const ns = streakRef.current
+      if (ns === 3 || ns === 6 || ns === 10) sfx.play('coin', { volume: 0.6 })
       const bonus = ns >= 10 ? 20 : ns >= 6 ? 10 : ns >= 3 ? 5 : 0
-      statsRef.current.score += 10 + bonus
+      const amount = 10 + bonus
+      statsRef.current.score += amount
       statsRef.current.correct += 1
       statsRef.current.bestStreak = Math.max(statsRef.current.bestStreak, ns)
       setScore(statsRef.current.score)
       setCorrect(statsRef.current.correct)
       setStreak(ns)
-      const state = { picked: v, ok: true }
-      answeredRef.current = state
-      setAnswered(state)
-      window.setTimeout(() => {
-        if (phaseRef.current === 'playing') nextQuestion()
-      }, 300)
+      setGain({ amount, seq: statsRef.current.correct })
     } else {
       sfx.play('wrong', { volume: 0.4 })
+      navigator.vibrate?.(20)
       streakRef.current = 0
       statsRef.current.wrong += 1
       setStreak(0)
-      const state = { picked: v, ok: false }
-      answeredRef.current = state
-      setAnswered(state)
-      window.setTimeout(() => {
-        if (phaseRef.current === 'playing') nextQuestion()
-      }, 700)
     }
+    setFeedSeq((n) => n + 1)
+    setFeedback({ ok, picked: v })
+    pendingTRef.current = window.setTimeout(() => {
+      pendingTRef.current = 0
+      lockRef.current = false
+      if (phaseRef.current === 'playing') nextQuestion()
+    }, ok ? 280 : 700)
   }
 
-  /* Chronomètre : barre de temps, tic-tac sur les 5 dernières secondes. */
+  function pressKey(k: string) {
+    if (phaseRef.current !== 'playing' || lockRef.current) return
+    if (typedRef.current.length >= MAX_DIGITS) return
+    const next = typedRef.current + k
+    typedRef.current = next
+    setTyped(next)
+    sfx.play('click', { volume: 0.35 })
+    const cur = qRef.current
+    // Auto-validation : la bonne réponse complète se valide toute seule.
+    if (cur && Number(next) === cur.answer) submit(Number(next))
+  }
+
+  function backspace() {
+    if (phaseRef.current !== 'playing' || lockRef.current) return
+    if (!typedRef.current) return
+    typedRef.current = typedRef.current.slice(0, -1)
+    setTyped(typedRef.current)
+    sfx.play('swish', { volume: 0.3 })
+  }
+
+  function confirmEntry() {
+    if (phaseRef.current !== 'playing' || lockRef.current) return
+    const v = typedRef.current
+    if (!v) return
+    submit(Number(v))
+  }
+
+  function backToMenu() {
+    goPhase('idle')
+    setDailyMode(false)
+    dailyModeRef.current = false
+  }
+
+  /* Chronomètre : barre de temps, tic-tac sur les 5 dernières secondes.
+     Les setState vivent dans le callback d'interval (jamais dans le corps d'effet). */
   useEffect(() => {
     if (phase !== 'playing') return
     const id = window.setInterval(() => {
+      if (document.hidden) return // onglet caché : le sprint est en pause
       const remaining = endRef.current - Date.now()
       setTimeLeft(Math.max(0, remaining))
       const whole = Math.ceil(remaining / 1000)
@@ -385,187 +452,276 @@ export default function SpeedMathGame() {
       if (remaining <= 0) finish()
     }, 100)
     return () => window.clearInterval(id)
-     
   }, [phase])
 
-  /* Clavier : touches 1-4 pour répondre. */
+  /* Pause automatique : le temps caché est rendu au retour sur l'onglet. */
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) {
+        if (phaseRef.current === 'playing') hideAtRef.current = Date.now()
+      } else if (hideAtRef.current) {
+        endRef.current += Date.now() - hideAtRef.current
+        hideAtRef.current = 0
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
+  /* Clavier physique : chiffres, Retour arrière, Entrée (les handlers ne lisent que des refs). */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const i = ['1', '2', '3', '4'].indexOf(e.key)
-      if (i >= 0 && phaseRef.current === 'playing' && qRef.current) {
+      if (phaseRef.current !== 'playing' || e.repeat) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      const target = e.target as HTMLElement | null
+      // Ne rien saisir si un dialogue (règles, records…) a le focus.
+      if (target?.closest('[role="dialog"], [data-radix-popper-content-wrapper]')) return
+      if (e.key === 'Enter' || e.key === 'Backspace') {
+        // Ne pas court-circuiter un bouton ciblé au clavier (ex. Rejouer).
+        if (target && (target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
         e.preventDefault()
-        onAnswer(qRef.current.options[i])
+        if (e.key === 'Backspace') backspace()
+        else confirmEntry()
+        return
+      }
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault()
+        pressKey(e.key)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-     
+  }, [])
+
+  /* Filet de propreté : jamais de timer fantôme après démontage. */
+  useEffect(() => () => {
+    if (pendingTRef.current) window.clearTimeout(pendingTRef.current)
   }, [])
 
   const timePct = Math.max(0, Math.min(100, (timeLeft / SPRINT_MS) * 100))
   const lowTime = timeLeft <= 5000
+  const inPlayDiff = dailyMode ? dailyConfig.diff : diff
 
   return (
     <div className="relative select-none">
-      {/* Barre de configuration / statut */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {phase === 'idle' || phase === 'over' ? (
-          <>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.difficulty')}>
-              {(['easy', 'medium', 'hard'] as Diff[]).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  aria-pressed={diff === d && !dailyMode}
-                  onClick={() => {
-                    sfx.play('click', { volume: 0.5 })
-                    setDiff(d)
-                    setDailyMode(false)
-                  }}
-                  className={cn(
-                    'h-11 rounded-full border px-4 text-sm font-bold transition-all',
-                    diff === d && !dailyMode
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
-                  )}
-                >
-                  {diffLabel(d)}
-                </button>
-              ))}
-            </div>
-            <Button size="lg" className="ms-auto h-11 rounded-full px-5 anim-glow" onClick={() => start(diff)}>
-              <Play className="h-4 w-4" aria-hidden="true" />
-              {phase === 'over' ? t('common.playAgain') : t('common.start')}
-            </Button>
-          </>
-        ) : (
-          <>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatPill icon={<Target className="h-4 w-4" aria-hidden="true" />} label={t('common.score')} value={score} />
-              <StatPill icon={<Crosshair className="h-4 w-4" aria-hidden="true" />} label={L.correctLabel} value={correct} />
-              <span
-                key={streak}
+      {/* Barre de configuration — visible uniquement au repos, bouton Jouer immédiat */}
+      {phase === 'idle' ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.difficulty')}>
+            {(['easy', 'medium', 'hard'] as Diff[]).map((d) => (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={diff === d && !dailyMode}
+                onClick={() => {
+                  sfx.play('click', { volume: 0.5 })
+                  setDiff(d)
+                  diffRef.current = d
+                  setDailyMode(false)
+                  dailyModeRef.current = false
+                }}
                 className={cn(
-                  'flex h-11 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold tabular-nums',
-                  streak >= 3
-                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'
-                    : 'bg-secondary/70 text-muted-foreground',
-                  streak >= 3 && 'anim-pop-in',
+                  'h-11 rounded-full border px-4 text-xs font-bold transition-all sm:text-sm',
+                  diff === d && !dailyMode
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
                 )}
               >
-                <Flame className="h-4 w-4" aria-hidden="true" />
-                {L.streakLabel} ×{streak}
-              </span>
-              {dailyMode ? (
-                <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                  {t('common.daily')}
-                </span>
-              ) : null}
-            </div>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="ms-auto h-11 rounded-full"
-              onClick={() => {
-                sfx.play('click')
-                start(diff, dailyMode)
-              }}
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {t('common.restart')}
-            </Button>
-          </>
-        )}
-      </div>
+                {diffLabel(d)}
+              </button>
+            ))}
+          </div>
+          <Button
+            size="lg"
+            className="anim-glow ms-auto h-11 rounded-full px-5"
+            onClick={() => {
+              sfx.play('pop')
+              start(diff)
+            }}
+          >
+            <Play className="h-4 w-4" aria-hidden="true" />
+            {t('common.play')}
+          </Button>
+        </div>
+      ) : null}
 
-      {/* Bouton défi du jour */}
+      {/* Bouton défi du jour (hors partie, tant qu'il n'est pas réussi) */}
       {phase !== 'playing' && !dailyDone ? (
         <button
           type="button"
           onClick={() => {
             sfx.play('pop')
-            start(dailySeries().diff, true)
+            start(dailyConfig.diff, true)
           }}
-          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-left transition-transform hover:scale-[1.01] dark:border-amber-500/25 dark:bg-amber-500/10"
+          className={cn(
+            'mb-3 flex w-full items-center gap-2.5 rounded-2xl border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-left',
+            'transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-ring dark:border-amber-500/25 dark:bg-amber-500/10',
+          )}
         >
-          <span className="text-2xl" aria-hidden="true">
+          <span className="text-xl" aria-hidden="true">
             🎁
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">
-              {t('common.daily')} — {todayKey()}
+              {t('common.daily')} · {dailyKey}
             </span>
             <span className="block text-xs text-muted-foreground">
-              {L.dailyDiff} : {diffLabel(dailySeries().diff)} · 60 s
+              {L.dailyDiff} : {diffLabel(dailyConfig.diff)} · 60 s
             </span>
           </span>
-          <span className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white">{t('game.startDaily')}</span>
+          <span className="rounded-full bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-white">{t('game.startDaily')}</span>
         </button>
       ) : null}
 
-      {/* Zone de jeu */}
+      {/* Écran d'accueil compact */}
       {phase === 'idle' ? (
-        <div className="checkerboard flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
-          <div className="flex gap-2 font-display text-4xl font-black" aria-hidden="true">
-            {['7', '+', '8'].map((e, i) => (
-              <span key={i} className="anim-floaty text-primary" style={{ animationDelay: `${i * 0.35}s` }}>
+        <div className="checkerboard flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center sm:min-h-[240px]">
+          <div className="flex gap-1.5 font-display text-3xl font-black sm:gap-2 sm:text-4xl" aria-hidden="true">
+            {['7', '+', '8', '=', '15'].map((e, i) => (
+              <span key={i} className="anim-floaty text-primary" style={{ animationDelay: `${i * 0.3}s` }}>
                 {e}
               </span>
             ))}
           </div>
-          <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
+          <p className="max-w-md text-xs text-muted-foreground sm:text-sm">{content.tagline[lang]}</p>
+          {bestScore !== undefined ? (
+            <span className="flex h-9 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+              <Trophy className="h-3.5 w-3.5" aria-hidden="true" /> {L.yourBest} : {bestScore} {L.points}
+            </span>
+          ) : null}
         </div>
-      ) : phase === 'playing' && q ? (
-        <div className="rounded-2xl border bg-card/60 p-4 sm:p-6">
-          {/* Barre de temps */}
-          <div className="mb-5">
-            <div className="mb-1.5 flex items-center justify-between text-sm font-semibold tabular-nums">
-              <span className={cn('flex items-center gap-1.5', lowTime ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground')}>
-                <Timer className="h-4 w-4" aria-hidden="true" />
-                {Math.ceil(timeLeft / 1000)} s
+      ) : null}
+
+      {/* En partie : HUD + timer + opération + pavé — tout tient sans scroll */}
+      {phase === 'playing' && q ? (
+        <div className="touch-manipulation">
+          {/* HUD compact */}
+          <div className="mb-2 flex items-center gap-1.5 sm:gap-2">
+            <span className="relative flex h-10 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-bold tabular-nums" title={t('common.score')}>
+              <Target className="h-4 w-4 text-primary" aria-hidden="true" />
+              <span key={score} className="anim-pop-in">
+                {score}
               </span>
-              <span className="text-muted-foreground">{diffLabel(dailyMode ? diff : diff)}</span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(timePct)}>
+              {gain ? (
+                <span key={gain.seq} className="anim-score pointer-events-none absolute -top-2 end-2 text-xs font-black text-emerald-600 dark:text-emerald-400" aria-hidden="true">
+                  +{gain.amount}
+                </span>
+              ) : null}
+            </span>
+            <span className="flex h-10 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-semibold tabular-nums text-muted-foreground" title={L.correctLabel}>
+              <Crosshair className="h-4 w-4" aria-hidden="true" />
+              {correct}
+            </span>
+            <span
+              key={streak}
+              title={t('common.streak')}
+              className={cn(
+                'flex h-10 items-center gap-1 rounded-full px-2.5 text-sm font-bold tabular-nums',
+                streak >= 3
+                  ? 'anim-pop-in bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'
+                  : 'bg-secondary/70 text-muted-foreground',
+              )}
+            >
+              <Flame className="h-4 w-4" aria-hidden="true" />×{streak}
+            </span>
+            {dailyMode ? (
+              <span
+                title={t('common.daily')}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+              >
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+              </span>
+            ) : null}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ms-auto h-11 w-11 rounded-full p-0"
+              aria-label={t('common.restart')}
+              onClick={() => {
+                sfx.play('click')
+                start(inPlayDiff, dailyMode)
+              }}
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+
+          {/* Timer en fine barre */}
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className={cn(
+                'flex w-11 shrink-0 items-center justify-end text-sm font-bold tabular-nums',
+                lowTime ? 'animate-pulse text-red-600 dark:text-red-400' : 'text-muted-foreground',
+              )}
+            >
+              <Timer className="me-1 h-4 w-4 shrink-0" aria-hidden="true" />
+              {Math.max(0, Math.ceil(timeLeft / 1000))}
+            </span>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(timePct)}>
               <div
                 className={cn(
-                  'h-full rounded-full transition-[width] duration-100',
-                  lowTime ? 'bg-red-500' : 'bg-gradient-to-r from-amber-400 to-orange-500',
+                  'h-full rounded-full transition-[width] duration-100 ease-linear',
+                  lowTime ? 'animate-pulse bg-red-500' : 'bg-gradient-to-r from-amber-400 to-orange-500',
                 )}
                 style={{ width: `${timePct}%` }}
               />
             </div>
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{diffLabel(inPlayDiff)}</span>
           </div>
 
-          {/* Question */}
-          <p className="mb-6 text-center font-display text-4xl font-black tabular-nums sm:text-5xl" aria-live="polite">
-            {q.a} <span className="text-primary">{q.op}</span> {q.b} = <span className="text-muted-foreground">?</span>
-          </p>
+          {/* Opération en gros + saisie */}
+          <div className="mb-1 text-center">
+            <p
+              className={cn(
+                'whitespace-nowrap font-display text-[clamp(2.25rem,10vw,4rem)] font-black leading-none tabular-nums',
+                feedback && !feedback.ok && 'anim-shake',
+              )}
+            >
+              {q.a} <span className="text-primary">{q.op}</span> {q.b} ={' '}
+              {feedback ? (
+                <span key={feedSeq} className="anim-pop-in text-emerald-600 dark:text-emerald-400">
+                  {feedback.ok ? feedback.picked : q.answer}
+                </span>
+              ) : (
+                <>
+                  <span className={typed ? undefined : 'text-muted-foreground/50'}>{typed || '?'}</span>
+                  <span aria-hidden="true" className="ms-1 inline-block h-[0.75em] w-[3px] translate-y-[0.05em] animate-pulse rounded-full bg-primary" />
+                </>
+              )}
+            </p>
+          </div>
+          {/* Ligne de correction (hauteur réservée : aucun saut de layout) */}
+          <div className="mb-2 h-5" aria-hidden="true">
+            {feedback && !feedback.ok ? (
+              <p className="anim-pop-in text-center text-sm font-bold tabular-nums text-red-600 dark:text-red-400">✕ {feedback.picked}</p>
+            ) : null}
+          </div>
 
-          {/* Réponses */}
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            {q.options.map((opt, i) => {
-              const isPicked = answered?.picked === opt
-              const isAnswer = answered && !answered.ok ? opt === q.answer : false
-              const goodPick = answered?.ok && isPicked
+          {/* Annonces lecteur d'écran : question puis résultat, jamais les frappes */}
+          <span role="status" className="sr-only">
+            {feedback ? (feedback.ok ? `✓ ${feedback.picked}` : `✕ ${q.answer}`) : `${q.a} ${q.op} ${q.b}`}
+          </span>
+
+          {/* Pavé numérique 3×4 — touches ≥ 48 px, verrouillé pendant le feedback */}
+          <div className="mx-auto grid w-full max-w-[21rem] grid-cols-3 gap-2" role="group" aria-label={L.keypad}>
+            {KEYS.map((k) => {
+              if (k === 'back') {
+                return (
+                  <button key={k} type="button" aria-label={L.clear} disabled={!!feedback} onClick={backspace} className={keyClass('back')}>
+                    <Delete className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                )
+              }
+              if (k === 'ok') {
+                return (
+                  <button key={k} type="button" aria-label={L.submitKey} disabled={!!feedback} onClick={confirmEntry} className={keyClass('ok')}>
+                    <Check className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                )
+              }
               return (
-                <button
-                  key={`${opt}-${i}`}
-                  type="button"
-                  disabled={!!answered}
-                  onClick={() => onAnswer(opt)}
-                  className={cn(
-                    'flex h-16 items-center justify-center rounded-2xl border-2 text-2xl font-black tabular-nums no-select transition-all focus-visible:outline-2 focus-visible:outline-ring sm:h-20 sm:text-3xl',
-                    !answered && 'border-border bg-card hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md active:translate-y-0',
-                    goodPick && 'anim-pop-in border-emerald-500 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-                    isPicked && !answered?.ok && 'anim-shake border-red-500 bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
-                    isAnswer && 'border-emerald-500 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-                    answered && !goodPick && !isPicked && !isAnswer && 'opacity-40',
-                  )}
-                >
-                  <span className="me-1 hidden text-xs font-bold text-muted-foreground sm:inline">{i + 1}</span>
-                  {opt}
+                <button key={k} type="button" disabled={!!feedback} onClick={() => pressKey(k)} className={keyClass('digit')}>
+                  {k}
                 </button>
               )
             })}
@@ -573,32 +729,48 @@ export default function SpeedMathGame() {
         </div>
       ) : null}
 
-      {/* Écran de fin */}
+      {/* Écran de fin : stats + Rejouer immédiat */}
       {phase === 'over' && over ? (
         <div
-          className="anim-rise rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10"
+          className="anim-rise relative overflow-hidden rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-4 text-center sm:p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10"
           role="status"
         >
-          <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">⚡ {L.wellDone}</p>
+          <Confetti fire={confettiKey} count={reduce ? 0 : 90} />
+          <p className="font-display text-xl font-extrabold text-emerald-700 dark:text-emerald-300 sm:text-2xl">⚡ {L.wellDone}</p>
           <p className="mt-1 font-display text-5xl font-black tabular-nums">
-            {over.score} <span className="text-lg font-bold text-muted-foreground">{L.points}</span>
+            {over.score} <span className="text-base font-bold text-muted-foreground">{L.points}</span>
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+          <div className="mt-3 grid grid-cols-2 justify-items-center gap-2 sm:flex sm:flex-wrap sm:justify-center">
             <StatPill icon={<Crosshair className="h-4 w-4" aria-hidden="true" />} label={L.correctLabel} value={over.correct} />
             <StatPill icon={<Flame className="h-4 w-4" aria-hidden="true" />} label={L.bestStreak} value={`×${over.bestStreak}`} />
             <StatPill icon={<Target className="h-4 w-4" aria-hidden="true" />} label={L.accuracy} value={`${over.accuracy}%`} />
             {over.isRecord ? (
-              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+              <span className="flex h-10 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 sm:text-sm">
                 <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
               </span>
             ) : null}
           </div>
           <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => start(diff, dailyMode)}>
+            <Button
+              size="lg"
+              className="rounded-full"
+              onClick={() => {
+                sfx.play('pop')
+                start(inPlayDiff, dailyMode)
+              }}
+            >
               <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
             </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={() => goPhase('idle')}>
-              {t('common.settings')}
+            <Button
+              size="lg"
+              variant="secondary"
+              className="rounded-full"
+              onClick={() => {
+                sfx.play('click')
+                backToMenu()
+              }}
+            >
+              {t('common.back')}
             </Button>
           </div>
         </div>
@@ -607,9 +779,18 @@ export default function SpeedMathGame() {
   )
 }
 
+/** Classes communes des touches du pavé (cibles ≥ 48 px, retour tactile immédiat). */
+function keyClass(variant: 'digit' | 'back' | 'ok'): string {
+  const base =
+    'flex h-14 items-center justify-center rounded-2xl border-2 text-2xl font-black tabular-nums no-select transition-all focus-visible:outline-2 focus-visible:outline-ring active:scale-95 disabled:pointer-events-none disabled:opacity-50 sm:h-16 sm:text-3xl'
+  if (variant === 'ok') return cn(base, 'border-emerald-600 bg-emerald-500 text-white hover:bg-emerald-600 active:bg-emerald-700')
+  if (variant === 'back') return cn(base, 'border-border bg-secondary/70 text-muted-foreground hover:border-primary/40 hover:text-foreground')
+  return cn(base, 'border-border bg-card hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md')
+}
+
 function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+    <span className="flex h-10 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-xs font-semibold sm:text-sm">
       <span className="text-muted-foreground" aria-hidden="true">
         {icon}
       </span>

@@ -1,0 +1,866 @@
+     1→'use client'
+     2→
+     3→import { useEffect, useRef, useState } from 'react'
+     4→import { ArrowLeft, Eye, EyeOff, Shuffle, Timer, Play, RotateCcw, Trophy, Puzzle } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useT, useLang } from '@/lib/i18n'
+     8→import { useProfileStore } from '@/lib/progress/store'
+     9→import { mulberry32, seedFromString, formatMs, clamp, useReducedMotion } from '@/lib/utils-game'
+    10→import type { GameSEOContent } from '@/lib/games/types'
+    11→import { Button } from '@/components/ui/button'
+    12→import { Confetti } from '@/components/shared/confetti'
+    13→import { loadSave, saveSave } from '@/lib/save'
+    14→
+    15→export const gameId = 'jigsaw-puzzle'
+    16→
+    17→/* ================= Contenu SEO bilingue ================= */
+    18→export const content: GameSEOContent = {
+    19→  tagline: {
+    20→    fr: 'Reconstituez six illustrations originales — lavande, cuisine, chat, marché, jardin, lac — en 12, 24 ou 48 pièces, au doigt ou à la souris.',
+    21→    en: 'Reassemble six original illustrations — lavender, kitchen, cat, market, garden, lake — in 12, 24 or 48 pieces, by touch or mouse.',
+    22→  },
+    23→  description: {
+    24→    fr: [
+    25→      "Souvenirs de Famille est un jeu de puzzle (jigsaw) gratuit en ligne dans lequel vous reconstituez des illustrations originales en faisant glisser les pièces une par une sur le plateau. Six images inédites — champ de lavande, cuisine rustique, chat à la fenêtre, marché de village, jardin fleuri et lac de montagne — vous attendent en 12, 24 ou 48 pièces.",
+    26→      'Chaque pièce est découpée dans l’image complète et dispersée dans le bac situé sous le plateau. Faites-la glisser : si elle est lâchée proche de sa case correcte, elle s’y aimante et s’y verrouille définitivement ; sinon, elle reste exactement là où vous l’avez déposée, sur le plateau ou dans le bac.',
+    27→      'Un bouton œil affiche l’image complète en transparence pour vous guider, un bouton Mélanger redisperse les pièces non posées, et une barre de progression avec chronomètre suit votre avancée. Vos meilleurs temps par taille sont sauvegardés, la galerie des puzzles terminés est conservée, et une partie en cours est automatiquement reprise.',
+    28→    ],
+    29→    en: [
+    30→      "Family Memories is a free online jigsaw puzzle game in which you reassemble original illustrations by dragging pieces one by one onto the board. Six exclusive images — lavender field, rustic kitchen, cat by the window, village market, blooming garden and mountain lake — await you in 12, 24 or 48 pieces.",
+    31→      'Each piece is cut from the complete image and scattered in the tray below the board. Drag it around: if you drop it near its correct cell it snaps and locks into place for good; otherwise it stays exactly where you left it, on the board or in the tray.',
+    32→      'An eye button shows the full image as a translucent guide, a Shuffle button rescatters the unplaced pieces, and a progress bar with a timer tracks your run. Your best times per size are saved, the gallery of finished puzzles is kept, and a game in progress is automatically resumed.',
+    33→    ],
+    34→  },
+    35→  rules: {
+    36→    fr: [
+    37→      "Choisissez une image, puis un nombre de pièces : 12 (facile), 24 (moyen) ou 48 (patient).",
+    38→      'Les pièces sont dispersées dans le bac sous le plateau ; aucune rotation n’est nécessaire.',
+    39→      'Faites glisser une pièce : relâchez-la près de sa case correcte pour qu’elle s’y colle et s’y verrouille.',
+    40→      'Une pièce lâchée au mauvais endroit reste où elle est — vous pouvez la reprendre et la déplacer autant de fois que nécessaire.',
+    41→      'Le puzzle est terminé quand toutes les pièces sont verrouillées : votre temps est alors enregistré.',
+    42→    ],
+    43→    en: [
+    44→      'Pick an image, then a piece count: 12 (easy), 24 (medium) or 48 (patient).',
+    45→      'Pieces are scattered in the tray below the board; no rotation is ever needed.',
+    46→      'Drag a piece: release it near its correct cell and it snaps and locks into place.',
+    47→      'A piece dropped in the wrong spot stays there — you can pick it up and move it again as often as you like.',
+    48→      'The puzzle is complete when every piece is locked in: your time is then recorded.',
+    49→    ],
+    50→  },
+    51→  controls: {
+    52→    fr: [
+    53→      'Mobile et ordinateur : appuyez sur une pièce puis faites-la glisser avec le doigt ou la souris, et relâchez pour la déposer.',
+    54→      'Bouton œil : affiche ou masque l’image complète en transparence sur le plateau.',
+    55→      'Bouton Mélanger : redisperse dans le bac les pièces non encore verrouillées.',
+    56→      'Bouton retour (flèche) : revenir à l’écran de choix des images — la partie en cours est sauvegardée.',
+    57→    ],
+    58→    en: [
+    59→      'Mobile and desktop: press a piece, drag it with your finger or mouse, then release to drop it.',
+    60→      'Eye button: toggles the full image shown faintly over the board.',
+    61→      'Shuffle button: rescatters the not-yet-locked pieces back into the tray.',
+    62→      'Back button (arrow): return to the image selection screen — your game in progress is saved.',
+    63→    ],
+    64→  },
+    65→  features: {
+    66→    fr: [
+    67→      'Six illustrations originales 1024×1024 créées pour Granmed, sans rotation de pièces.',
+    68→      'Trois tailles par image : 12, 24 ou 48 pièces, avec meilleurs temps conservés séparément.',
+    69→      'Aimantation à 26 px de la case correcte, avec transition douce et bref anneau vert de confirmation.',
+    70→      'Bouton d’aperçu (image fantôme à 40 % d’opacité) et bouton Mélanger pour redisposer les pièces.',
+    71→      'Barre de progression, chronomètre avec pause automatique quand l’onglet est masqué.',
+    72→      'Galerie persistante des puzzles terminés (✅ + meilleur temps) et reprise automatique de la partie en cours.',
+    73→    ],
+    74→    en: [
+    75→      'Six original 1024×1024 illustrations created for Granmed, with no piece rotation.',
+    76→      'Three sizes per image: 12, 24 or 48 pieces, each with its own saved best time.',
+    77→      'Snapping within 26 px of the correct cell, with a smooth transition and a brief green ring.',
+    78→      'Preview toggle (ghost image at 40% opacity) and a Shuffle button to re-scatter pieces.',
+    79→      'Progress bar and timer that automatically pauses when the tab is hidden.',
+    80→      'Persistent gallery of finished puzzles (✅ + best time) and automatic resume of unfinished games.',
+    81→    ],
+    82→  },
+    83→  tips: {
+    84→    fr: [
+    85→      'Commencez par les pièces aux couleurs très recognisables (ciel, coin de table, robe du chat) : elles se plaquent vite au bon endroit.',
+    86→      'Gardez le bouton œil activé par intermittence : l’image fantôme à 40 % suffit à se repérer sans mâcher le travail.',
+    87→      'Rangez les pièces douteuses dans un coin du bac : un bac organisé fait gagner plus de temps que la vitesse de glisser.',
+    88→      'Les bords de l’image et les lignes fortes (horizon, bord de fenêtre) forment un cadre naturel à monter en premier.',
+    89→      'En 48 pièces, procédez par zones de couleur plutôt que pièce par pièce : le chronomètre vous remerciera.',
+    90→    ],
+    91→    en: [
+    92→      'Start with easily recognizable colors (sky, table corner, the cat’s fur): they snap into place quickly.',
+    93→      'Keep the eye button on intermittently: the 40% ghost image is enough to get your bearings without doing the work for you.',
+    94→      'Park doubtful pieces in a corner of the tray: an organized tray saves more time than fast dragging.',
+    95→      'Image edges and strong lines (horizon, window frame) make a natural frame to build first.',
+    96→      'On 48 pieces, work by color areas rather than piece by piece: your timer will thank you.',
+    97→    ],
+    98→  },
+    99→  faq: {
+   100→    fr: [
+   101→      { q: 'Faut-il faire tourner les pièces ?', a: 'Non, aucune rotation n’est nécessaire : chaque pièce est déjà dans le bon sens, il suffit de la placer au bon endroit.' },
+   102→      { q: 'Comment une pièce sait-elle où se coller ?', a: 'Quand vous relâchez une pièce, son centre est comparé à celui de sa case correcte : à moins de 26 pixels, elle s’y aimante et s’y verrouille.' },
+   103→      { q: 'Puis-je revoir l’image complète ?', a: 'Oui, le bouton œil affiche l’image en transparence (40 % d’opacité) sur le plateau, autant de fois que vous le souhaitez.' },
+   104→      { q: 'Que fait le bouton Mélanger ?', a: 'Il redisperse uniquement les pièces non verrouillées dans le bac — les pièces déjà placées ne bougent jamais.' },
+   105→      { q: 'Ma partie est-elle sauvegardée si je quitte ?', a: 'Oui : pièces posées, positions des pièces libres et temps écoulé sont enregistrés automatiquement, et une invitation à reprendre s’affiche à votre retour.' },
+   106→    ],
+   107→    en: [
+   108→      { q: 'Do I need to rotate pieces?', a: 'No, no rotation is ever required: every piece is already facing the right way, you only need to place it correctly.' },
+   109→      { q: 'How does a piece know where to snap?', a: 'When you release a piece, its center is compared with its correct cell’s: within 26 pixels, it snaps and locks there.' },
+   110→      { q: 'Can I see the full image again?', a: 'Yes, the eye button shows the image faintly (40% opacity) over the board, as often as you like.' },
+   111→      { q: 'What does the Shuffle button do?', a: 'It only rescatters the unplaced pieces into the tray — locked pieces never move.' },
+   112→      { q: 'Is my game saved if I leave?', a: 'Yes: locked pieces, free-piece positions and elapsed time are saved automatically, and a resume prompt appears when you come back.' },
+   113→    ],
+   114→  },
+   115→  records: {
+   116→    'best-time-12': { fr: 'Meilleur temps — 12 pièces', en: 'Best time — 12 pieces' },
+   117→    'best-time-24': { fr: 'Meilleur temps — 24 pièces', en: 'Best time — 24 pieces' },
+   118→    'best-time-48': { fr: 'Meilleur temps — 48 pièces', en: 'Best time — 48 pieces' },
+   119→  },
+   120→}
+   121→
+   122→/* ================= Données ================= */
+   123→interface JigImage {
+   124→  id: string
+   125→  src: string
+   126→  title: { fr: string; en: string }
+   127→}
+   128→
+   129→const IMAGES: JigImage[] = [
+   130→  { id: 'lavender', src: '/images/jigsaw-lavender.png', title: { fr: 'Champ de lavande', en: 'Lavender field' } },
+   131→  { id: 'kitchen', src: '/images/jigsaw-kitchen.png', title: { fr: 'Cuisine rustique', en: 'Rustic kitchen' } },
+   132→  { id: 'cat', src: '/images/jigsaw-cat.png', title: { fr: 'Chat à la fenêtre', en: 'Cat by the window' } },
+   133→  { id: 'market', src: '/images/jigsaw-market.png', title: { fr: 'Marché de village', en: 'Village market' } },
+   134→  { id: 'garden', src: '/images/jigsaw-garden.png', title: { fr: 'Jardin fleuri', en: 'Blooming garden' } },
+   135→  { id: 'lake', src: '/images/jigsaw-lake.png', title: { fr: 'Lac de montagne', en: 'Mountain lake' } },
+   136→]
+   137→
+   138→const COUNTS = [12, 24, 48]
+   139→const TRAY_H = 300
+   140→const BOARD_TRAY_GAP = 12
+   141→
+   142→function dimsFor(count: number): { cols: number; rows: number } {
+   143→  if (count === 12) return { cols: 4, rows: 3 }
+   144→  if (count === 24) return { cols: 6, rows: 4 }
+   145→  return { cols: 8, rows: 6 }
+   146→}
+   147→
+   148→function fmtSec(s: number): string {
+   149→  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+   150→}
+   151→
+   152→interface Piece {
+   153→  id: number
+   154→  row: number
+   155→  col: number
+   156→  /** Position libre (coin haut-gauche, px dans la zone de jeu) — ignorée si verrouillée. */
+   157→  x: number
+   158→  y: number
+   159→  locked: boolean
+   160→}
+   161→
+   162→interface PlayState {
+   163→  imageId: string
+   164→  count: number
+   165→  pieces: Piece[]
+   166→}
+   167→
+   168→interface Progress {
+   169→  imageId: string
+   170→  count: number
+   171→  locked: boolean[]
+   172→  pos: { x: number; y: number }[]
+   173→  elapsed: number
+   174→}
+   175→
+   176→interface JigStore {
+   177→  gallery: Record<string, number>
+   178→  progress: Progress | null
+   179→}
+   180→
+   181→/* ================= Textes locaux ================= */
+   182→const STR = {
+   183→  fr: {
+   184→    selectHint: 'Choisissez une image, un nombre de pièces, puis reconstituez le souvenir.',
+   185→    selectImage: 'Sélectionnez une image pour commencer.',
+   186→    pieces: 'pièces',
+   187→    done: 'terminés',
+   188→    savedGame: 'Partie en cours',
+   189→    placed: 'posées',
+   190→    preview: 'Aperçu de l’image',
+   191→    shuffle: 'Mélanger les pièces',
+   192→    otherImages: 'Autres images',
+   193→    tray: 'Bac des pièces — faites-les glisser sur le plateau',
+   194→    dragHint: 'Faites glisser les pièces : elles se collent quand elles sont proches de leur place.',
+   195→    boardLabel: 'Plateau du puzzle',
+   196→  },
+   197→  en: {
+   198→    selectHint: 'Pick an image, a piece count, then reassemble the memory.',
+   199→    selectImage: 'Select an image to begin.',
+   200→    pieces: 'pieces',
+   201→    done: 'done',
+   202→    savedGame: 'Game in progress',
+   203→    placed: 'placed',
+   204→    preview: 'Image preview',
+   205→    shuffle: 'Shuffle pieces',
+   206→    otherImages: 'Other images',
+   207→    tray: 'Piece tray — drag pieces onto the board',
+   208→    dragHint: 'Drag the pieces: they snap when close to their spot.',
+   209→    boardLabel: 'Puzzle board',
+   210→  },
+   211→}
+   212→
+   213→/* ================= Composant principal ================= */
+   214→export default function JigsawPuzzleGame() {
+   215→  const t = useT()
+   216→  const lang = useLang()
+   217→  const L = STR[lang]
+   218→  const reduce = useReducedMotion()
+   219→  const addPlay = useProfileStore((s) => s.addPlay)
+   220→  const addWin = useProfileStore((s) => s.addWin)
+   221→  const addXp = useProfileStore((s) => s.addXp)
+   222→  const setBest = useProfileStore((s) => s.setBest)
+   223→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   224→
+   225→  const [sel, setSel] = useState<string | null>(null)
+   226→  const [cnt, setCnt] = useState<number>(12)
+   227→  const [game, setGame] = useState<PlayState | null>(null)
+   228→  const [restored, setRestored] = useState<Progress | null>(null)
+   229→  const [gallery, setGallery] = useState<Record<string, number>>({})
+   230→  const [won, setWon] = useState<{ seconds: number; isRecord: boolean } | null>(null)
+   231→  const [areaW, setAreaW] = useState(0)
+   232→  const [showPreview, setShowPreview] = useState(false)
+   233→  const [draggingId, setDraggingId] = useState<number | null>(null)
+   234→  const [snapFx, setSnapFx] = useState<number | null>(null)
+   235→  const [shuffleFx, setShuffleFx] = useState(false)
+   236→  const [elapsedMs, setElapsedMs] = useState(0)
+   237→  const [confettiKey, setConfettiKey] = useState(0)
+   238→
+   239→  const areaRef = useRef<HTMLDivElement>(null)
+   240→  const gameRef = useRef<PlayState | null>(null)
+   241→  const galleryRef = useRef<Record<string, number>>({})
+   242→  const areaWRef = useRef(0)
+   243→  const elapsedBaseRef = useRef(0)
+   244→  const runningSinceRef = useRef<number | null>(null)
+   245→  const dragRef = useRef<{ id: number; pointerId: number; startX: number; startY: number; origX: number; origY: number } | null>(null)
+   246→
+   247→  const playing = game != null && won == null
+   248→
+   249→  function updateGame(g: PlayState | null) {
+   250→    gameRef.current = g
+   251→    setGame(g)
+   252→  }
+   253→
+   254→  function getElapsed(): number {
+   255→    return elapsedBaseRef.current + (runningSinceRef.current != null ? Date.now() - runningSinceRef.current : 0)
+   256→  }
+   257→
+   258→  function toProgress(g: PlayState): Progress {
+   259→    return {
+   260→      imageId: g.imageId,
+   261→      count: g.count,
+   262→      locked: g.pieces.map((p) => p.locked),
+   263→      pos: g.pieces.map((p) => ({ x: p.x, y: p.y })),
+   264→      elapsed: 0,
+   265→    }
+   266→  }
+   267→
+   268→  /* --- Restauration au montage (callback asynchrone) --- */
+   269→  useEffect(() => {
+   270→    let alive = true
+   271→    Promise.resolve().then(() => {
+   272→      if (!alive) return
+   273→      const s = loadSave<JigStore>(gameId)
+   274→      if (!s) return
+   275→      if (s.gallery && typeof s.gallery === 'object') {
+   276→        galleryRef.current = s.gallery
+   277→        setGallery(s.gallery)
+   278→      }
+   279→      const p = s.progress
+   280→      if (
+   281→        p &&
+   282→        typeof p.imageId === 'string' &&
+   283→        COUNTS.includes(p.count) &&
+   284→        Array.isArray(p.locked) &&
+   285→        Array.isArray(p.pos) &&
+   286→        p.locked.length === p.count &&
+   287→        p.pos.length === p.count &&
+   288→        IMAGES.some((im) => im.id === p.imageId)
+   289→      ) {
+   290→        setRestored(p)
+   291→      }
+   292→    })
+   293→    return () => {
+   294→      alive = false
+   295→    }
+   296→  }, [])
+   297→
+   298→  /* --- Sauvegarde automatique (positions + temps) --- */
+   299→  useEffect(() => {
+   300→    if (!game || won) return
+   301→    saveSave(gameId, { gallery: galleryRef.current, progress: { ...toProgress(game), elapsed: getElapsed() } })
+   302→  }, [game, won])
+   303→
+   304→  /* --- Sauvegarde périodique du temps écoulé --- */
+   305→  useEffect(() => {
+   306→    if (!game || won) return
+   307→    const g = game
+   308→    const id = window.setInterval(() => {
+   309→      saveSave(gameId, { gallery: galleryRef.current, progress: { ...toProgress(g), elapsed: getElapsed() } })
+   310→    }, 5000)
+   311→    return () => window.clearInterval(id)
+   312→  }, [game, won])
+   313→
+   314→  /* --- Chronomètre : affichage + pause quand l'onglet est masqué --- */
+   315→  useEffect(() => {
+   316→    if (!playing) return
+   317→    const id = window.setInterval(() => setElapsedMs(getElapsed()), 500)
+   318→    const onVis = () => {
+   319→      if (document.hidden) {
+   320→        if (runningSinceRef.current != null) {
+   321→          elapsedBaseRef.current += Date.now() - runningSinceRef.current
+   322→          runningSinceRef.current = null
+   323→        }
+   324→      } else if (runningSinceRef.current == null) {
+   325→        runningSinceRef.current = Date.now()
+   326→      }
+   327→    }
+   328→    document.addEventListener('visibilitychange', onVis)
+   329→    return () => {
+   330→      window.clearInterval(id)
+   331→      document.removeEventListener('visibilitychange', onVis)
+   332→      if (runningSinceRef.current != null) {
+   333→        elapsedBaseRef.current += Date.now() - runningSinceRef.current
+   334→        runningSinceRef.current = null
+   335→      }
+   336→    }
+   337→  }, [playing])
+   338→
+   339→  /* --- Redimensionnement : mesure + mise à l'échelle des pièces libres --- */
+   340→  function applyAreaW(w: number) {
+   341→    const prev = areaWRef.current
+   342→    if (w <= 0 || w === prev) return
+   343→    areaWRef.current = w
+   344→    setAreaW(w)
+   345→    const g = gameRef.current
+   346→    if (g && prev > 0) {
+   347→      const f = w / prev
+   348→      updateGame({ ...g, pieces: g.pieces.map((p) => (p.locked ? p : { ...p, x: p.x * f, y: p.y * f })) })
+   349→    }
+   350→  }
+   351→
+   352→  useEffect(() => {
+   353→    const onResize = () => {
+   354→      const el = areaRef.current
+   355→      if (el) applyAreaW(el.clientWidth)
+   356→    }
+   357→    window.addEventListener('resize', onResize)
+   358→    return () => window.removeEventListener('resize', onResize)
+   359→  }, [])
+   360→
+   361→  function provisionalWidth(): number {
+   362→    return Math.min(Math.round(window.innerWidth * 0.92), 420)
+   363→  }
+   364→
+   365→  function startGame(imageId: string, count: number) {
+   366→    const { cols, rows } = dimsFor(count)
+   367→    const w = provisionalWidth()
+   368→    const pw = w / cols
+   369→    const ph = w / rows
+   370→    const rand = mulberry32(seedFromString(`jigsaw:${imageId}:${count}`))
+   371→    const pad = 8
+   372→    const trayTop = w + BOARD_TRAY_GAP + pad
+   373→    const pieces: Piece[] = []
+   374→    for (let r = 0; r < rows; r++) {
+   375→      for (let c = 0; c < cols; c++) {
+   376→        pieces.push({
+   377→          id: r * cols + c,
+   378→          row: r,
+   379→          col: c,
+   380→          locked: false,
+   381→          x: pad + rand() * Math.max(1, w - pw - pad * 2),
+   382→          y: trayTop + rand() * Math.max(1, TRAY_H - ph - pad * 2),
+   383→        })
+   384→      }
+   385→    }
+   386→    elapsedBaseRef.current = 0
+   387→    runningSinceRef.current = Date.now()
+   388→    setElapsedMs(0)
+   389→    setWon(null)
+   390→    setDraggingId(null)
+   391→    setSnapFx(null)
+   392→    setShuffleFx(false)
+   393→    setRestored(null)
+   394→    areaWRef.current = w
+   395→    setAreaW(w)
+   396→    updateGame({ imageId, count, pieces })
+   397→    addPlay(gameId)
+   398→    sfx.play('pop')
+   399→    window.requestAnimationFrame(() => {
+   400→      const el = areaRef.current
+   401→      if (el) applyAreaW(el.clientWidth)
+   402→    })
+   403→  }
+   404→
+   405→  function resumeGame() {
+   406→    if (!restored) return
+   407→    const { cols, rows } = dimsFor(restored.count)
+   408→    const w = provisionalWidth()
+   409→    const pw = w / cols
+   410→    const ph = w / rows
+   411→    const pieces: Piece[] = restored.locked.map((lk, i) => {
+   412→      const r = Math.floor(i / cols)
+   413→      const c = i % cols
+   414→      const pos = restored.pos[i] ?? { x: c * pw, y: w + TRAY_H / 2 }
+   415→      const locked = !!lk
+   416→      return { id: i, row: r, col: c, locked, x: locked ? c * pw : pos.x, y: locked ? r * ph : pos.y }
+   417→    })
+   418→    elapsedBaseRef.current = restored.elapsed || 0
+   419→    runningSinceRef.current = Date.now()
+   420→    setElapsedMs(restored.elapsed || 0)
+   421→    setWon(null)
+   422→    setDraggingId(null)
+   423→    setSnapFx(null)
+   424→    setShuffleFx(false)
+   425→    setRestored(null)
+   426→    areaWRef.current = w
+   427→    setAreaW(w)
+   428→    updateGame({ imageId: restored.imageId, count: restored.count, pieces })
+   429→    addPlay(gameId)
+   430→    sfx.play('pop')
+   431→    window.requestAnimationFrame(() => {
+   432→      const el = areaRef.current
+   433→      if (el) applyAreaW(el.clientWidth)
+   434→    })
+   435→  }
+   436→
+   437→  function discardRestored() {
+   438→    sfx.play('click')
+   439→    setRestored(null)
+   440→    saveSave(gameId, { gallery: galleryRef.current, progress: null })
+   441→  }
+   442→
+   443→  function backToSelection() {
+   444→    sfx.play('click', { volume: 0.5 })
+   445→    dragRef.current = null
+   446→    setDraggingId(null)
+   447→    setSnapFx(null)
+   448→    setShuffleFx(false)
+   449→    setWon(null)
+   450→    setShowPreview(false)
+   451→    updateGame(null)
+   452→  }
+   453→
+   454→  /* --- Victoire (appelée depuis le callback de dépôt, jamais depuis un effet) --- */
+   455→  function finishWin(g: PlayState) {
+   456→    const ms = getElapsed()
+   457→    elapsedBaseRef.current = ms
+   458→    runningSinceRef.current = null
+   459→    setElapsedMs(ms)
+   460→    const seconds = Math.max(1, Math.round(ms / 1000))
+   461→    const isRecord = setBest(gameId, `best-time-${g.count}`, seconds, true)
+   462→    const key = `${g.imageId}:${g.count}`
+   463→    sfx.play('win')
+   464→    setConfettiKey((k) => k + 1)
+   465→    addWin(gameId)
+   466→    addXp(g.count === 12 ? 30 : g.count === 24 ? 60 : 120)
+   467→    if (g.count === 48) unlockBadge('jigsaw-48')
+   468→    const prev = galleryRef.current[key]
+   469→    const nextGallery = { ...galleryRef.current }
+   470→    if (prev == null || seconds < prev) nextGallery[key] = seconds
+   471→    galleryRef.current = nextGallery
+   472→    setGallery(nextGallery)
+   473→    saveSave(gameId, { gallery: nextGallery, progress: null })
+   474→    setWon({ seconds, isRecord })
+   475→  }
+   476→
+   477→  /* --- Glisser-déposer (Pointer Events + capture) --- */
+   478→  function onPieceDown(e: React.PointerEvent<HTMLDivElement>, p: Piece) {
+   479→    if (!game || won != null || p.locked || dragRef.current != null) return
+   480→    e.preventDefault()
+   481→    const el = e.currentTarget
+   482→    try {
+   483→      el.setPointerCapture(e.pointerId)
+   484→    } catch {
+   485→      /* ignoré */
+   486→    }
+   487→    dragRef.current = { id: p.id, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, origX: p.x, origY: p.y }
+   488→    setDraggingId(p.id)
+   489→    sfx.play('click', { volume: 0.2 })
+   490→  }
+   491→
+   492→  function onPieceMove(e: React.PointerEvent<HTMLDivElement>) {
+   493→    const d = dragRef.current
+   494→    if (!d || d.pointerId !== e.pointerId) return
+   495→    const el = e.currentTarget
+   496→    el.style.left = `${d.origX + (e.clientX - d.startX)}px`
+   497→    el.style.top = `${d.origY + (e.clientY - d.startY)}px`
+   498→  }
+   499→
+   500→  function onPieceUp(e: React.PointerEvent<HTMLDivElement>) {
+   501→    const d = dragRef.current
+   502→    if (!d || d.pointerId !== e.pointerId) return
+   503→    dragRef.current = null
+   504→    setDraggingId(null)
+   505→    const g = gameRef.current
+   506→    const el = e.currentTarget
+   507→    const piece = g?.pieces.find((x) => x.id === d.id)
+   508→    if (!g || !piece || piece.locked) return
+   509→    const { cols, rows } = dimsFor(g.count)
+   510→    const w = areaWRef.current
+   511→    const pw = w / cols
+   512→    const ph = w / rows
+   513→    const nx = d.origX + (e.clientX - d.startX)
+   514→    const ny = d.origY + (e.clientY - d.startY)
+   515→
+   516→    // Aimantation : centre de la pièce à moins de 26 px du centre de sa case
+   517→    const tx = piece.col * pw
+   518→    const ty = piece.row * ph
+   519→    const dist = Math.hypot(nx + pw / 2 - (tx + pw / 2), ny + ph / 2 - (ty + ph / 2))
+   520→    if (dist <= 26) {
+   521→      sfx.play('drop')
+   522→      // Aimantation animée : la transition est posée directement sur le DOM avant la valeur cible,
+   523→      // l'état est commité après la transition (150 ms) — React n'écrase jamais left/top pendant le geste.
+   524→      el.style.transition = 'left 150ms ease-out, top 150ms ease-out'
+   525→      el.style.left = `${tx}px`
+   526→      el.style.top = `${ty}px`
+   527→      window.setTimeout(() => {
+   528→        el.style.transition = ''
+   529→        const g2 = gameRef.current
+   530→        if (!g2) return
+   531→        const pieces = g2.pieces.map((x) => (x.id === piece.id ? { ...x, x: tx, y: ty, locked: true } : x))
+   532→        updateGame({ ...g2, pieces })
+   533→        setSnapFx(piece.id)
+   534→        window.setTimeout(() => setSnapFx(null), 500)
+   535→        if (pieces.every((x) => x.locked)) finishWin(g2)
+   536→      }, 170)
+   537→    } else {
+   538→      const areaH = w + BOARD_TRAY_GAP + TRAY_H
+   539→      const cx = clamp(nx, -pw * 0.25, w - pw * 0.75)
+   540→      const cy = clamp(ny, -ph * 0.25, areaH - ph * 0.75)
+   541→      const pieces = g.pieces.map((x) => (x.id === piece.id ? { ...x, x: cx, y: cy } : x))
+   542→      updateGame({ ...g, pieces })
+   543→    }
+   544→  }
+   545→
+   546→  /* --- Mélanger : redisperse les pièces non verrouillées dans le bac --- */
+   547→  function reshuffle() {
+   548→    const g = gameRef.current
+   549→    if (!g || won != null) return
+   550→    sfx.play('swish')
+   551→    const { cols, rows } = dimsFor(g.count)
+   552→    const w = areaWRef.current
+   553→    const pw = w / cols
+   554→    const ph = w / rows
+   555→    const pad = 8
+   556→    const trayTop = w + BOARD_TRAY_GAP + pad
+   557→    if (g.pieces.every((p) => p.locked)) return
+   558→    const pieces = g.pieces.map((p) =>
+   559→      p.locked
+   560→        ? p
+   561→        : {
+   562→            ...p,
+   563→            x: pad + Math.random() * Math.max(1, w - pw - pad * 2),
+   564→            y: trayTop + Math.random() * Math.max(1, TRAY_H - ph - pad * 2),
+   565→          },
+   566→    )
+   567→    setShuffleFx(true)
+   568→    updateGame({ ...g, pieces })
+   569→    window.setTimeout(() => setShuffleFx(false), 350)
+   570→  }
+   571→
+   572→  /* ================= Rendu ================= */
+   573→  const img = game ? IMAGES.find((im) => im.id === game.imageId) ?? null : null
+   574→  const selImg = sel ? IMAGES.find((im) => im.id === sel) ?? null : null
+   575→  const dims = game ? dimsFor(game.count) : null
+   576→  const pw = game && dims && areaW > 0 ? areaW / dims.cols : 0
+   577→  const ph = game && dims && areaW > 0 ? areaW / dims.rows : 0
+   578→  const lockedCount = game ? game.pieces.filter((p) => p.locked).length : 0
+   579→  const pct = game ? Math.round((lockedCount / game.count) * 100) : 0
+   580→  const doneTotal = COUNTS.reduce((n, c) => n + Object.keys(gallery).filter((k) => k.endsWith(`:${c}`)).length, 0)
+   581→
+   582→  return (
+   583→    <div className="relative select-none">
+   584→      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+   585→
+   586→      {/* Bandeau de reprise */}
+   587→      {restored && !game ? (
+   588→        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-300/60 bg-amber-50 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-500/10">
+   589→          <span className="text-2xl" aria-hidden="true">🧩</span>
+   590→          <span className="min-w-0 flex-1 text-sm">
+   591→            <span className="block font-bold text-amber-700 dark:text-amber-300">{L.savedGame}</span>
+   592→            <span className="block text-xs text-muted-foreground">
+   593→              {IMAGES.find((im) => im.id === restored.imageId)?.title[lang]} · {restored.count} {L.pieces} ·{' '}
+   594→              {restored.locked.filter(Boolean).length}/{restored.count} {L.placed}
+   595→            </span>
+   596→          </span>
+   597→          <Button size="lg" className="h-11 rounded-full" onClick={resumeGame}>
+   598→            {t('game.resume')}
+   599→          </Button>
+   600→          <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={discardRestored}>
+   601→            {t('game.newGame')}
+   602→          </Button>
+   603→        </div>
+   604→      ) : null}
+   605→
+   606→      {!game ? (
+   607→        /* ================= Écran de sélection ================= */
+   608→        <div>
+   609→          <p className="mb-3 text-sm text-muted-foreground">
+   610→            {L.selectHint} <span className="font-semibold">{doneTotal}/18</span> {L.done}.
+   611→          </p>
+   612→          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+   613→            {IMAGES.map((im) => {
+   614→              const done = COUNTS.filter((c) => gallery[`${im.id}:${c}`] != null).length
+   615→              return (
+   616→                <button
+   617→                  key={im.id}
+   618→                  type="button"
+   619→                  aria-pressed={sel === im.id}
+   620→                  onClick={() => {
+   621→                    sfx.play('click', { volume: 0.5 })
+   622→                    setSel(im.id)
+   623→                  }}
+   624→                  className={cn(
+   625→                    'group overflow-hidden rounded-2xl border-2 bg-card text-left transition-all',
+   626→                    sel === im.id ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/40',
+   627→                  )}
+   628→                >
+   629→                  <img
+   630→                    src={im.src}
+   631→                    alt={im.title[lang]}
+   632→                    width={512}
+   633→                    height={512}
+   634→                    loading="lazy"
+   635→                    decoding="async"
+   636→                    className="aspect-square w-full object-cover transition-transform group-hover:scale-[1.03]"
+   637→                  />
+   638→                  <span className="block p-2.5">
+   639→                    <span className="block truncate text-sm font-bold">{im.title[lang]}</span>
+   640→                    <span className="mt-0.5 block text-xs text-muted-foreground">{done}/3 ✅</span>
+   641→                  </span>
+   642→                </button>
+   643→              )
+   644→            })}
+   645→          </div>
+   646→
+   647→          {sel && selImg ? (
+   648→            <div className="mt-4 rounded-2xl border bg-card p-4">
+   649→              <p className="font-display font-bold">{selImg.title[lang]}</p>
+   650→              <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label={t('common.size')}>
+   651→                {COUNTS.map((c) => {
+   652→                  const best = gallery[`${sel}:${c}`]
+   653→                  return (
+   654→                    <button
+   655→                      key={c}
+   656→                      type="button"
+   657→                      aria-pressed={cnt === c}
+   658→                      onClick={() => {
+   659→                        sfx.play('click', { volume: 0.5 })
+   660→                        setCnt(c)
+   661→                      }}
+   662→                      className={cn(
+   663→                        'flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-bold transition-all',
+   664→                        cnt === c
+   665→                          ? 'border-primary bg-primary/10 text-primary'
+   666→                          : 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground',
+   667→                      )}
+   668→                    >
+   669→                      <span>{c}</span>
+   670→                      <span className="text-xs font-medium opacity-70">{L.pieces}</span>
+   671→                      {best != null ? (
+   672→                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">✅ {fmtSec(best)}</span>
+   673→                      ) : null}
+   674→                    </button>
+   675→                  )
+   676→                })}
+   677→                <Button size="lg" className="ms-auto h-11 rounded-full anim-glow" onClick={() => startGame(sel, cnt)}>
+   678→                  <Play className="h-4 w-4" aria-hidden="true" />
+   679→                  {t('common.playNow')}
+   680→                </Button>
+   681→              </div>
+   682→            </div>
+   683→          ) : (
+   684→            <p className="mt-4 text-center text-sm text-muted-foreground">{L.selectImage}</p>
+   685→          )}
+   686→        </div>
+   687→      ) : (
+   688→        /* ================= Écran de jeu ================= */
+   689→        <div>
+   690→          <div className="mb-3 flex items-center gap-2">
+   691→            <Button
+   692→              variant="ghost"
+   693→              size="icon"
+   694→              className="h-11 w-11 shrink-0 rounded-full"
+   695→              aria-label={t('common.back')}
+   696→              onClick={backToSelection}
+   697→            >
+   698→              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+   699→            </Button>
+   700→            <div className="min-w-0 flex-1">
+   701→              <div className="flex items-baseline justify-between gap-2">
+   702→                <p className="truncate font-display text-sm font-bold">{img?.title[lang]}</p>
+   703→                <p className="shrink-0 text-xs text-muted-foreground">
+   704→                  <span className="tabular-nums font-semibold text-foreground">
+   705→                    {lockedCount}/{game.count}
+   706→                  </span>{' '}
+   707→                  · <span className="tabular-nums font-semibold text-foreground">{formatMs(elapsedMs)}</span>
+   708→                </p>
+   709→              </div>
+   710→              <div
+   711→                className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary"
+   712→                role="progressbar"
+   713→                aria-valuenow={lockedCount}
+   714→                aria-valuemin={0}
+   715→                aria-valuemax={game.count}
+   716→              >
+   717→                <div
+   718→                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300"
+   719→                  style={{ width: `${pct}%` }}
+   720→                />
+   721→              </div>
+   722→            </div>
+   723→            <Button
+   724→              variant="secondary"
+   725→              size="icon"
+   726→              className="h-11 w-11 shrink-0 rounded-full"
+   727→              aria-pressed={showPreview}
+   728→              aria-label={L.preview}
+   729→              onClick={() => {
+   730→                sfx.play('click', { volume: 0.5 })
+   731→                setShowPreview((v) => !v)
+   732→              }}
+   733→            >
+   734→              {showPreview ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+   735→            </Button>
+   736→            <Button
+   737→              variant="secondary"
+   738→              size="icon"
+   739→              className="h-11 w-11 shrink-0 rounded-full"
+   740→              aria-label={L.shuffle}
+   741→              disabled={won != null || lockedCount === game.count}
+   742→              onClick={reshuffle}
+   743→            >
+   744→              <Shuffle className="h-5 w-5" aria-hidden="true" />
+   745→            </Button>
+   746→          </div>
+   747→
+   748→          {/* Zone de jeu : plateau + bac, pièces positionnées en absolu */}
+   749→          <div ref={areaRef} className="no-select relative mx-auto w-[min(92vw,420px)] touch-none">
+   750→            <div
+   751→              role="img"
+   752→              aria-label={L.boardLabel}
+   753→              className={cn(
+   754→                'checkerboard relative aspect-square w-full overflow-hidden rounded-xl border-2 bg-card',
+   755→                won != null ? 'anim-glow border-emerald-400' : 'border-border/70',
+   756→              )}
+   757→            >
+   758→              {dims ? (
+   759→                <div
+   760→                  className="absolute inset-0"
+   761→                  aria-hidden="true"
+   762→                  style={{
+   763→                    backgroundImage: `repeating-linear-gradient(to right, rgba(146, 94, 56, 0.16) 0 1px, transparent 1px ${100 / dims.cols}%), repeating-linear-gradient(to bottom, rgba(146, 94, 56, 0.16) 0 1px, transparent 1px ${100 / dims.rows}%)`,
+   764→                  }}
+   765→                />
+   766→              ) : null}
+   767→              {showPreview && img ? (
+   768→                <img
+   769→                  src={img.src}
+   770→                  alt=""
+   771→                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
+   772→                />
+   773→              ) : null}
+   774→            </div>
+   775→
+   776→            {won == null ? (
+   777→              <div
+   778→                className="mt-3 h-[300px] w-full rounded-2xl border-2 border-dashed border-border/60 bg-secondary/30"
+   779→                aria-label={L.tray}
+   780→              />
+   781→            ) : null}
+   782→
+   783→            {img && dims && areaW > 0
+   784→              ? game.pieces.map((p) => (
+   785→                  <div
+   786→                    key={p.id}
+   787→                    onPointerDown={(e) => onPieceDown(e, p)}
+   788→                    onPointerMove={onPieceMove}
+   789→                    onPointerUp={onPieceUp}
+   790→                    onPointerCancel={onPieceUp}
+   791→                    className={cn(
+   792→                      'absolute touch-none rounded-[2px] bg-no-repeat',
+   793→                      p.locked
+   794→                        ? 'pointer-events-none z-[1]'
+   795→                        : draggingId === p.id
+   796→                          ? 'z-40 scale-[1.06] cursor-grabbing shadow-xl'
+   797→                          : 'z-[5] cursor-grab shadow-md',
+   798→                      snapFx === p.id && 'ring-2 ring-emerald-400',
+   799→                      shuffleFx && !p.locked && draggingId !== p.id && 'transition-[left,top] duration-300 ease-out',
+   800→                    )}
+   801→                    style={{
+   802→                      left: p.locked ? p.col * pw : p.x,
+   803→                      top: p.locked ? p.row * ph : p.y,
+   804→                      width: pw,
+   805→                      height: ph,
+   806→                      backgroundImage: `url(${img.src})`,
+   807→                      backgroundSize: `${dims.cols * 100}% ${dims.rows * 100}%`,
+   808→                      backgroundPosition: `${(p.col / (dims.cols - 1)) * 100}% ${(p.row / (dims.rows - 1)) * 100}%`,
+   809→                    }}
+   810→                  />
+   811→                ))
+   812→              : null}
+   813→          </div>
+   814→
+   815→          {won == null ? <p className="mt-2 text-center text-xs text-muted-foreground">{L.dragHint}</p> : null}
+   816→
+   817→          {/* Écran de victoire */}
+   818→          {won != null && img ? (
+   819→            <div
+   820→              className="anim-rise mt-4 rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10"
+   821→              role="status"
+   822→            >
+   823→              <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
+   824→              <p className="mt-1 text-sm text-muted-foreground">
+   825→                {img.title[lang]} · {game.count} {L.pieces}
+   826→              </p>
+   827→              <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
+   828→                <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(won.seconds * 1000)} />
+   829→                <StatPill
+   830→                  icon={<Trophy className="h-4 w-4" aria-hidden="true" />}
+   831→                  label={t('common.best')}
+   832→                  value={fmtSec(gallery[`${game.imageId}:${game.count}`] ?? won.seconds)}
+   833→                />
+   834→                {won.isRecord ? (
+   835→                  <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+   836→                    <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
+   837→                  </span>
+   838→                ) : null}
+   839→              </div>
+   840→              <div className="mt-4 flex flex-wrap justify-center gap-2.5">
+   841→                <Button size="lg" className="rounded-full" onClick={() => startGame(game.imageId, game.count)}>
+   842→                  <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
+   843→                </Button>
+   844→                <Button size="lg" variant="secondary" className="rounded-full" onClick={backToSelection}>
+   845→                  <Puzzle className="h-4 w-4" aria-hidden="true" /> {L.otherImages}
+   846→                </Button>
+   847→              </div>
+   848→            </div>
+   849→          ) : null}
+   850→        </div>
+   851→      )}
+   852→    </div>
+   853→  )
+   854→}
+   855→
+   856→/* ================= Sous-composants ================= */
+   857→function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+   858→  return (
+   859→    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+   860→      <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
+   861→      <span className="text-muted-foreground">{label}</span>
+   862→      <span className="tabular-nums">{value}</span>
+   863→    </span>
+   864→  )
+   865→}
+   866→

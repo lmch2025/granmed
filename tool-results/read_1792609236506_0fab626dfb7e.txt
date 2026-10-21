@@ -1,0 +1,981 @@
+     1→'use client'
+     2→
+     3→import { useEffect, useMemo, useRef, useState } from 'react'
+     4→import { Play, RotateCcw, CalendarCheck, Timer, Lightbulb, SearchCheck, Pause, Pencil, Eraser } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useT, useLang } from '@/lib/i18n'
+     8→import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
+     9→import { loadSave, saveSave, clearSave } from '@/lib/save'
+    10→import { todayKey, mulberry32, seedFromString, shuffle, clamp, formatMs, useReducedMotion } from '@/lib/utils-game'
+    11→import type { GameSEOContent } from '@/lib/games/types'
+    12→import { Button } from '@/components/ui/button'
+    13→import { Switch } from '@/components/ui/switch'
+    14→import { Label } from '@/components/ui/label'
+    15→import { Confetti } from '@/components/shared/confetti'
+    16→import { toast } from 'sonner'
+    17→
+    18→export const gameId = 'sudoku'
+    19→
+    20→/* ================= Contenu SEO bilingue ================= */
+    21→export const content: GameSEOContent = {
+    22→  tagline: {
+    23→    fr: 'Des grilles à solution unique garantie, quatre niveaux, notes au crayon et chrono : le sudoku zen de Granmed.',
+    24→    en: 'Uniquely solvable grids, four levels, pencil notes and a timer: Granmed’s zen sudoku.',
+    25→  },
+    26→  description: {
+    27→    fr: [
+    28→      'Sudoku Zen est un jeu de sudoku gratuit en ligne dans lequel vous complétez une grille 9×9 avec les chiffres 1 à 9, sans jamais répéter un chiffre dans une ligne, une colonne ou un bloc de 3×3.',
+    29→      'Chaque grille est générée sur mesure et vérifie une propriété essentielle : elle admet exactement une seule solution. Quatre niveaux de difficulté — de 40 indices en Facile à 24 en Expert — s’adaptent aux débutants comme aux vétérans, et un défi du jour identique pour tous renouvelle l’intérêt chaque matin.',
+    30→      'Notes au crayon, contrôle automatique des erreurs, trois indices par grille et chronomètre avec pause : tout est pensé pour une partie calme et rigoureuse, sauvegardée automatiquement pour être reprise à tout moment.',
+    31→    ],
+    32→    en: [
+    33→      'Sudoku Zen is a free online sudoku game in which you complete a 9×9 grid with the digits 1 to 9, never repeating a digit within a row, a column or a 3×3 box.',
+    34→      'Every grid is generated on the fly and verified for one essential property: it admits exactly one solution. Four difficulty levels — from 40 givens in Easy down to 24 in Expert — suit beginners and veterans alike, and a daily challenge, identical for everyone, renews the fun every morning.',
+    35→      'Pencil notes, automatic error checking, three hints per grid and a pausable timer: everything is designed for a calm, rigorous game, saved automatically so you can resume at any time.',
+    36→    ],
+    37→  },
+    38→  rules: {
+    39→    fr: [
+    40→      'Complétez la grille avec les chiffres 1 à 9.',
+    41→      'Chaque chiffre apparaît une seule fois par ligne, par colonne et par bloc 3×3.',
+    42→      'Les chiffres donnés au départ ne peuvent pas être modifiés.',
+    43→      'Activez le mode notes pour inscrire plusieurs candidats au crayon dans une case.',
+    44→      'La grille est résolue quand elle est entièrement remplie et valide — sa solution est unique.',
+    45→    ],
+    46→    en: [
+    47→      'Complete the grid with the digits 1 to 9.',
+    48→      'Each digit appears only once per row, column and 3×3 box.',
+    49→      'The givens provided at the start cannot be changed.',
+    50→      'Turn on notes mode to pencil several candidates into a cell.',
+    51→      'The grid is solved when fully filled and valid — its solution is unique.',
+    52→    ],
+    53→  },
+    54→  controls: {
+    55→    fr: [
+    56→      'Mobile et tablette : touchez une case puis un chiffre du pavé numérique.',
+    57→      'Ordinateur : cliquez une case ; tapez 1–9, effacez avec Retour/Suppr, déplacez-vous avec les flèches, N bascule le mode notes.',
+    58→      'Bouton pause : fige le chronomètre et masque la grille.',
+    59→    ],
+    60→    en: [
+    61→      'Mobile & tablet: tap a cell, then a digit on the number pad.',
+    62→      'Desktop: click a cell; type 1–9, erase with Backspace/Delete, move with arrow keys, N toggles notes mode.',
+    63→      'Pause button: freezes the timer and hides the grid.',
+    64→    ],
+    65→  },
+    66→  features: {
+    67→    fr: [
+    68→      'Générateur à solution unique vérifiée pour chaque grille',
+    69→      '4 difficultés : Facile (40 indices), Moyen (34), Difficile (28), Expert (24)',
+    70→      'Notes crayon 3×3 et surbrillance ligne/colonne/bloc',
+    71→      'Contrôle des erreurs + 3 indices par partie',
+    72→      'Chronomètre avec pause (y compris automatique en arrière-plan)',
+    73→      'Records de temps par difficulté et défi du jour quotidien',
+    74→    ],
+    75→    en: [
+    76→      'Generator with a verified unique solution for every grid',
+    77→      '4 difficulties: Easy (40 givens), Medium (34), Hard (28), Expert (24)',
+    78→      '3×3 pencil notes and row/column/box highlighting',
+    79→      'Error checking + 3 hints per game',
+    80→      'Timer with pause (including automatic pause in background)',
+    81→      'Best times per difficulty and a daily challenge',
+    82→    ],
+    83→  },
+    84→  tips: {
+    85→    fr: [
+    86→      'Commencez par les chiffres les plus présents : c’est là que les déductions sont les plus rapides.',
+    87→      'Un chiffre ne peut aller que dans une case d’un bloc ? Notez-le, puis éliminez par lignes et colonnes.',
+    88→      'Utilisez le mode notes pour les cases à 2–3 candidats, puis nettoyez-les au fil des déductions.',
+    89→      'En Expert, ne devinez jamais : chaque grille a une solution logique unique.',
+    90→    ],
+    91→    en: [
+    92→      'Start with the most frequent digits: that is where deductions come fastest.',
+    93→      'A digit can only fit one cell of a box? Pencil it in, then eliminate by rows and columns.',
+    94→      'Use notes mode for cells with 2–3 candidates, then clean them up as you deduce.',
+    95→      'On Expert, never guess: every grid has a unique logical solution.',
+    96→    ],
+    97→  },
+    98→  faq: {
+    99→    fr: [
+   100→      { q: 'Les grilles ont-elles vraiment une solution unique ?', a: 'Oui. À chaque tentative de retrait d’un chiffre pendant la génération, un solveur compte les solutions de la grille (arrêt dès la deuxième) : si l’unicité était perdue, le chiffre est remis en place.' },
+   101→      { q: 'Le chronomètre compte-t-il quand je change d’onglet ?', a: 'Non : le chrono se met en pause automatiquement quand la page devient invisible, et vous pouvez le mettre en pause manuellement à tout moment.' },
+   102→      { q: 'À quoi servent les indices ?', a: 'Un indice remplit correctement la case sélectionnée (ou une case utile choisie au hasard). Vous en avez 3 par grille ; chaque indice utilisé réduit l’expérience gagnée.' },
+   103→      { q: 'Puis-je reprendre une grille en cours ?', a: 'Oui : la grille, les notes, le chrono et les indices restants sont sauvegardés automatiquement ; la page vous proposera de reprendre au retour.' },
+   104→      { q: 'Quelle est la différence entre les difficultés ?', a: 'Le nombre de chiffres donnés au départ : 40 en Facile, 34 en Moyen, 28 en Difficile, 24 en Expert. Moins d’indices signifie des déductions plus longues.' },
+   105→    ],
+   106→    en: [
+   107→      { q: 'Do the grids really have a unique solution?', a: 'Yes. Every time the generator attempts to remove a digit, a solver counts the grid’s solutions (stopping at the second): if uniqueness would be lost, the digit is put back.' },
+   108→      { q: 'Does the timer run when I switch tabs?', a: 'No: the timer pauses automatically when the page becomes hidden, and you can pause it manually at any time.' },
+   109→      { q: 'What are hints for?', a: 'A hint fills the selected cell (or a useful random cell) correctly. You get 3 per grid; each hint used reduces the experience earned.' },
+   110→      { q: 'Can I resume a grid in progress?', a: 'Yes: the grid, notes, timer and remaining hints are saved automatically; the page will offer to resume when you come back.' },
+   111→      { q: 'What is the difference between difficulties?', a: 'The number of starting givens: 40 in Easy, 34 in Medium, 28 in Hard, 24 in Expert. Fewer givens mean longer deductions.' },
+   112→    ],
+   113→  },
+   114→  records: {
+   115→    'best-time-easy': { fr: 'Meilleur temps — Facile', en: 'Best time — Easy' },
+   116→    'best-time-medium': { fr: 'Meilleur temps — Moyen', en: 'Best time — Medium' },
+   117→    'best-time-hard': { fr: 'Meilleur temps — Difficile', en: 'Best time — Hard' },
+   118→    'best-time-expert': { fr: 'Meilleur temps — Expert', en: 'Best time — Expert' },
+   119→  },
+   120→}
+   121→
+   122→/* ================= Générateur (solution unique garantie) ================= */
+   123→
+   124→type Diff = 'easy' | 'medium' | 'hard' | 'expert'
+   125→
+   126→const DIFFS: { id: Diff; givens: number; xp: number; dots: number }[] = [
+   127→  { id: 'easy', givens: 40, xp: 30, dots: 1 },
+   128→  { id: 'medium', givens: 34, xp: 50, dots: 2 },
+   129→  { id: 'hard', givens: 28, xp: 80, dots: 3 },
+   130→  { id: 'expert', givens: 24, xp: 120, dots: 4 },
+   131→]
+   132→
+   133→function popcount9(v: number): number {
+   134→  let n = 0
+   135→  while (v) {
+   136→    v &= v - 1
+   137→    n++
+   138→  }
+   139→  return n
+   140→}
+   141→
+   142→/** Étape 1 : remplit une grille complète valide par backtracking randomisé. */
+   143→function generateSolution(rand: () => number): number[] {
+   144→  const grid = new Array<number>(81).fill(0)
+   145→  const rows = new Array<number>(9).fill(0)
+   146→  const cols = new Array<number>(9).fill(0)
+   147→  const boxes = new Array<number>(9).fill(0)
+   148→  const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+   149→
+   150→  function fill(pos: number): boolean {
+   151→    if (pos === 81) return true
+   152→    const r = (pos / 9) | 0
+   153→    const c = pos % 9
+   154→    const b = ((r / 3) | 0) * 3 + ((c / 3) | 0)
+   155→    for (const d of shuffle(digits, rand)) {
+   156→      const bit = 1 << d
+   157→      if ((rows[r] | cols[c] | boxes[b]) & bit) continue
+   158→      grid[pos] = d
+   159→      rows[r] |= bit
+   160→      cols[c] |= bit
+   161→      boxes[b] |= bit
+   162→      if (fill(pos + 1)) return true
+   163→      grid[pos] = 0
+   164→      rows[r] ^= bit
+   165→      cols[c] ^= bit
+   166→      boxes[b] ^= bit
+   167→    }
+   168→    return false
+   169→  }
+   170→  fill(0)
+   171→  return grid
+   172→}
+   173→
+   174→/** Étape 2 : compte les solutions d'une grille (arrêt dès `limit` atteint). Ne modifie pas l'entrée. */
+   175→function countSolutions(input: number[], limit: number): number {
+   176→  const g = input.slice()
+   177→  const rows = new Array<number>(9).fill(0)
+   178→  const cols = new Array<number>(9).fill(0)
+   179→  const boxes = new Array<number>(9).fill(0)
+   180→  for (let i = 0; i < 81; i++) {
+   181→    if (g[i] === 0) continue
+   182→    const r = (i / 9) | 0
+   183→    const c = i % 9
+   184→    const b = ((r / 3) | 0) * 3 + ((c / 3) | 0)
+   185→    const bit = 1 << g[i]
+   186→    rows[r] |= bit
+   187→    cols[c] |= bit
+   188→    boxes[b] |= bit
+   189→  }
+   190→  let count = 0
+   191→
+   192→  function backtrack(): boolean {
+   193→    // MRV : chercher la case vide avec le moins de candidats
+   194→    let best = -1
+   195→    let bestMask = 0
+   196→    let bestN = 10
+   197→    for (let i = 0; i < 81; i++) {
+   198→      if (g[i] !== 0) continue
+   199→      const r = (i / 9) | 0
+   200→      const c = i % 9
+   201→      const b = ((r / 3) | 0) * 3 + ((c / 3) | 0)
+   202→      const mask = ~(rows[r] | cols[c] | boxes[b]) & 0x3fe
+   203→      const n = popcount9(mask)
+   204→      if (n === 0) return false // impasse
+   205→      if (n < bestN) {
+   206→        bestN = n
+   207→        best = i
+   208→        bestMask = mask
+   209→        if (n === 1) break
+   210→      }
+   211→    }
+   212→    if (best === -1) {
+   213→      count++
+   214→      return count >= limit
+   215→    }
+   216→    const r = (best / 9) | 0
+   217→    const c = best % 9
+   218→    const b = ((r / 3) | 0) * 3 + ((c / 3) | 0)
+   219→    for (let d = 1; d <= 9; d++) {
+   220→      const bit = 1 << d
+   221→      if (!(bestMask & bit)) continue
+   222→      g[best] = d
+   223→      rows[r] |= bit
+   224→      cols[c] |= bit
+   225→      boxes[b] |= bit
+   226→      const stop = backtrack()
+   227→      g[best] = 0
+   228→      rows[r] ^= bit
+   229→      cols[c] ^= bit
+   230→      boxes[b] ^= bit
+   231→      if (stop) return true
+   232→    }
+   233→    return false
+   234→  }
+   235→
+   236→  backtrack()
+   237→  return count
+   238→}
+   239→
+   240→/** Étape 3 : retire des chiffres un à un en vérifiant l'unicité de la solution À CHAQUE tentative. */
+   241→function makePuzzle(targetGivens: number, rand: () => number): { givens: number[]; solution: number[] } {
+   242→  const solution = generateSolution(rand)
+   243→  const givens = solution.slice()
+   244→  const positions = shuffle(Array.from({ length: 81 }, (_, i) => i), rand)
+   245→  let toRemove = 81 - targetGivens
+   246→  for (const pos of positions) {
+   247→    if (toRemove <= 0) break
+   248→    const backup = givens[pos]
+   249→    if (backup === 0) continue
+   250→    givens[pos] = 0
+   251→    if (countSolutions(givens, 2) === 1) {
+   252→      toRemove--
+   253→    } else {
+   254→      givens[pos] = backup // l'unicité serait perdue : on remet le chiffre
+   255→    }
+   256→  }
+   257→  return { givens, solution }
+   258→}
+   259→
+   260→/** Cases voisines (ligne + colonne + bloc) précalculées. */
+   261→const PEERS: number[][] = (() => {
+   262→  const peers: number[][] = []
+   263→  for (let i = 0; i < 81; i++) {
+   264→    const r = (i / 9) | 0
+   265→    const c = i % 9
+   266→    const set = new Set<number>()
+   267→    for (let k = 0; k < 9; k++) {
+   268→      set.add(r * 9 + k)
+   269→      set.add(k * 9 + c)
+   270→    }
+   271→    const br = ((r / 3) | 0) * 3
+   272→    const bc = ((c / 3) | 0) * 3
+   273→    for (let dr = 0; dr < 3; dr++) {
+   274→      for (let dc = 0; dc < 3; dc++) set.add((br + dr) * 9 + (bc + dc))
+   275→    }
+   276→    set.delete(i)
+   277→    peers.push([...set])
+   278→  }
+   279→  return peers
+   280→})()
+   281→
+   282→const PEERS_SET: Set<number>[] = PEERS.map((p) => new Set(p))
+   283→
+   284→/** Grille du jour (mémoïsée : génération déterministe coûteuse). */
+   285→let dailyPuzzleCache: { date: string; givens: number[]; solution: number[] } | null = null
+   286→
+   287→function findConflicts(grid: number[]): Set<number> {
+   288→  const out = new Set<number>()
+   289→  for (let i = 0; i < 81; i++) {
+   290→    const v = grid[i]
+   291→    if (!v) continue
+   292→    for (const j of PEERS[i]) {
+   293→      if (grid[j] === v) {
+   294→        out.add(i)
+   295→        out.add(j)
+   296→      }
+   297→    }
+   298→  }
+   299→  return out
+   300→}
+   301→
+   302→function conflictsWith(grid: number[], i: number, v: number): boolean {
+   303→  for (const j of PEERS[i]) if (grid[j] === v) return true
+   304→  return false
+   305→}
+   306→
+   307→/* ================= Textes locaux ================= */
+   308→const STR = {
+   309→  fr: {
+   310→    givens: 'indices',
+   311→    generating: 'Génération de la grille…',
+   312→    generatingSub: 'Vérification de la solution unique en cours',
+   313→    notes: 'Notes',
+   314→    erase: 'Effacer',
+   315→    autoCheck: 'Contrôle auto',
+   316→    verify: 'Vérifier',
+   317→    confirm: 'Confirmer ?',
+   318→    noErrors: 'Aucune erreur — parfait !',
+   319→    errors: (n: number) => `${n} case${n > 1 ? 's' : ''} incorrecte${n > 1 ? 's' : ''}`,
+   320→    cell: 'Case',
+   321→    given: 'donné',
+   322→    board: 'Grille de sudoku',
+   323→    pad: 'Pavé numérique',
+   324→    savedGame: 'Grille sauvegardée',
+   325→    hintsUsed: 'Indices utilisés',
+   326→    xpEarned: 'XP gagnés',
+   327→    replay: 'Même difficulté',
+   328→  },
+   329→  en: {
+   330→    givens: 'givens',
+   331→    generating: 'Generating the grid…',
+   332→    generatingSub: 'Verifying the unique solution',
+   333→    notes: 'Notes',
+   334→    erase: 'Erase',
+   335→    autoCheck: 'Auto check',
+   336→    verify: 'Check',
+   337→    confirm: 'Confirm?',
+   338→    noErrors: 'No errors — perfect!',
+   339→    errors: (n: number) => `${n} wrong cell${n > 1 ? 's' : ''}`,
+   340→    cell: 'Cell',
+   341→    given: 'given',
+   342→    board: 'Sudoku grid',
+   343→    pad: 'Number pad',
+   344→    savedGame: 'Saved grid',
+   345→    hintsUsed: 'Hints used',
+   346→    xpEarned: 'XP earned',
+   347→    replay: 'Same difficulty',
+   348→  },
+   349→}
+   350→
+   351→interface SudokuSave {
+   352→  diff: Diff
+   353→  daily: boolean
+   354→  givens: number[]
+   355→  solution: number[]
+   356→  grid: number[]
+   357→  notes: number[]
+   358→  elapsed: number
+   359→  hintsUsed: number
+   360→  hinted: number[]
+   361→}
+   362→
+   363→/* ================= Composant principal ================= */
+   364→export default function SudokuGame() {
+   365→  const t = useT()
+   366→  const lang = useLang()
+   367→  const reduce = useReducedMotion()
+   368→  const L = STR[lang]
+   369→  const dailyDone = useIsDailyDone(gameId)
+   370→  const addPlay = useProfileStore((s) => s.addPlay)
+   371→  const addWin = useProfileStore((s) => s.addWin)
+   372→  const addXp = useProfileStore((s) => s.addXp)
+   373→  const setBest = useProfileStore((s) => s.setBest)
+   374→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   375→  const completeDaily = useProfileStore((s) => s.completeDaily)
+   376→
+   377→  const [phase, setPhase] = useState<'menu' | 'generating' | 'playing' | 'won'>('menu')
+   378→  const [diff, setDiff] = useState<Diff>('easy')
+   379→  const [daily, setDaily] = useState(false)
+   380→  const [givens, setGivens] = useState<number[]>(() => new Array(81).fill(0))
+   381→  const [solution, setSolution] = useState<number[]>(() => new Array(81).fill(0))
+   382→  const [grid, setGrid] = useState<number[]>(() => new Array(81).fill(0))
+   383→  const [notes, setNotes] = useState<number[]>(() => new Array(81).fill(0))
+   384→  const [sel, setSel] = useState(-1)
+   385→  const [notesMode, setNotesMode] = useState(false)
+   386→  const [autoCheck, setAutoCheck] = useState(true)
+   387→  const [hintsUsed, setHintsUsed] = useState(0)
+   388→  const [hinted, setHinted] = useState<number[]>([])
+   389→  const [elapsed, setElapsed] = useState(0)
+   390→  const [running, setRunning] = useState(false)
+   391→  const [sessKey, setSessKey] = useState(0)
+   392→  const [restored, setRestored] = useState<SudokuSave | null>(null)
+   393→  const [confettiKey, setConfettiKey] = useState(0)
+   394→  const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number } | null>(null)
+   395→  const [confirmRestart, setConfirmRestart] = useState(false)
+   396→
+   397→  const baseRef = useRef(0)
+   398→  const segStartRef = useRef(0)
+   399→  const pauseRef = useRef<() => void>(() => {})
+   400→  const keyRef = useRef<(e: KeyboardEvent) => void>(() => {})
+   401→
+   402→  /* --- Chronomètre : segment courant + base accumulée --- */
+   403→  useEffect(() => {
+   404→    if (!running) return
+   405→    segStartRef.current = Date.now()
+   406→    const id = window.setInterval(() => setElapsed(baseRef.current + (Date.now() - segStartRef.current)), 500)
+   407→    return () => window.clearInterval(id)
+   408→  }, [running, sessKey])
+   409→
+   410→  function currentElapsed(): number {
+   411→    return baseRef.current + (running ? Date.now() - segStartRef.current : 0)
+   412→  }
+   413→
+   414→  /* --- Pause automatique en arrière-plan (handler via ref => jamais stale) --- */
+   415→  useEffect(() => {
+   416→    const onVis = () => {
+   417→      if (document.hidden) pauseRef.current()
+   418→    }
+   419→    document.addEventListener('visibilitychange', onVis)
+   420→    return () => document.removeEventListener('visibilitychange', onVis)
+   421→  }, [])
+   422→
+   423→  /* --- Clavier physique (handler via ref) --- */
+   424→  useEffect(() => {
+   425→    const fn = (e: KeyboardEvent) => keyRef.current(e)
+   426→    window.addEventListener('keydown', fn)
+   427→    return () => window.removeEventListener('keydown', fn)
+   428→  }, [])
+   429→
+   430→  /* --- Restauration au montage (callback asynchrone) --- */
+   431→  useEffect(() => {
+   432→    let alive = true
+   433→    Promise.resolve().then(() => {
+   434→      if (!alive) return
+   435→      const s = loadSave<SudokuSave>(gameId)
+   436→      if (s && Array.isArray(s.grid) && s.grid.length === 81 && Array.isArray(s.givens) && s.givens.length === 81 && Array.isArray(s.solution)) {
+   437→        setRestored(s)
+   438→      }
+   439→    })
+   440→    return () => {
+   441→      alive = false
+   442→    }
+   443→  }, [])
+   444→
+   445→  /* --- Sauvegarde automatique à chaque modification --- */
+   446→  useEffect(() => {
+   447→    if (phase !== 'playing') return
+   448→    const data: SudokuSave = { diff, daily, givens, solution, grid, notes, elapsed: currentElapsed(), hintsUsed, hinted }
+   449→    saveSave(gameId, data)
+   450→  }, [phase, diff, daily, givens, solution, grid, notes, hintsUsed, hinted])
+   451→
+   452→  /* --- Actions --- */
+   453→  function pause() {
+   454→    if (!running) return
+   455→    baseRef.current += Date.now() - segStartRef.current
+   456→    setElapsed(baseRef.current)
+   457→    setRunning(false)
+   458→    sfx.play('click', { volume: 0.4 })
+   459→  }
+   460→
+   461→  function resumeTimer() {
+   462→    if (running || phase !== 'playing') return
+   463→    setRunning(true)
+   464→    sfx.play('click', { volume: 0.5 })
+   465→  }
+   466→
+   467→  function newGame(d: Diff, isDaily = false) {
+   468→    sfx.play('click')
+   469→    setDiff(d)
+   470→    setDaily(isDaily)
+   471→    setPhase('generating')
+   472→    window.setTimeout(() => {
+   473→      let gz: number[]
+   474→      let sol: number[]
+   475→      if (isDaily) {
+   476→        const key = todayKey()
+   477→        if (!dailyPuzzleCache || dailyPuzzleCache.date !== key) {
+   478→          const rand = mulberry32(seedFromString(`${gameId}:${key}`))
+   479→          const p = makePuzzle(34, rand)
+   480→          dailyPuzzleCache = { date: key, givens: p.givens, solution: p.solution }
+   481→        }
+   482→        gz = dailyPuzzleCache.givens
+   483→        sol = dailyPuzzleCache.solution
+   484→      } else {
+   485→        const p = makePuzzle(DIFFS.find((x) => x.id === d)?.givens ?? 34, Math.random)
+   486→        gz = p.givens
+   487→        sol = p.solution
+   488→      }
+   489→      setGivens(gz)
+   490→      setSolution(sol)
+   491→      setGrid([...gz])
+   492→      setNotes(new Array(81).fill(0))
+   493→      setSel(-1)
+   494→      setNotesMode(false)
+   495→      setHintsUsed(0)
+   496→      setHinted([])
+   497→      setWonInfo(null)
+   498→      setConfirmRestart(false)
+   499→      baseRef.current = 0
+   500→      setElapsed(0)
+   501→      setSessKey((k) => k + 1)
+   502→      setRunning(true)
+   503→      setPhase('playing')
+   504→      addPlay(gameId)
+   505→      sfx.play('sweep')
+   506→    }, 40)
+   507→  }
+   508→
+   509→  function resumeGame() {
+   510→    const s = restored
+   511→    if (!s) return
+   512→    setDiff(s.diff)
+   513→    setDaily(s.daily)
+   514→    setGivens(s.givens)
+   515→    setSolution(s.solution)
+   516→    setGrid(s.grid)
+   517→    setNotes(Array.isArray(s.notes) && s.notes.length === 81 ? s.notes : new Array(81).fill(0))
+   518→    setSel(-1)
+   519→    setNotesMode(false)
+   520→    setHintsUsed(typeof s.hintsUsed === 'number' ? s.hintsUsed : 0)
+   521→    setHinted(Array.isArray(s.hinted) ? s.hinted : [])
+   522→    setWonInfo(null)
+   523→    baseRef.current = s.elapsed
+   524→    setElapsed(s.elapsed)
+   525→    setSessKey((k) => k + 1)
+   526→    setRunning(true)
+   527→    setPhase('playing')
+   528→    setRestored(null)
+   529→    addPlay(gameId)
+   530→    sfx.play('pop')
+   531→  }
+   532→
+   533→  function restartCurrent() {
+   534→    setGrid([...givens])
+   535→    setNotes(new Array(81).fill(0))
+   536→    setSel(-1)
+   537→    setHintsUsed(0)
+   538→    setHinted([])
+   539→    baseRef.current = 0
+   540→    setElapsed(0)
+   541→    setSessKey((k) => k + 1)
+   542→    setRunning(true)
+   543→    setConfirmRestart(false)
+   544→    addPlay(gameId)
+   545→    sfx.play('sweep')
+   546→  }
+   547→
+   548→  function onRestartClick() {
+   549→    if (!confirmRestart) {
+   550→      sfx.play('click', { volume: 0.5 })
+   551→      setConfirmRestart(true)
+   552→      window.setTimeout(() => setConfirmRestart(false), 2500)
+   553→      return
+   554→    }
+   555→    restartCurrent()
+   556→  }
+   557→
+   558→  function toggleNotesMode() {
+   559→    sfx.play('click', { volume: 0.5 })
+   560→    setNotesMode((v) => !v)
+   561→  }
+   562→
+   563→  function inputDigit(d: number) {
+   564→    if (phase !== 'playing' || !running || sel < 0) return
+   565→    if (givens[sel] !== 0 || hinted.includes(sel)) {
+   566→      sfx.play('wrong', { volume: 0.25 })
+   567→      return
+   568→    }
+   569→    if (notesMode) {
+   570→      if (grid[sel] !== 0) {
+   571→        sfx.play('click', { volume: 0.3 })
+   572→        return
+   573→      }
+   574→      const nn = [...notes]
+   575→      nn[sel] ^= 1 << d
+   576→      setNotes(nn)
+   577→      sfx.play('click', { volume: 0.4 })
+   578→      return
+   579→    }
+   580→    const ng = [...grid]
+   581→    ng[sel] = ng[sel] === d ? 0 : d
+   582→    const nn = [...notes]
+   583→    nn[sel] = 0
+   584→    setGrid(ng)
+   585→    setNotes(nn)
+   586→    if (ng[sel] === 0) sfx.play('click', { volume: 0.4 })
+   587→    else sfx.play('pop', { volume: 0.6 })
+   588→    if (ng[sel] !== 0 && autoCheck && conflictsWith(ng, sel, ng[sel])) sfx.play('wrong', { volume: 0.3 })
+   589→    checkWin(ng)
+   590→  }
+   591→
+   592→  function eraseCell() {
+   593→    if (phase !== 'playing' || !running || sel < 0) return
+   594→    if (givens[sel] !== 0 || hinted.includes(sel)) return
+   595→    if (grid[sel] === 0 && notes[sel] === 0) return
+   596→    const ng = [...grid]
+   597→    ng[sel] = 0
+   598→    const nn = [...notes]
+   599→    nn[sel] = 0
+   600→    setGrid(ng)
+   601→    setNotes(nn)
+   602→    sfx.play('sweep', { volume: 0.4 })
+   603→  }
+   604→
+   605→  function giveHint() {
+   606→    if (phase !== 'playing' || !running || hintsUsed >= 3) return
+   607→    const fixable = (i: number) => givens[i] === 0 && !hinted.includes(i) && grid[i] !== solution[i]
+   608→    let target = sel
+   609→    if (target < 0 || !fixable(target)) {
+   610→      const candidates: number[] = []
+   611→      for (let i = 0; i < 81; i++) if (fixable(i)) candidates.push(i)
+   612→      if (candidates.length === 0) return
+   613→      target = candidates[Math.floor(Math.random() * candidates.length)]
+   614→    }
+   615→    const ng = [...grid]
+   616→    ng[target] = solution[target]
+   617→    const nn = [...notes]
+   618→    nn[target] = 0
+   619→    setGrid(ng)
+   620→    setNotes(nn)
+   621→    setHinted([...hinted, target])
+   622→    setHintsUsed((h) => h + 1)
+   623→    setSel(target)
+   624→    sfx.play('correct')
+   625→    checkWin(ng, hintsUsed + 1)
+   626→  }
+   627→
+   628→  function verify() {
+   629→    if (phase !== 'playing') return
+   630→    let wrong = 0
+   631→    for (let i = 0; i < 81; i++) if (grid[i] !== 0 && grid[i] !== solution[i]) wrong++
+   632→    if (wrong === 0) {
+   633→      sfx.play('correct')
+   634→      toast('✅', { description: L.noErrors, duration: 3500 })
+   635→    } else {
+   636→      sfx.play('wrong')
+   637→      toast('⚠️', { description: L.errors(wrong), duration: 3500 })
+   638→    }
+   639→  }
+   640→
+   641→  function checkWin(g: number[], hintsOverride?: number) {
+   642→    for (let i = 0; i < 81; i++) if (g[i] !== solution[i]) return
+   643→    finishWin(hintsOverride)
+   644→  }
+   645→
+   646→  /* Victoire : appelée depuis un handler (jamais depuis un effet) */
+   647→  function finishWin(hintsOverride?: number) {
+   648→    const ms = currentElapsed()
+   649→    const hu = hintsOverride ?? hintsUsed
+   650→    const xp = Math.max(0, (DIFFS.find((x) => x.id === diff)?.xp ?? 30) - 10 * hu)
+   651→    setRunning(false)
+   652→    setElapsed(ms)
+   653→    setPhase('won')
+   654→    setWonInfo({ ms, xp })
+   655→    setConfettiKey((k) => k + 1)
+   656→    sfx.play('win')
+   657→    addWin(gameId)
+   658→    setBest(gameId, `best-time-${diff}`, Math.round(ms / 100) / 10, true)
+   659→    addXp(xp)
+   660→    if (diff === 'hard') unlockBadge('sudoku-hard')
+   661→    if (diff === 'expert' && hu === 0) unlockBadge('sudoku-expert-nohints')
+   662→    if (daily) completeDaily(gameId)
+   663→    clearSave(gameId)
+   664→  }
+   665→
+   666→  function handleKey(e: KeyboardEvent) {
+   667→    if (phase !== 'playing' || !running) return
+   668→    if (e.metaKey || e.ctrlKey || e.altKey) return
+   669→    const k = e.key
+   670→    if (k >= '1' && k <= '9') {
+   671→      e.preventDefault()
+   672→      inputDigit(Number(k))
+   673→      return
+   674→    }
+   675→    if (k === 'Backspace' || k === 'Delete' || k === '0') {
+   676→      e.preventDefault()
+   677→      eraseCell()
+   678→      return
+   679→    }
+   680→    if (k === 'n' || k === 'N') {
+   681→      e.preventDefault()
+   682→      toggleNotesMode()
+   683→      return
+   684→    }
+   685→    const dirs: Record<string, [number, number]> = {
+   686→      ArrowUp: [-1, 0],
+   687→      ArrowDown: [1, 0],
+   688→      ArrowLeft: [0, -1],
+   689→      ArrowRight: [0, 1],
+   690→    }
+   691→    const d = dirs[k]
+   692→    if (d) {
+   693→      e.preventDefault()
+   694→      if (sel < 0) {
+   695→        setSel(40)
+   696→        return
+   697→      }
+   698→      const r = clamp(((sel / 9) | 0) + d[0], 0, 8)
+   699→      const c = clamp((sel % 9) + d[1], 0, 8)
+   700→      setSel(r * 9 + c)
+   701→      sfx.play('click', { volume: 0.25 })
+   702→    }
+   703→  }
+   704→
+   705→  /* --- Handlers gardés à jour via refs (abonnements attachés une fois) --- */
+   706→  useEffect(() => {
+   707→    pauseRef.current = pause
+   708→    keyRef.current = handleKey
+   709→  })
+   710→
+   711→  /* --- Valeurs dérivées --- */
+   712→  const conflicts = useMemo(() => (autoCheck ? findConflicts(grid) : new Set<number>()), [autoCheck, grid])
+   713→  const remaining = useMemo(() => {
+   714→    const counts = new Array(10).fill(0)
+   715→    for (const v of grid) if (v) counts[v]++
+   716→    return Array.from({ length: 9 }, (_, k) => 9 - counts[k + 1])
+   717→  }, [grid])
+   718→  const selVal = sel >= 0 ? grid[sel] : 0
+   719→
+   720→  /* --- Rendu --- */
+   721→  if (phase === 'menu') {
+   722→    return (
+   723→      <div className="checkerboard flex min-h-[380px] select-none flex-col items-center justify-center gap-4 rounded-2xl border p-5 text-center sm:p-6">
+   724→        <div className="flex gap-2" aria-hidden="true">
+   725→          {['🔢', '✏️', '🧘'].map((e, i) => (
+   726→            <span key={i} className={cn('text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
+   727→              {e}
+   728→            </span>
+   729→          ))}
+   730→        </div>
+   731→        <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
+   732→        {restored ? (
+   733→          <Button size="lg" className="anim-glow rounded-full px-6" onClick={resumeGame}>
+   734→            <Play className="h-4 w-4" aria-hidden="true" />
+   735→            {t('game.resume')}
+   736→          </Button>
+   737→        ) : null}
+   738→        <div className="grid w-full max-w-xl grid-cols-2 gap-2.5 sm:grid-cols-4">
+   739→          {DIFFS.map((d) => (
+   740→            <button
+   741→              key={d.id}
+   742→              type="button"
+   743→              onClick={() => newGame(d.id)}
+   744→              className="flex min-h-[96px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+   745→            >
+   746→              <span className="font-display text-base font-extrabold">{t(`common.${d.id}`)}</span>
+   747→              <span className="flex items-center gap-1" aria-hidden="true">
+   748→                {[1, 2, 3, 4].map((i) => (
+   749→                  <span key={i} className={cn('h-1.5 w-1.5 rounded-full', i <= d.dots ? 'bg-foreground/60' : 'bg-foreground/15')} />
+   750→                ))}
+   751→              </span>
+   752→              <span className="text-xs tabular-nums text-muted-foreground">
+   753→                {d.givens} {L.givens}
+   754→              </span>
+   755→            </button>
+   756→          ))}
+   757→        </div>
+   758→        <Button variant="outline" size="lg" className="rounded-full" onClick={() => newGame('medium', true)} disabled={dailyDone}>
+   759→          <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+   760→          {dailyDone ? `${t('game.startDaily')} ✓` : t('game.startDaily')}
+   761→        </Button>
+   762→        {restored ? (
+   763→          <p className="text-xs text-muted-foreground">
+   764→            {L.savedGame} — {t(`common.${restored.diff}`)} · {formatMs(restored.elapsed)}
+   765→          </p>
+   766→        ) : null}
+   767→      </div>
+   768→    )
+   769→  }
+   770→
+   771→  if (phase === 'generating') {
+   772→    return (
+   773→      <div className="flex min-h-[380px] select-none flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
+   774→        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" role="status" aria-label={L.generating} />
+   775→        <p className="font-display text-lg font-bold">{L.generating}</p>
+   776→        <p className="max-w-xs text-xs text-muted-foreground">{L.generatingSub}</p>
+   777→      </div>
+   778→    )
+   779→  }
+   780→
+   781→  return (
+   782→    <div className="relative select-none">
+   783→      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+   784→
+   785→      {/* Barre d'état */}
+   786→      <div className="mb-3 flex flex-wrap items-center gap-2">
+   787→        <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(elapsed)} />
+   788→        <span className="flex h-11 items-center gap-1.5 rounded-full bg-secondary/70 px-3.5 text-sm font-bold">
+   789→          {t(`common.${diff}`)}
+   790→          {daily ? <span className="text-amber-500" title={t('common.daily')}>📅</span> : null}
+   791→        </span>
+   792→        <div className="ms-auto flex flex-wrap items-center gap-2">
+   793→          {phase === 'playing' ? (
+   794→            <Button
+   795→              variant="secondary"
+   796→              className="h-11 rounded-full"
+   797→              onClick={running ? pause : resumeTimer}
+   798→              disabled={phase !== 'playing'}
+   799→            >
+   800→              {running ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
+   801→              <span className="hidden sm:inline">{running ? t('common.pause') : t('common.resume')}</span>
+   802→            </Button>
+   803→          ) : null}
+   804→          <Button variant="secondary" className="h-11 rounded-full" onClick={giveHint} disabled={hintsUsed >= 3 || phase !== 'playing'}>
+   805→            <Lightbulb className="h-4 w-4" aria-hidden="true" />
+   806→            {t('common.hint')} {3 - hintsUsed}
+   807→          </Button>
+   808→          <Button variant="secondary" className="h-11 rounded-full" onClick={verify} disabled={phase !== 'playing'}>
+   809→            <SearchCheck className="h-4 w-4" aria-hidden="true" />
+   810→            <span className="hidden sm:inline">{L.verify}</span>
+   811→          </Button>
+   812→          <Button
+   813→            variant={confirmRestart ? 'destructive' : 'ghost'}
+   814→            className="h-11 rounded-full"
+   815→            onClick={onRestartClick}
+   816→            disabled={phase !== 'playing'}
+   817→          >
+   818→            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+   819→            <span className="hidden sm:inline">{confirmRestart ? L.confirm : t('common.restart')}</span>
+   820→          </Button>
+   821→        </div>
+   822→      </div>
+   823→
+   824→      {/* Grille */}
+   825→      <div
+   826→        className="relative mx-auto w-[min(94vw,440px)] rounded-xl border-2 border-foreground/70 bg-card shadow-inner"
+   827→        role="grid"
+   828→        aria-label={L.board}
+   829→      >
+   830→        <div className="grid aspect-square grid-cols-9">
+   831→          {Array.from({ length: 81 }, (_, i) => {
+   832→            const v = grid[i]
+   833→            const given = givens[i] !== 0
+   834→            const hint = hinted.includes(i)
+   835→            const isSel = i === sel
+   836→            const isPeer = sel >= 0 && PEERS_SET[sel].has(i)
+   837→            const same = selVal !== 0 && v === selVal && !isSel
+   838→            const conflict = conflicts.has(i)
+   839→            const r = (i / 9) | 0
+   840→            const c = i % 9
+   841→            return (
+   842→              <button
+   843→                key={i}
+   844→                type="button"
+   845→                role="gridcell"
+   846→                aria-label={`${L.cell} ${r + 1}-${c + 1}${v ? ` : ${v}` : given ? ` (${L.given})` : ''}`}
+   847→                onClick={() => {
+   848→                  setSel(i)
+   849→                  sfx.play('click', { volume: 0.3 })
+   850→                }}
+   851→                className={cn(
+   852→                  'relative flex aspect-square items-center justify-center text-lg transition-colors sm:text-xl',
+   853→                  c < 8 && (c % 3 === 2 ? 'border-r-2 border-r-foreground/50' : 'border-r border-border'),
+   854→                  r < 8 && (r % 3 === 2 ? 'border-b-2 border-b-foreground/50' : 'border-b border-border'),
+   855→                  isSel
+   856→                    ? 'z-10 bg-primary/20 ring-2 ring-inset ring-primary'
+   857→                    : conflict
+   858→                      ? 'bg-red-50 dark:bg-red-500/15'
+   859→                      : same
+   860→                        ? 'bg-amber-100 dark:bg-amber-500/20'
+   861→                        : isPeer
+   862→                          ? 'bg-accent/60'
+   863→                          : hint
+   864→                            ? 'bg-emerald-50 dark:bg-emerald-500/10'
+   865→                            : given
+   866→                              ? 'bg-muted/50'
+   867→                              : 'bg-card',
+   868→                  conflict ? 'text-red-600 dark:text-red-400' : given ? 'font-display text-foreground' : hint ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary',
+   869→                  given || hint ? 'font-extrabold' : 'font-bold',
+   870→                )}
+   871→              >
+   872→                {v !== 0 ? (
+   873→                  v
+   874→                ) : notes[i] !== 0 ? (
+   875→                  <span className="grid h-full w-full grid-cols-3 grid-rows-3 p-0.5 text-[9px] font-semibold leading-none text-muted-foreground sm:text-[10px]" aria-hidden="true">
+   876→                    {Array.from({ length: 9 }, (_, k) => (
+   877→                      <span key={k} className="flex items-center justify-center">
+   878→                        {notes[i] & (1 << (k + 1)) ? k + 1 : ''}
+   879→                      </span>
+   880→                    ))}
+   881→                  </span>
+   882→                ) : null}
+   883→              </button>
+   884→            )
+   885→          })}
+   886→        </div>
+   887→
+   888→        {/* Voile de pause */}
+   889→        {phase === 'playing' && !running ? (
+   890→          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-card/85 backdrop-blur-md">
+   891→            <p className="font-display text-2xl font-extrabold">{t('common.pause')}</p>
+   892→            <Button size="lg" className="rounded-full" onClick={resumeTimer}>
+   893→              <Play className="h-4 w-4" aria-hidden="true" /> {t('common.resume')}
+   894→            </Button>
+   895→          </div>
+   896→        ) : null}
+   897→      </div>
+   898→
+   899→      {/* Pavé numérique */}
+   900→      <div className="mx-auto mt-3 grid w-[min(94vw,440px)] grid-cols-5 gap-1.5 sm:grid-cols-9" role="group" aria-label={L.pad}>
+   901→        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+   902→          <button
+   903→            key={d}
+   904→            type="button"
+   905→            onClick={() => inputDigit(d)}
+   906→            className={cn(
+   907→              'flex h-12 flex-col items-center justify-center rounded-xl border-2 font-display text-xl font-extrabold leading-none transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-ring',
+   908→              remaining[d - 1] === 0
+   909→                ? 'border-border/60 bg-card text-muted-foreground/40'
+   910→                : 'border-amber-200/70 bg-amber-50 hover:border-primary/50 dark:border-amber-500/25 dark:bg-amber-500/10',
+   911→            )}
+   912→          >
+   913→            <span>{d}</span>
+   914→            <span className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">{remaining[d - 1]}</span>
+   915→          </button>
+   916→        ))}
+   917→      </div>
+   918→
+   919→      {/* Actions */}
+   920→      <div className="mx-auto mt-2.5 flex w-[min(94vw,440px)] flex-wrap items-center justify-center gap-2">
+   921→        <Button
+   922→          variant={notesMode ? 'default' : 'secondary'}
+   923→          className="h-11 rounded-full"
+   924→          onClick={toggleNotesMode}
+   925→          aria-pressed={notesMode}
+   926→        >
+   927→          <Pencil className="h-4 w-4" aria-hidden="true" /> {L.notes}
+   928→        </Button>
+   929→        <Button variant="secondary" className="h-11 rounded-full" onClick={eraseCell}>
+   930→          <Eraser className="h-4 w-4" aria-hidden="true" /> {L.erase}
+   931→        </Button>
+   932→        <div className="flex h-11 items-center gap-2 rounded-full border bg-card px-3.5">
+   933→          <Switch
+   934→            id="sudoku-auto-check"
+   935→            checked={autoCheck}
+   936→            onCheckedChange={(v) => {
+   937→              sfx.play('click', { volume: 0.4 })
+   938→              setAutoCheck(v)
+   939→            }}
+   940→            aria-label={L.autoCheck}
+   941→          />
+   942→          <Label htmlFor="sudoku-auto-check" className="cursor-pointer text-xs text-muted-foreground">
+   943→            {L.autoCheck}
+   944→          </Label>
+   945→        </div>
+   946→      </div>
+   947→
+   948→      {/* Victoire */}
+   949→      {phase === 'won' && wonInfo ? (
+   950→        <div className="anim-rise mt-4 rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10" role="status">
+   951→          <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
+   952→          <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
+   953→            <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(wonInfo.ms)} />
+   954→            <StatPill icon={<span className="text-sm" aria-hidden="true">🎚️</span>} label={t('common.difficulty')} value={t(`common.${diff}`)} />
+   955→            <StatPill icon={<Lightbulb className="h-4 w-4" aria-hidden="true" />} label={L.hintsUsed} value={hintsUsed} />
+   956→            <StatPill icon={<span className="text-sm" aria-hidden="true">⭐</span>} label={L.xpEarned} value={`+${wonInfo.xp}`} />
+   957→          </div>
+   958→          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
+   959→            <Button size="lg" className="rounded-full" onClick={() => newGame(diff)}>
+   960→              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.replay}
+   961→            </Button>
+   962→            <Button size="lg" variant="secondary" className="rounded-full" onClick={() => setPhase('menu')}>
+   963→              <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
+   964→            </Button>
+   965→          </div>
+   966→        </div>
+   967→      ) : null}
+   968→    </div>
+   969→  )
+   970→}
+   971→
+   972→function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+   973→  return (
+   974→    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+   975→      <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
+   976→      <span className="text-muted-foreground">{label}</span>
+   977→      <span className="tabular-nums">{value}</span>
+   978→    </span>
+   979→  )
+   980→}
+   981→

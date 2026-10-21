@@ -58,13 +58,13 @@ export function GameShell({
   }
 
   return (
-    <div className={cn('relative overflow-hidden rounded-3xl border bg-card/80 p-3 shadow-sm backdrop-blur sm:p-4', className)}>
-      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+    <div className={cn('relative overflow-hidden rounded-3xl border bg-card/80 p-2.5 shadow-sm backdrop-blur sm:p-4', className)}>
+      <div className="mb-2 flex flex-wrap items-center gap-1 sm:mb-3 sm:gap-1.5">
         <Dialog open={rulesOpen} onOpenChange={setRulesOpen}>
           <DialogTrigger asChild>
-            <Button variant="secondary" size="sm" className="h-9 gap-1.5 rounded-full" onClick={() => sfx.play('click')}>
+            <Button variant="secondary" size="sm" className="h-9 gap-1.5 rounded-full px-3" onClick={() => sfx.play('click')}>
               <BookOpen className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{t('common.rules')}</span>
+              <span>{t('common.rulesShort')}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto nice-scroll">
@@ -150,7 +150,7 @@ export function GameShell({
         </div>
       </div>
 
-      <div id="game-board" className={cn('relative touch-manipulation', boardClassName)}>
+      <div id="game-board" className={cn('relative scroll-mt-20 touch-manipulation', boardClassName)}>
         {children}
       </div>
     </div>

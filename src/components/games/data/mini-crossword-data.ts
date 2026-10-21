@@ -4,7 +4,8 @@
  * GRILLES VALIDÉES PAR CONSTRUCTION : chaque grille suit le motif épars
  * A(0,0→) B(0,1↓) C(0,4↓) D(2,1→) E(4,1→) sur 5×5 — toutes les autres
  * cases sont noires, donc AUCUNE suite parasite de 2+ lettres ne peut
- * exister. Les croisements ont été vérifiés lettre par lettre.
+ * exister. Les croisements ont été vérifiés lettre par lettre (script
+ * indépendant : cohérence croisements + suites parasites + numérotation).
  * Mots français sans diacritiques (indices compensent).
  */
 
@@ -100,7 +101,7 @@ export const FR_PUZZLES: CrosswordPuzzle[] = [
       { row: 0, col: 1, dir: 'down', answer: 'LIVRE', clue: { fr: 'Objet à pages que l’on dévore', en: 'Page-filled object you devour' } },
       { row: 0, col: 4, dir: 'down', answer: 'ELEVE', clue: { fr: 'Écolier, apprenti', en: 'Schoolchild, learner' } },
       { row: 2, col: 1, dir: 'across', answer: 'VASE', clue: { fr: 'Récipient qui accueille les fleurs', en: 'Vessel that holds flowers' } },
-      { row: 4, col: 1, dir: 'across', answer: 'VITE', clue: { fr: 'Rapidement', en: 'Quickly' } },
+      { row: 4, col: 1, dir: 'across', answer: 'ETRE', clue: { fr: '« Je pense, donc je … »', en: '« I think, therefore I … »' } },
     ],
   },
   {
@@ -112,7 +113,7 @@ export const FR_PUZZLES: CrosswordPuzzle[] = [
       { row: 0, col: 0, dir: 'across', answer: 'SUCRE', clue: { fr: 'On en met dans le café', en: 'You put it in your coffee' } },
       { row: 0, col: 1, dir: 'down', answer: 'USAGE', clue: { fr: 'Emploi habituel d’une chose', en: 'Customary use of a thing' } },
       { row: 0, col: 4, dir: 'down', answer: 'ELEVE', clue: { fr: 'Celui qui apprend du maître', en: 'One who learns from a teacher' } },
-      { row: 2, col: 1, dir: 'across', answer: 'CAFE', clue: { fr: 'Boisson noire du matin', en: 'Dark morning drink' } },
+      { row: 2, col: 1, dir: 'across', answer: 'ACRE', clue: { fr: 'Goût âpre du café sans sucre (s’écrit sans accent)', en: 'Harsh taste of unsweetened coffee' } },
       { row: 4, col: 1, dir: 'across', answer: 'ELLE', clue: { fr: 'Sujet au féminin', en: 'Feminine subject' } },
     ],
   },

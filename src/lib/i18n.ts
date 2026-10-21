@@ -32,6 +32,7 @@ const DICT: Record<string, Record<Lang, string>> = {
   'common.pause': { fr: 'Pause', en: 'Pause' },
   'common.resume': { fr: 'Reprendre', en: 'Resume' },
   'common.rules': { fr: 'Règles du jeu', en: 'How to play' },
+  'common.rulesShort': { fr: 'Règles', en: 'Rules' },
   'common.close': { fr: 'Fermer', en: 'Close' },
   'common.back': { fr: 'Retour', en: 'Back' },
   'common.share': { fr: 'Partager', en: 'Share' },

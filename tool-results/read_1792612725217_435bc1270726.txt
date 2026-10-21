@@ -1,0 +1,1139 @@
+     1→'use client'
+     2→
+     3→import { useCallback, useEffect, useRef, useState } from 'react'
+     4→import { Play, RotateCcw, SkipForward, Square } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useLang } from '@/lib/i18n'
+     8→import { useProfileStore } from '@/lib/progress/store'
+     9→import { useHydrated, useReducedMotion, clamp } from '@/lib/utils-game'
+    10→import type { GameSEOContent } from '@/lib/games/types'
+    11→import { Button } from '@/components/ui/button'
+    12→import { Confetti } from '@/components/shared/confetti'
+    13→
+    14→export const gameId = 'pill-toss'
+    15→
+    16→/* ================= Contenu SEO bilingue ================= */
+    17→export const content: GameSEOContent = {
+    18→  tagline: {
+    19→    fr: 'Tendez l’élastique, visez les fioles glissantes et lancez vos pilules fictives dans cette pharmacie chaleureuse.',
+    20→    en: 'Stretch the sling, aim at the sliding jars and toss your fictional pills in this cozy pharmacy.',
+    21→  },
+    22→  description: {
+    23→    fr: [
+    24→      'Pill Toss est un jeu d’adresse et de réflexes gratuit dans lequel vous lancez des pilules fictives à l’aide d’un élastique pour toucher des fioles en mouvement sur les étagères d’une pharmacie. Tirez la pilule vers l’arrière, suivez la trajectoire prévue en pointillés, puis relâchez : la gravité fait le reste.',
+    25→      'Chaque manche offre 10 pilules. Au fil des manches, les fioles glissent plus vite, rétrécissent et se multiplient jusqu’à dix, sur trois étagères. Un touché rapporte 100 points, majorés de 50 points par touché consécutif ; un lancer raté remet la série à zéro. Nettoyer toutes les étagères avant d’épuiser vos pilules rapporte un bonus de 150 points par pilule restante.',
+    26→      'Les pilules sont entièrement fictives : ce jeu est une pure fiction ludique, sans référence à un vrai médicament. Les records de score et de série sont sauvegardés sur votre appareil et les manches s’enchaînent sans fin, pour des sessions aussi courtes ou longues que vous le souhaitez.',
+    27→    ],
+    28→    en: [
+    29→      'Pill Toss is a free skill and reflex game in which you fling fictional pills with a slingshot to hit moving jars on pharmacy shelves. Drag the pill backwards, follow the dotted trajectory preview, then release: gravity does the rest.',
+    30→      'Each round hands you 10 pills. As rounds go by, the jars slide faster, shrink and multiply up to ten across three shelves. A hit is worth 100 points plus 50 extra for every consecutive hit; a missed throw resets the streak. Clearing every shelf before running out of pills earns a bonus of 150 points per unused pill.',
+    31→      'The pills are entirely fictional: this game is pure playful fiction with no reference to any real medication. Score and streak records are saved on your device, and rounds chain endlessly for sessions as short or long as you like.',
+    32→    ],
+    33→  },
+    34→  rules: {
+    35→    fr: [
+    36→      'Maintenez le doigt (ou la souris) près de la pilule, puis tirez vers l’arrière pour armer l’élastique.',
+    37→      'La trajectoire prévue s’affiche en pointillés : plus vous tirez loin, plus le lancer est puissant.',
+    38→      'Relâchez pour lancer la pilule ; relâcher sans avoir tiré annule le lancer.',
+    39→      'Touchez les fioles glissantes sur les étagères : chaque touché rapporte des points.',
+    40→      'Enchaînez les touchés pour faire grimper le bonus de série (+50 points par touché consécutif) ; un raté remet la série à zéro.',
+    41→      'La manche se termine après 10 pilules — ou immédiatement si vous nettoyez toutes les étagères (bonus par pilule restante).',
+    42→      'À chaque manche, les fioles sont plus rapides et plus petites, et leur nombre augmente (jusqu’à dix fioles sur trois étagères).',
+    43→    ],
+    44→    en: [
+    45→      'Press and hold near the pill (with a finger or the mouse), then drag backwards to stretch the sling.',
+    46→      'The predicted path appears as dots: the further you pull, the stronger the throw.',
+    47→      'Release to launch; releasing without pulling cancels the throw.',
+    48→      'Hit the jars sliding along the shelves: every hit scores points.',
+    49→      'Chain hits to grow the streak bonus (+50 points per consecutive hit); a miss resets the streak.',
+    50→      'The round ends after 10 pills — or immediately if you clear every shelf (bonus per unused pill).',
+    51→      'With each round, jars get faster and smaller, and more of them appear (up to ten jars across three shelves).',
+    52→    ],
+    53→  },
+    54→  controls: {
+    55→    fr: [
+    56→      'Mobile et tablette : maintenez près de la pilule, tirez vers l’arrière, puis relâchez.',
+    57→      'Ordinateur : cliquez près de la pilule, tirez avec la souris, puis relâchez.',
+    58→      'La zone de prise est volontairement très large : inutile d’être précis pour saisir la pilule.',
+    59→      'Un bouton « Recommencer » dans la barre de partie permet de repartir de zéro à tout moment.',
+    60→    ],
+    61→    en: [
+    62→      'Mobile & tablet: press near the pill, drag back, then release.',
+    63→      'Desktop: click near the pill, drag with the mouse, then release.',
+    64→      'The grab zone is deliberately generous: you don’t need to be precise to pick up the pill.',
+    65→      'A “Restart” button in the in-game bar lets you start over from scratch at any time.',
+    66→    ],
+    67→  },
+    68→  features: {
+    69→    fr: [
+    70→      'Physique de lance-pierre avec trajectoire prédictive en pointillés',
+    71→      'Fioles animées sur 1 à 3 étagères selon la manche',
+    72→      'Bonus de série : +50 points par touché consécutif',
+    73→      'Manches infinies à difficulté croissante',
+    74→      'Records de score et de série sauvegardés sur votre appareil',
+    75→      'Haptique légère sur les lancers et touchés, pause automatique onglet masqué',
+    76→      'Pilules 100 % fictives — aucune référence médicale',
+    77→    ],
+    78→    en: [
+    79→      'Slingshot physics with a dotted trajectory preview',
+    80→      'Animated jars on 1 to 3 shelves depending on the round',
+    81→      'Streak bonus: +50 points per consecutive hit',
+    82→      'Endless rounds with rising difficulty',
+    83→      'Score and streak records saved on your device',
+    84→      'Gentle haptics on throws and hits, auto-pause when the tab is hidden',
+    85→      '100% fictional pills — no medical reference',
+    86→    ],
+    87→  },
+    88→  tips: {
+    89→    fr: [
+    90→      'Visez légèrement devant une fiole en mouvement : la pilule met un instant à arriver.',
+    91→      'Les fioles rebroussent chemin aux extrémités et se repoussent quand elles se croisent : anticipez ces rebonds pour des touchés faciles.',
+    92→      'Un lancer tendu vers l’étagère du haut protège mieux votre série qu’un lancer en cloche.',
+    93→      'Gardez une ou deux pilules de réserve : nettoyer toute l’étagère rapporte 150 points par pilule restante.',
+    94→    ],
+    95→    en: [
+    96→      'Aim slightly ahead of a moving jar: the pill takes a moment to arrive.',
+    97→      'Jars turn around at the edges and bump each other when they meet: anticipate those bounces for easy hits.',
+    98→      'A flat, fast throw at the top shelf keeps your streak safer than a high lob.',
+    99→      'Keep a spare pill or two: clearing a whole shelf pays 150 points per unused pill.',
+   100→    ],
+   101→  },
+   102→  faq: {
+   103→    fr: [
+   104→      { q: 'Les pilules de ce jeu sont-elles réelles ?', a: 'Non, absolument pas. Toutes les pilules et fioles sont des dessins fictifs créés pour le jeu. Pill Toss est un simple jeu d’adresse, sans aucun lien avec un médicament réel.' },
+   105→      { q: 'Comment fonctionne le bonus de série ?', a: 'Chaque touché rapporte 100 points, et chaque touché consécutif ajoute 50 points de plus (150, 200, 250…). Dès qu’une pilule rate les fioles, la série retombe à zéro.' },
+   106→      { q: 'Le jeu s’arrête-t-il un jour ?', a: 'Non : les manches s’enchaînent sans fin et deviennent progressivement plus difficiles. Vous pouvez terminer la session quand vous le souhaitez — vos records sont sauvegardés à chaque fin de manche.' },
+   107→      { q: 'Comment atteindre 3 000 points en une manche ?', a: 'À partir de la manche 5, dix fioles traversent trois étagères : enchaînez dix touchés d’affilée (100, 150, 200… jusqu’à 550 points par touché) pour dépasser 3 250 points. Sur les premières manches, le bonus de 150 points par pilule restante fait aussi grimper le score.' },
+   108→      { q: 'Puis-je jouer sur mon téléphone ?', a: 'Oui : le jeu est conçu pour le tactile, en portrait comme en paysage. La zone de saisie de la pilule est volontairement très large pour une visée confortable.' },
+   109→    ],
+   110→    en: [
+   111→      { q: 'Are the pills in this game real?', a: 'No, not at all. Every pill and jar is a fictional drawing made for the game. Pill Toss is purely a skill game with no connection to any real medication.' },
+   112→      { q: 'How does the streak bonus work?', a: 'Each hit is worth 100 points, and every consecutive hit adds 50 more (150, 200, 250…). As soon as a pill misses the jars, the streak falls back to zero.' },
+   113→      { q: 'Does the game ever end?', a: 'No: rounds chain endlessly and get progressively harder. You can end your session whenever you like — your records are saved at the end of every round.' },
+   114→      { q: 'How do I reach 3,000 points in a single round?', a: 'From round 5, ten jars span three shelves: land ten hits in a row (100, 150, 200… up to 550 points per hit) to pass 3,250 points. In earlier rounds, the 150-point bonus per unused pill also lifts your score.' },
+   115→      { q: 'Can I play on my phone?', a: 'Yes: the game is touch-first, in portrait or landscape. The pill’s grab zone is deliberately very large for comfortable aiming.' },
+   116→    ],
+   117→  },
+   118→  records: {
+   119→    'best-score': { fr: 'Meilleur score total', en: 'Best total score' },
+   120→    'best-combo': { fr: 'Plus longue série de touchés', en: 'Longest hit streak' },
+   121→  },
+   122→}
+   123→
+   124→/* ================= Textes UI ================= */
+   125→const L = {
+   126→  fr: {
+   127→    play: 'Jouer', next: 'Manche suivante', end: 'Terminer la session', restart: 'Recommencer la session',
+   128→    round: 'Manche', score: 'Score', streak: 'Série', pillsLeft: 'Pilules restantes',
+   129→    roundOver: 'Manche {n} terminée', hits: 'Touchés', accuracy: 'Précision',
+   130→    roundScore: 'Score de la manche', total: 'Total de la session', bonus: 'Bonus pilules restantes',
+   131→    cleared: 'Étagères nettoyées !', disclaimer: 'Pilules fictives — jeu uniquement',
+   132→    hint: 'Maintenez près de la pilule, tirez vers l’arrière, puis relâchez.',
+   133→    newBest: 'Nouveau record !', sessionOver: 'Session terminée',
+   134→    bestStreak: 'Meilleure série', again: 'Nouvelle session', aimTitle: 'Visez les fioles !',
+   135→    canvasLabel: 'Aire de jeu Pill Toss : tirez la pilule vers l’arrière pour viser, relâchez pour lancer',
+   136→    bestScoreLabel: 'Meilleur score', bestStreakLabel: 'Meilleure série',
+   137→  },
+   138→  en: {
+   139→    play: 'Play', next: 'Next round', end: 'End session', restart: 'Restart session',
+   140→    round: 'Round', score: 'Score', streak: 'Streak', pillsLeft: 'Pills left',
+   141→    roundOver: 'Round {n} complete', hits: 'Hits', accuracy: 'Accuracy',
+   142→    roundScore: 'Round score', total: 'Session total', bonus: 'Unused-pill bonus',
+   143→    cleared: 'Shelves cleared!', disclaimer: 'Fictional pills — game only',
+   144→    hint: 'Press near the pill, drag backwards, then release.',
+   145→    newBest: 'New record!', sessionOver: 'Session over',
+   146→    bestStreak: 'Best streak', again: 'New session', aimTitle: 'Aim for the jars!',
+   147→    canvasLabel: 'Pill Toss play area: drag the pill backwards to aim, release to throw',
+   148→    bestScoreLabel: 'Best score', bestStreakLabel: 'Best streak',
+   149→  },
+   150→} as const
+   151→
+   152→/* ================= Monde ================= */
+   153→interface Jar {
+   154→  rowIdx: number
+   155→  x: number
+   156→  vx: number
+   157→  w: number
+   158→  h: number
+   159→  alive: boolean
+   160→  fade: number
+   161→  glass: number
+   162→}
+   163→interface Shard { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string }
+   164→interface Pop { x: number; y: number; text: string; life: number; max: number; color: string; size: number }
+   165→interface Pill { x: number; y: number; vx: number; vy: number; rot: number; vr: number; state: 'ready' | 'aiming' | 'flying' }
+   166→
+   167→interface World {
+   168→  W: number; H: number; t: number
+   169→  round: number; rows: number
+   170→  jars: Jar[]
+   171→  shelfWob: number[]
+   172→  pill: Pill
+   173→  pillAcc: number
+   174→  aim: { x: number; y: number }
+   175→  pillsLeft: number
+   176→  streak: number
+   177→  maxStreakSession: number
+   178→  roundScore: number
+   179→  roundHits: number
+   180→  bonusGiven: number
+   181→  totalScore: number
+   182→  shards: Shard[]
+   183→  pops: Pop[]
+   184→  endTimer: number
+   185→  cleared: boolean
+   186→  hudDirty: boolean
+   187→}
+   188→
+   189→/** Pas fixe d'intégration du projectile (120 Hz) : la trajectoire prévue
+   190→ *  et le vol réel utilisent exactement les mêmes pas, quel que soit l'écran. */
+   191→const STEP = 1 / 120
+   192→
+   193→/** Taille des fioles relative au canevas (même difficulté sur mobile et desktop). */
+   194→function jarWidthFor(W: number, H: number, round: number): number {
+   195→  const s = Math.min(W, H * 1.45)
+   196→  return clamp(s * (0.205 - (round - 1) * 0.012), 30, 118)
+   197→}
+   198→function jarHeightFor(jw: number, H: number, rows: number): number {
+   199→  // Une seule étagère : fioles hautes autorisées ; plusieurs : plafonné pour
+   200→  // que les rangées voisines ne se touchent jamais.
+   201→  const capY = rows <= 1 ? H * 0.26 : H * 0.175
+   202→  return Math.max(Math.min(jw * 1.3, capY), 20)
+   203→}
+   204→
+   205→function makeWorld(): World {
+   206→  return {
+   207→    W: 320, H: 240, t: 0,
+   208→    round: 1, rows: 1,
+   209→    jars: [], shelfWob: [0, 0, 0],
+   210→    pill: { x: 0, y: 0, vx: 0, vy: 0, rot: 0, vr: 0, state: 'ready' },
+   211→    pillAcc: 0,
+   212→    aim: { x: 0, y: 0 },
+   213→    pillsLeft: 10, streak: 0, maxStreakSession: 0,
+   214→    roundScore: 0, roundHits: 0, bonusGiven: 0, totalScore: 0,
+   215→    shards: [], pops: [], endTimer: 0, cleared: false, hudDirty: false,
+   216→  }
+   217→}
+   218→
+   219→function startRound(w: World, round: number) {
+   220→  w.round = round
+   221→  w.rows = Math.min(1 + Math.floor((round - 1) / 2), 3)
+   222→  const perRow = Math.min(2 + Math.ceil(round / 2), 4)
+   223→  // Jamais plus de 10 fioles : rester « nettoyable » avec les 10 pilules réglementaires.
+   224→  const total = Math.min(w.rows * perRow, 10)
+   225→  const base = Math.floor(total / w.rows)
+   226→  const extra = total % w.rows
+   227→  const jw = jarWidthFor(w.W, w.H, round)
+   228→  const jh = jarHeightFor(jw, w.H, w.rows)
+   229→  const baseSpd = 34 + round * 8
+   230→  w.jars = []
+   231→  for (let r = 0; r < w.rows; r++) {
+   232→    const count = base + (r < extra ? 1 : 0)
+   233→    const lane = Math.max(w.W - jw - 24, 10) / count
+   234→    for (let i = 0; i < count; i++) {
+   235→      const mult = 0.88 + 0.12 * ((r * 2 + i) % 3)
+   236→      w.jars.push({
+   237→        rowIdx: r,
+   238→        x: 12 + jw / 2 + lane * (i + 0.5),
+   239→        vx: ((r + i) % 2 === 0 ? 1 : -1) * Math.min(baseSpd * mult, 170),
+   240→        w: jw, h: jh,
+   241→        alive: true, fade: 0,
+   242→        glass: (r + i) % 3,
+   243→      })
+   244→    }
+   245→  }
+   246→  w.shelfWob = [0, 0, 0]
+   247→  w.pill = { x: 0, y: 0, vx: 0, vy: 0, rot: 0, vr: 0, state: 'ready' }
+   248→  w.pillAcc = 0
+   249→  w.pillsLeft = 10
+   250→  w.streak = 0
+   251→  w.roundScore = 0
+   252→  w.roundHits = 0
+   253→  w.bonusGiven = 0
+   254→  w.shards = []
+   255→  w.pops = []
+   256→  w.endTimer = 0
+   257→  w.cleared = false
+   258→  w.hudDirty = true
+   259→}
+   260→
+   261→/** Haptique légère, sans effet sur les appareils sans vibreur. */
+   262→function buzz(pattern: number | number[]) {
+   263→  try {
+   264→    navigator.vibrate?.(pattern)
+   265→  } catch {
+   266→    /* no-op */
+   267→  }
+   268→}
+   269→
+   270→/* ================= Helpers dessin (purs) ================= */
+   271→function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+   272→  const rad = Math.min(r, w / 2, h / 2)
+   273→  ctx.beginPath()
+   274→  ctx.moveTo(x + rad, y)
+   275→  ctx.arcTo(x + w, y, x + w, y + h, rad)
+   276→  ctx.arcTo(x + w, y + h, x, y + h, rad)
+   277→  ctx.arcTo(x, y + h, x, y, rad)
+   278→  ctx.arcTo(x, y, x + w, y, rad)
+   279→  ctx.closePath()
+   280→}
+   281→
+   282→function drawBackdrop(ctx: CanvasRenderingContext2D, W: number, H: number) {
+   283→  // Mur chaleureux
+   284→  const wall = ctx.createLinearGradient(0, 0, 0, H)
+   285→  wall.addColorStop(0, '#fdf1de')
+   286→  wall.addColorStop(0.55, '#f7e3c6')
+   287→  wall.addColorStop(1, '#efd0aa')
+   288→  ctx.fillStyle = wall
+   289→  ctx.fillRect(0, 0, W, H)
+   290→  // Rayures horizontales discrètes
+   291→  ctx.fillStyle = 'rgba(214,164,110,0.10)'
+   292→  for (let y = 0; y < H; y += 46) ctx.fillRect(0, y, W, 20)
+   293→  // Lumière chaude
+   294→  const glow = ctx.createRadialGradient(W * 0.5, -H * 0.15, 10, W * 0.5, -H * 0.15, H * 0.95)
+   295→  glow.addColorStop(0, 'rgba(255,246,224,0.85)')
+   296→  glow.addColorStop(1, 'rgba(255,246,224,0)')
+   297→  ctx.fillStyle = glow
+   298→  ctx.fillRect(0, 0, W, H)
+   299→  // Croix de pharmacie (émeraude)
+   300→  const s = Math.max(26, W * 0.055)
+   301→  const cx = W - s * 1.7, cy = s * 1.4
+   302→  ctx.fillStyle = '#2f9c74'
+   303→  rr(ctx, cx - s / 2, cy - s / 2, s, s, s * 0.24)
+   304→  ctx.fill()
+   305→  ctx.fillStyle = '#f8fffa'
+   306→  const t = s * 0.2
+   307→  ctx.fillRect(cx - t / 2, cy - s * 0.32, t, s * 0.64)
+   308→  ctx.fillRect(cx - s * 0.32, cy - t / 2, s * 0.64, t)
+   309→  // Plinthe + sol
+   310→  ctx.fillStyle = '#d9b183'
+   311→  ctx.fillRect(0, H - 14, W, 14)
+   312→  ctx.fillStyle = 'rgba(120,80,44,0.25)'
+   313→  ctx.fillRect(0, H - 15, W, 2)
+   314→}
+   315→
+   316→function drawShelf(ctx: CanvasRenderingContext2D, y: number, W: number, H: number) {
+   317→  const th = clamp(H * 0.028, 8, 14)
+   318→  const grad = ctx.createLinearGradient(0, y, 0, y + th)
+   319→  grad.addColorStop(0, '#b07a48')
+   320→  grad.addColorStop(1, '#84552e')
+   321→  ctx.fillStyle = grad
+   322→  rr(ctx, 6, y, W - 12, th, 3)
+   323→  ctx.fill()
+   324→  ctx.fillStyle = 'rgba(255,240,214,0.35)'
+   325→  ctx.fillRect(10, y + 1.5, W - 20, 1.5)
+   326→  // Équerres
+   327→  ctx.fillStyle = 'rgba(90,58,30,0.55)'
+   328→  for (let i = 0; i < 3; i++) {
+   329→    const bx = 26 + (i * (W - 52)) / 2
+   330→    ctx.beginPath()
+   331→    ctx.moveTo(bx, y + th)
+   332→    ctx.lineTo(bx + 12, y + th)
+   333→    ctx.lineTo(bx, y + th + 10)
+   334→    ctx.closePath()
+   335→    ctx.fill()
+   336→  }
+   337→}
+   338→
+   339→const JAR_GLASS = [
+   340→  ['#f6c98a', '#d98a4f'],
+   341→  ['#f2b56b', '#c97b3a'],
+   342→  ['#f7d9a8', '#e0995c'],
+   343→]
+   344→
+   345→function drawJar(ctx: CanvasRenderingContext2D, x: number, yCenter: number, j: Jar, alpha: number) {
+   346→  const { w, h } = j
+   347→  const [c1, c2] = JAR_GLASS[j.glass]
+   348→  ctx.save()
+   349→  ctx.globalAlpha = alpha
+   350→  // Corps
+   351→  const grad = ctx.createLinearGradient(x - w / 2, yCenter - h / 2, x + w / 2, yCenter + h / 2)
+   352→  grad.addColorStop(0, c1)
+   353→  grad.addColorStop(1, c2)
+   354→  ctx.fillStyle = grad
+   355→  rr(ctx, x - w / 2, yCenter - h / 2, w, h, 7)
+   356→  ctx.fill()
+   357→  ctx.strokeStyle = 'rgba(122,74,34,0.45)'
+   358→  ctx.lineWidth = 1.5
+   359→  rr(ctx, x - w / 2, yCenter - h / 2, w, h, 7)
+   360→  ctx.stroke()
+   361→  // Col + bouchon
+   362→  ctx.fillStyle = 'rgba(122,74,34,0.28)'
+   363→  rr(ctx, x - w * 0.2, yCenter - h / 2 - h * 0.1, w * 0.4, h * 0.14, 3)
+   364→  ctx.fill()
+   365→  ctx.fillStyle = '#c05b3f'
+   366→  rr(ctx, x - w * 0.24, yCenter - h / 2 - h * 0.19, w * 0.48, h * 0.1, 4)
+   367→  ctx.fill()
+   368→  // Reflet
+   369→  ctx.fillStyle = 'rgba(255,248,232,0.4)'
+   370→  rr(ctx, x - w * 0.36, yCenter - h * 0.32, w * 0.14, h * 0.6, 4)
+   371→  ctx.fill()
+   372→  // Étiquette + signe plus
+   373→  ctx.fillStyle = '#fdf6e9'
+   374→  rr(ctx, x - w * 0.26, yCenter - h * 0.12, w * 0.52, h * 0.34, 4)
+   375→  ctx.fill()
+   376→  ctx.fillStyle = '#c05b3f'
+   377→  const lt = Math.max(2.5, w * 0.07)
+   378→  ctx.fillRect(x - lt / 2, yCenter - h * 0.04 - lt * 0.9, lt, lt * 1.8)
+   379→  ctx.fillRect(x - lt * 0.9, yCenter - h * 0.04 - lt / 2, lt * 1.8, lt)
+   380→  ctx.restore()
+   381→}
+   382→
+   383→function drawPill(ctx: CanvasRenderingContext2D, x: number, y: number, rot: number, hl: number) {
+   384→  const hh = hl * 0.54
+   385→  ctx.save()
+   386→  ctx.translate(x, y)
+   387→  ctx.rotate(rot)
+   388→  rr(ctx, -hl, -hh, hl * 2, hh * 2, hh)
+   389→  ctx.fillStyle = '#f8f1e4'
+   390→  ctx.fill()
+   391→  ctx.save()
+   392→  rr(ctx, -hl, -hh, hl * 2, hh * 2, hh)
+   393→  ctx.clip()
+   394→  ctx.fillStyle = '#e2725b'
+   395→  ctx.fillRect(-hl, -hh, hl, hh * 2)
+   396→  ctx.restore()
+   397→  ctx.strokeStyle = '#b34d3a'
+   398→  ctx.lineWidth = Math.max(1.2, hl * 0.11)
+   399→  rr(ctx, -hl, -hh, hl * 2, hh * 2, hh)
+   400→  ctx.stroke()
+   401→  ctx.restore()
+   402→}
+   403→
+   404→/* ================= Composant ================= */
+   405→export default function PillTossGame() {
+   406→  const lang = useLang()
+   407→  const reduce = useReducedMotion()
+   408→  const hydrated = useHydrated()
+   409→  const T = L[lang]
+   410→
+   411→  const addPlay = useProfileStore((s) => s.addPlay)
+   412→  const addWin = useProfileStore((s) => s.addWin)
+   413→  const addXp = useProfileStore((s) => s.addXp)
+   414→  const setBest = useProfileStore((s) => s.setBest)
+   415→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   416→  const bestScore = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-score']?.value ?? 0)
+   417→  const bestCombo = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-combo']?.value ?? 0)
+   418→
+   419→  const [phase, setPhase] = useState<'idle' | 'playing' | 'roundEnd' | 'done'>('idle')
+   420→  const [hud, setHud] = useState({ score: 0, round: 1, pills: 10, streak: 0 })
+   421→  const [summary, setSummary] = useState<null | {
+   422→    round: number; hits: number; used: number; acc: number; cleared: boolean
+   423→    roundScore: number; bonus: number; total: number; isRecord: boolean; bestStreak: number
+   424→  }>(null)
+   425→  const [confetti, setConfetti] = useState(0)
+   426→
+   427→  const wrapRef = useRef<HTMLDivElement>(null)
+   428→  const canvasRef = useRef<HTMLCanvasElement>(null)
+   429→  const worldRef = useRef<World>(makeWorld())
+   430→  const phaseRef = useRef(phase)
+   431→  const reduceRef = useRef(reduce)
+   432→  const langRef = useRef(lang)
+   433→  const rafRef = useRef(0)
+   434→  const pausedRef = useRef(false)
+   435→
+   436→  useEffect(() => { phaseRef.current = phase }, [phase])
+   437→  useEffect(() => { reduceRef.current = reduce }, [reduce])
+   438→  useEffect(() => { langRef.current = lang }, [lang])
+   439→
+   440→  const pushHud = useCallback(() => {
+   441→    const w = worldRef.current
+   442→    setHud({ score: w.totalScore, round: w.round, pills: w.pillsLeft, streak: w.streak })
+   443→  }, [])
+   444→
+   445→  /* ---------- fin de manche (appelée depuis la boucle, jamais depuis un effet) ---------- */
+   446→  const finishRound = useCallback(() => {
+   447→    const w = worldRef.current
+   448→    const used = Math.max(0, 10 - w.pillsLeft)
+   449→    const acc = used > 0 ? Math.round((w.roundHits / used) * 100) : 0
+   450→    // Les deux records sont évalués séparément (l'un ne doit pas masquer l'autre).
+   451→    const recScore = w.totalScore > 0 && setBest(gameId, 'best-score', w.totalScore)
+   452→    const recCombo = w.maxStreakSession > 0 && setBest(gameId, 'best-combo', w.maxStreakSession)
+   453→    const isRecord = Boolean(recScore || recCombo)
+   454→    if (w.roundScore >= 3000) unlockBadge('toss-score-30')
+   455→    if (w.cleared) {
+   456→      addWin(gameId)
+   457→      addXp(14 + w.roundHits * 4)
+   458→      sfx.play('levelup')
+   459→    } else {
+   460→      addXp(6 + w.roundHits * 4)
+   461→      sfx.play('lose', { volume: 0.45 })
+   462→    }
+   463→    if (isRecord) setConfetti((k) => k + 1)
+   464→    setSummary({
+   465→      round: w.round, hits: w.roundHits, used, acc, cleared: w.cleared,
+   466→      roundScore: w.roundScore, bonus: w.bonusGiven, total: w.totalScore, isRecord,
+   467→      bestStreak: w.maxStreakSession,
+   468→    })
+   469→    setPhase('roundEnd')
+   470→  }, [addWin, addXp, setBest, unlockBadge])
+   471→
+   472→  /* ---------- démarrage ---------- */
+   473→  const handleStart = useCallback(() => {
+   474→    sfx.play('click')
+   475→    const w = worldRef.current
+   476→    w.totalScore = 0
+   477→    w.maxStreakSession = 0
+   478→    startRound(w, 1)
+   479→    addPlay(gameId)
+   480→    setSummary(null)
+   481→    setPhase('playing')
+   482→    pushHud()
+   483→  }, [addPlay, pushHud])
+   484→
+   485→  const handleNext = useCallback(() => {
+   486→    sfx.play('click')
+   487→    const w = worldRef.current
+   488→    startRound(w, w.round + 1)
+   489→    setSummary(null)
+   490→    setPhase('playing')
+   491→    pushHud()
+   492→  }, [pushHud])
+   493→
+   494→  const handleRestart = useCallback(() => {
+   495→    sfx.play('click')
+   496→    const w = worldRef.current
+   497→    w.totalScore = 0
+   498→    w.maxStreakSession = 0
+   499→    startRound(w, 1)
+   500→    setSummary(null)
+   501→    setPhase('playing')
+   502→    pushHud()
+   503→  }, [pushHud])
+   504→
+   505→  const handleEnd = useCallback(() => {
+   506→    sfx.play('click')
+   507→    setPhase('done')
+   508→  }, [])
+   509→
+   510→  /* ---------- boucle principale ---------- */
+   511→  useEffect(() => {
+   512→    const cv = canvasRef.current
+   513→    const wrap = wrapRef.current
+   514→    if (!cv || !wrap) return
+   515→    const ctx = cv.getContext('2d')
+   516→    if (!ctx) return
+   517→    const w = worldRef.current
+   518→
+   519→    let bg: HTMLCanvasElement | null = null
+   520→    let dpr = 1
+   521→    let aimId = -1
+   522→
+   523→    const pillHL = () => clamp(Math.min(w.W, w.H * 1.45) * 0.037, 10, 15)
+   524→    // Lance-pierre centré en bas : toute la puissance est atteignable EN
+   525→    // RESTANT dans le canevas (traction vers le bas / bas-gauche / bas-droite).
+   526→    const anchor = () => ({ x: w.W * 0.5, y: w.H * 0.72 })
+   527→    const gravity = () => w.H * 3.2
+   528→    const shelfY = (r: number) => {
+   529→      if (w.rows === 1) return 0.34 * w.H
+   530→      if (w.rows === 2) return (0.26 + r * 0.32) * w.H
+   531→      return (0.22 + r * 0.19) * w.H
+   532→    }
+   533→    const jarCY = (j: Jar) => shelfY(j.rowIdx) - j.h / 2 - 5
+   534→
+   535→    const resize = () => {
+   536→      const cw = wrap.clientWidth
+   537→      const ch = wrap.clientHeight
+   538→      if (cw < 40 || ch < 40) return
+   539→      dpr = Math.min(window.devicePixelRatio || 1, 2)
+   540→      w.W = cw
+   541→      w.H = ch
+   542→      cv.width = Math.round(cw * dpr)
+   543→      cv.height = Math.round(ch * dpr)
+   544→      // Les fioles vivantes suivent la nouvelle géométrie (rotation, redimensionnement).
+   545→      const jw = jarWidthFor(cw, ch, w.round)
+   546→      const jh = jarHeightFor(jw, ch, w.rows)
+   547→      for (const j of w.jars) {
+   548→        j.w = jw
+   549→        j.h = jh
+   550→        j.x = clamp(j.x, 12 + jw / 2, Math.max(cw - 12 - jw / 2, 12 + jw / 2))
+   551→      }
+   552→      bg = document.createElement('canvas')
+   553→      bg.width = cv.width
+   554→      bg.height = cv.height
+   555→      const bctx = bg.getContext('2d')
+   556→      if (bctx) {
+   557→        bctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+   558→        drawBackdrop(bctx, cw, ch)
+   559→      }
+   560→    }
+   561→    resize()
+   562→    startRound(w, 1) // fioles de démonstration derrière l'écran d'accueil
+   563→
+   564→    /* ----- entrées pointeur (un seul doigt ne pilote la visée) ----- */
+   565→    const rectPos = (e: PointerEvent) => {
+   566→      const r = cv.getBoundingClientRect()
+   567→      return { x: e.clientX - r.left, y: e.clientY - r.top }
+   568→    }
+   569→    const onDown = (e: PointerEvent) => {
+   570→      if (phaseRef.current !== 'playing') return
+   571→      if (e.button !== 0) return
+   572→      if (w.pill.state !== 'ready' || w.pillsLeft <= 0 || w.endTimer > 0) return
+   573→      const p = rectPos(e)
+   574→      const a = anchor()
+   575→      const grab = Math.max(100, w.H * 0.3)
+   576→      if (Math.hypot(p.x - a.x, p.y - a.y) < grab) {
+   577→        w.pill.state = 'aiming'
+   578→        w.aim = { x: clamp(p.x, 4, w.W - 4), y: clamp(p.y, 4, w.H - 4) }
+   579→        aimId = e.pointerId
+   580→        try {
+   581→          cv.setPointerCapture(e.pointerId)
+   582→        } catch {
+   583→          /* capture best-effort */
+   584→        }
+   585→      }
+   586→    }
+   587→    const onMove = (e: PointerEvent) => {
+   588→      if (w.pill.state !== 'aiming' || e.pointerId !== aimId) return
+   589→      const p = rectPos(e)
+   590→      w.aim = { x: clamp(p.x, 4, w.W - 4), y: clamp(p.y, 4, w.H - 4) }
+   591→    }
+   592→    const pullVec = () => {
+   593→      const a = anchor()
+   594→      let dx = w.aim.x - a.x
+   595→      let dy = w.aim.y - a.y
+   596→      const len = Math.hypot(dx, dy)
+   597→      const maxPull = w.H * 0.3
+   598→      if (len > maxPull) {
+   599→        dx *= maxPull / len
+   600→        dy *= maxPull / len
+   601→      }
+   602→      return { dx, dy }
+   603→    }
+   604→    const launchVec = (px: number, py: number) => {
+   605→      const a = anchor()
+   606→      return { vx: (a.x - px) * 9, vy: (a.y - py) * 9 }
+   607→    }
+   608→    const onUp = (e: PointerEvent) => {
+   609→      if (w.pill.state !== 'aiming' || e.pointerId !== aimId) return
+   610→      aimId = -1
+   611→      const a = anchor()
+   612→      const { dx, dy } = pullVec()
+   613→      if (Math.hypot(dx, dy) < 14) {
+   614→        w.pill.state = 'ready'
+   615→        return
+   616→      }
+   617→      const px = a.x + dx
+   618→      const py = a.y + dy
+   619→      const { vx, vy } = launchVec(px, py)
+   620→      w.pill.x = px
+   621→      w.pill.y = py
+   622→      w.pill.vx = vx
+   623→      w.pill.vy = vy
+   624→      w.pill.rot = Math.atan2(vy, vx)
+   625→      w.pill.vr = 5
+   626→      w.pill.state = 'flying'
+   627→      w.pillAcc = 0
+   628→      w.pillsLeft--
+   629→      sfx.play('swish')
+   630→      buzz(10)
+   631→      w.hudDirty = true
+   632→    }
+   633→    const cancelAim = (e: PointerEvent) => {
+   634→      if (e.pointerId !== aimId) return
+   635→      aimId = -1
+   636→      if (w.pill.state === 'aiming') w.pill.state = 'ready'
+   637→    }
+   638→    const onCtx = (e: Event) => e.preventDefault()
+   639→    cv.addEventListener('pointerdown', onDown)
+   640→    cv.addEventListener('pointermove', onMove)
+   641→    cv.addEventListener('pointerup', onUp)
+   642→    cv.addEventListener('pointercancel', cancelAim)
+   643→    cv.addEventListener('lostpointercapture', cancelAim)
+   644→    cv.addEventListener('contextmenu', onCtx)
+   645→
+   646→    /* ----- pause quand l'onglet est masqué ----- */
+   647→    const onVis = () => { pausedRef.current = document.hidden }
+   648→    document.addEventListener('visibilitychange', onVis)
+   649→
+   650→    /* ----- résolution d'un lancer ----- */
+   651→    const resolvePill = (hit: boolean) => {
+   652→      if (!hit) {
+   653→        w.streak = 0
+   654→        sfx.play('wrong', { volume: 0.3 })
+   655→      }
+   656→      w.pill.state = 'ready'
+   657→      w.hudDirty = true
+   658→      if (w.jars.every((j) => !j.alive)) {
+   659→        if (!w.cleared) {
+   660→          w.cleared = true
+   661→          const bonus = w.pillsLeft * 150
+   662→          w.bonusGiven = bonus
+   663→          w.roundScore += bonus
+   664→          w.totalScore += bonus
+   665→          w.pops.push({
+   666→            x: w.W / 2, y: w.H * 0.42,
+   667→            text: `${L[langRef.current].cleared} +${bonus}`,
+   668→            life: 1.4, max: 1.4, color: '#b45309', size: 20,
+   669→          })
+   670→          sfx.play('win')
+   671→          buzz(20)
+   672→          setConfetti((k) => k + 1)
+   673→          w.endTimer = 1.15
+   674→        }
+   675→      } else if (w.pillsLeft <= 0) {
+   676→        w.endTimer = 0.7
+   677→      } else if (hit) {
+   678→        // pilule suivante prête (uniquement après un touché — un raté a déjà
+   679→        // son feedback « wrong »)
+   680→        sfx.play('pop', { volume: 0.35 })
+   681→      }
+   682→    }
+   683→
+   684→    /* ----- simulation ----- */
+   685→    /** Fioles : glissement physique avec rebond sur les bords et échange de
+   686→     *  vitesses au contact (choc élastique 1D) — elles ne se traversent jamais. */
+   687→    const moveJars = (dt: number) => {
+   688→      for (let r = 0; r < w.rows; r++) {
+   689→        const row: Jar[] = []
+   690→        for (const j of w.jars) if (j.alive && j.rowIdx === r) row.push(j)
+   691→        if (row.length === 0) continue
+   692→        for (const j of row) {
+   693→          j.x += j.vx * dt
+   694→          const xMin = 12 + j.w / 2
+   695→          const xMax = Math.max(w.W - 12 - j.w / 2, xMin)
+   696→          if (j.x < xMin) {
+   697→            j.x = xMin
+   698→            j.vx = Math.abs(j.vx)
+   699→          } else if (j.x > xMax) {
+   700→            j.x = xMax
+   701→            j.vx = -Math.abs(j.vx)
+   702→          }
+   703→        }
+   704→        row.sort((p, q) => p.x - q.x)
+   705→        for (let i = 0; i < row.length - 1; i++) {
+   706→          const p = row[i]
+   707→          const q = row[i + 1]
+   708→          const minGap = (p.w + q.w) / 2 + 2
+   709→          if (q.x - p.x < minGap && p.vx > q.vx) {
+   710→            const tv = p.vx
+   711→            p.vx = q.vx
+   712→            q.vx = tv
+   713→          }
+   714→        }
+   715→      }
+   716→    }
+   717→
+   718→    /* ----- projectile : un pas fixe d'intégration (retourne true si résolu) ----- */
+   719→    const integrate = () => {
+   720→      const p = w.pill
+   721→      p.vy += gravity() * STEP
+   722→      p.x += p.vx * STEP
+   723→      p.y += p.vy * STEP
+   724→      p.rot += p.vr * STEP
+   725→      const hl = pillHL()
+   726→      for (const j of w.jars) {
+   727→        if (!j.alive) continue
+   728→        const jx = j.x
+   729→        const jy = jarCY(j)
+   730→        if (Math.abs(p.x - jx) < j.w / 2 + hl && Math.abs(p.y - jy) < j.h / 2 + hl * 0.75) {
+   731→          j.alive = false
+   732→          j.fade = 0.45
+   733→          w.shelfWob[j.rowIdx] = 1
+   734→          w.streak++
+   735→          w.maxStreakSession = Math.max(w.maxStreakSession, w.streak)
+   736→          const pts = 100 + (w.streak - 1) * 50
+   737→          w.roundScore += pts
+   738→          w.totalScore += pts
+   739→          w.roundHits++
+   740→          sfx.play('coin')
+   741→          buzz(10)
+   742→          const colors = ['#f6e3c2', '#e8b56b', '#d98a4f', '#e2725b']
+   743→          if (!reduceRef.current) {
+   744→            for (let i = 0; i < 16; i++) {
+   745→              const ang = Math.random() * Math.PI * 2
+   746→              const sp = 90 + Math.random() * 230
+   747→              w.shards.push({
+   748→                x: jx, y: jy,
+   749→                vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 130,
+   750→                life: 0.45 + Math.random() * 0.35, max: 0.8,
+   751→                size: 2.5 + Math.random() * 3.5,
+   752→                color: colors[i % colors.length],
+   753→              })
+   754→            }
+   755→          }
+   756→          w.pops.push({
+   757→            x: jx, y: jy - 14,
+   758→            text: `+${pts}${w.streak >= 3 ? ` ×${w.streak}` : ''}`,
+   759→            life: 0.9, max: 0.9,
+   760→            color: w.streak >= 3 ? '#b45309' : '#7c4a1e',
+   761→            size: w.streak >= 3 ? 19 : 16,
+   762→          })
+   763→          if (w.streak >= 8) unlockBadge('toss-combo-8')
+   764→          w.hudDirty = true
+   765→          resolvePill(true)
+   766→          return true
+   767→        }
+   768→      }
+   769→      if (p.y > w.H + 60 || p.x < -90 || p.x > w.W + 90) {
+   770→        resolvePill(false)
+   771→        return true
+   772→      }
+   773→      return false
+   774→    }
+   775→
+   776→    const update = (dt: number) => {
+   777→      moveJars(dt)
+   778→      for (let i = 0; i < 3; i++) w.shelfWob[i] *= Math.exp(-5 * dt)
+   779→      for (const j of w.jars) if (!j.alive && j.fade > 0) j.fade -= dt
+   780→
+   781→      if (phaseRef.current === 'playing' && w.pill.state === 'flying') {
+   782→        w.pillAcc += dt
+   783→        let guard = 0
+   784→        while (w.pillAcc >= STEP && w.pill.state === 'flying' && guard < 24) {
+   785→          w.pillAcc -= STEP
+   786→          guard++
+   787→          if (integrate()) break
+   788→        }
+   789→      }
+   790→
+   791→      for (let i = w.shards.length - 1; i >= 0; i--) {
+   792→        const s = w.shards[i]
+   793→        s.vy += 950 * dt
+   794→        s.x += s.vx * dt
+   795→        s.y += s.vy * dt
+   796→        s.life -= dt
+   797→        if (s.life <= 0) w.shards.splice(i, 1)
+   798→      }
+   799→      for (let i = w.pops.length - 1; i >= 0; i--) {
+   800→        const p = w.pops[i]
+   801→        p.y -= 34 * dt
+   802→        p.life -= dt
+   803→        if (p.life <= 0) w.pops.splice(i, 1)
+   804→      }
+   805→      if (w.endTimer > 0) {
+   806→        w.endTimer -= dt
+   807→        if (w.endTimer <= 0) {
+   808→          w.endTimer = 0
+   809→          finishRound()
+   810→        }
+   811→      }
+   812→    }
+   813→
+   814→    /* ----- rendu ----- */
+   815→    const draw = () => {
+   816→      const W = w.W, H = w.H
+   817→      const hl = pillHL()
+   818→      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+   819→      ctx.clearRect(0, 0, W, H)
+   820→      if (bg) ctx.drawImage(bg, 0, 0, W, H)
+   821→
+   822→      // Étagères
+   823→      for (let r = 0; r < w.rows; r++) {
+   824→        drawShelf(ctx, shelfY(r) + Math.sin(w.t * 26) * 3 * w.shelfWob[r], W, H)
+   825→      }
+   826→      // Fioles
+   827→      for (const j of w.jars) {
+   828→        if (!j.alive && j.fade <= 0) continue
+   829→        drawJar(ctx, j.x, jarCY(j), j, j.alive ? 1 : clamp(j.fade / 0.45, 0, 1))
+   830→      }
+   831→
+   832→      // Lance-pierre (socle + pied jusqu'au sol)
+   833→      const a = anchor()
+   834→      const fw = hl
+   835→      const fh = hl * 1.8
+   836→      const restY = a.y - fh
+   837→      ctx.fillStyle = '#84552e'
+   838→      const postTop = a.y + hl * 1.4
+   839→      ctx.fillRect(a.x - hl * 0.18, postTop, hl * 0.36, Math.max(0, H - 14 - postTop))
+   840→      rr(ctx, a.x - hl * 1.35, a.y + hl * 0.55, hl * 2.7, hl * 0.85, hl * 0.3)
+   841→      ctx.fill()
+   842→      rr(ctx, a.x - hl * 0.3, a.y - hl * 0.35, hl * 0.6, hl * 1.15, hl * 0.22)
+   843→      ctx.fill()
+   844→      ctx.strokeStyle = '#84552e'
+   845→      ctx.lineWidth = Math.max(3, hl * 0.28)
+   846→      ctx.beginPath()
+   847→      ctx.moveTo(a.x - hl * 0.24, a.y - hl * 0.3)
+   848→      ctx.lineTo(a.x - fw, restY)
+   849→      ctx.moveTo(a.x + hl * 0.24, a.y - hl * 0.3)
+   850→      ctx.lineTo(a.x + fw, restY)
+   851→      ctx.stroke()
+   852→
+   853→      // Visée / pilule
+   854→      if (w.pill.state === 'aiming') {
+   855→        const { dx, dy } = pullVec()
+   856→        const px = a.x + dx
+   857→        const py = a.y + dy
+   858→        // élastiques tendus
+   859→        ctx.strokeStyle = '#5f3d1e'
+   860→        ctx.lineWidth = Math.max(2.5, hl * 0.22)
+   861→        ctx.beginPath()
+   862→        ctx.moveTo(a.x - fw, restY)
+   863→        ctx.lineTo(px, py)
+   864→        ctx.lineTo(a.x + fw, restY)
+   865→        ctx.stroke()
+   866→        // trajectoire prévue — même intégration pas-à-pas que le vol réel
+   867→        const { vx, vy } = launchVec(px, py)
+   868→        const g = gravity()
+   869→        let tx = px, ty = py, tvy = vy
+   870→        let dots = 0
+   871→        for (let i = 1; i <= 240 && dots < 16; i++) {
+   872→          tvy += g * STEP
+   873→          tx += vx * STEP
+   874→          ty += tvy * STEP
+   875→          if (ty > H - 6 || tx < 4 || tx > W - 4) break
+   876→          if (i % 8 === 0) {
+   877→            dots++
+   878→            const k = 1 - dots / 17
+   879→            ctx.globalAlpha = 0.9 * k
+   880→            ctx.fillStyle = '#fff8ec'
+   881→            ctx.beginPath()
+   882→            ctx.arc(tx, ty, Math.max(1.6, hl * 0.34 * k), 0, Math.PI * 2)
+   883→            ctx.fill()
+   884→          }
+   885→        }
+   886→        ctx.globalAlpha = 1
+   887→        drawPill(ctx, px, py, Math.atan2(a.y - py, a.x - px), hl)
+   888→      } else if (w.pill.state === 'ready') {
+   889→        // bande détendue
+   890→        ctx.strokeStyle = 'rgba(95,61,30,0.5)'
+   891→        ctx.lineWidth = Math.max(2, hl * 0.18)
+   892→        ctx.beginPath()
+   893→        ctx.moveTo(a.x - fw, restY)
+   894→        ctx.lineTo(a.x + fw, restY)
+   895→        ctx.stroke()
+   896→        // halo de préhension (invitation au geste)
+   897→        if (phaseRef.current === 'playing' && w.pillsLeft > 0 && w.endTimer <= 0) {
+   898→          const rad = hl + 9 + (reduceRef.current ? 0 : Math.sin(w.t * 2.6) * 2.5)
+   899→          ctx.strokeStyle = 'rgba(255,248,236,0.65)'
+   900→          ctx.lineWidth = 2
+   901→          ctx.setLineDash([4, 5])
+   902→          ctx.beginPath()
+   903→          ctx.arc(a.x, restY, rad, 0, Math.PI * 2)
+   904→          ctx.stroke()
+   905→          ctx.setLineDash([])
+   906→        }
+   907→        drawPill(ctx, a.x, restY, -0.5, hl)
+   908→      } else {
+   909→        drawPill(ctx, w.pill.x, w.pill.y, w.pill.rot, hl)
+   910→      }
+   911→
+   912→      // Éclats de verre
+   913→      for (const s of w.shards) {
+   914→        ctx.globalAlpha = clamp(s.life / s.max, 0, 1)
+   915→        ctx.fillStyle = s.color
+   916→        ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size)
+   917→      }
+   918→      ctx.globalAlpha = 1
+   919→
+   920→      // Textes flottants
+   921→      for (const p of w.pops) {
+   922→        ctx.globalAlpha = clamp(p.life / p.max, 0, 1)
+   923→        ctx.fillStyle = p.color
+   924→        ctx.font = `800 ${p.size}px "Nunito", system-ui, sans-serif`
+   925→        ctx.textAlign = 'center'
+   926→        ctx.textBaseline = 'middle'
+   927→        ctx.fillText(p.text, p.x, p.y)
+   928→      }
+   929→      ctx.globalAlpha = 1
+   930→    }
+   931→
+   932→    let last = performance.now()
+   933→    const step = (now: number) => {
+   934→      rafRef.current = requestAnimationFrame(step)
+   935→      const dt = Math.min((now - last) / 1000, 0.05)
+   936→      last = now
+   937→      if (pausedRef.current) return
+   938→      w.t += dt
+   939→      update(dt)
+   940→      draw()
+   941→      if (w.hudDirty) {
+   942→        w.hudDirty = false
+   943→        pushHud()
+   944→      }
+   945→    }
+   946→    rafRef.current = requestAnimationFrame(step)
+   947→
+   948→    const ro = new ResizeObserver(resize)
+   949→    ro.observe(wrap)
+   950→
+   951→    return () => {
+   952→      cancelAnimationFrame(rafRef.current)
+   953→      ro.disconnect()
+   954→      cv.removeEventListener('pointerdown', onDown)
+   955→      cv.removeEventListener('pointermove', onMove)
+   956→      cv.removeEventListener('pointerup', onUp)
+   957→      cv.removeEventListener('pointercancel', cancelAim)
+   958→      cv.removeEventListener('lostpointercapture', cancelAim)
+   959→      cv.removeEventListener('contextmenu', onCtx)
+   960→      document.removeEventListener('visibilitychange', onVis)
+   961→    }
+   962→  }, [finishRound, pushHud, unlockBadge])
+   963→
+   964→  /* ================= Rendu React ================= */
+   965→  return (
+   966→    <div className="relative select-none">
+   967→      <Confetti fire={confetti} count={reduce ? 0 : 90} />
+   968→
+   969→      {/* HUD compact sur une seule ligne (caché à l'accueil : le bouton Jouer
+   970→          arrive plus tôt à l'écran, sans le moindre scroll). */}
+   971→      {phase !== 'idle' ? (
+   972→        <div className="mb-1.5 flex h-9 flex-wrap items-center gap-1.5 text-xs font-bold">
+   973→          <div className="flex h-8 items-center gap-1 rounded-full bg-secondary/70 px-2.5" title={T.round}>
+   974→            <span aria-hidden="true">🎯</span>
+   975→            <span className="tabular-nums">{hud.round}</span>
+   976→          </div>
+   977→          <div className="flex h-8 items-center gap-1 rounded-full bg-secondary/70 px-2.5" title={T.score}>
+   978→            <span aria-hidden="true">⭐</span>
+   979→            <span key={hud.score} className={cn('tabular-nums', !reduce && 'anim-pop-in')}>
+   980→              {hud.score}
+   981→            </span>
+   982→          </div>
+   983→          {hud.streak >= 2 ? (
+   984→            <div
+   985→              className="flex h-8 items-center gap-1 rounded-full bg-amber-100 px-2.5 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+   986→              title={T.streak}
+   987→            >
+   988→              <span aria-hidden="true">🔥</span>
+   989→              <span key={hud.streak} className={cn('tabular-nums', !reduce && 'anim-pop-in')}>
+   990→                ×{hud.streak}
+   991→              </span>
+   992→            </div>
+   993→          ) : null}
+   994→          <div
+   995→            className="flex h-8 items-center gap-[3px] rounded-full bg-secondary/70 px-2.5"
+   996→            role="img"
+   997→            aria-label={`${T.pillsLeft} : ${hud.pills}`}
+   998→            title={`${T.pillsLeft} : ${hud.pills}`}
+   999→          >
+  1000→            <span className="flex items-center gap-[3px]" aria-hidden="true">
+  1001→              {Array.from({ length: 10 }).map((_, i) => (
+  1002→                <span
+  1003→                  key={i}
+  1004→                  className={cn('h-1.5 w-1.5 rounded-full', i < hud.pills ? 'bg-rose-500' : 'bg-foreground/15')}
+  1005→                />
+  1006→              ))}
+  1007→            </span>
+  1008→          </div>
+  1009→          <Button
+  1010→            variant="ghost"
+  1011→            size="sm"
+  1012→            className="ms-auto h-9 w-9 rounded-full p-0"
+  1013→            aria-label={T.restart}
+  1014→            title={T.restart}
+  1015→            onClick={handleRestart}
+  1016→          >
+  1017→            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+  1018→          </Button>
+  1019→        </div>
+  1020→      ) : null}
+  1021→
+  1022→      {/* Canevas — hauteur plafonnée au budget vertical du chrome partagé
+  1023→          (Task 9) : la surface de jeu reste entièrement visible sans scroll. */}
+  1024→      <div
+  1025→        ref={wrapRef}
+  1026→        className="relative mx-auto aspect-[10/11] max-h-[calc(100dvh_-_290px)] w-full max-w-[560px] overflow-hidden rounded-2xl border shadow-inner"
+  1027→      >
+  1028→        <canvas
+  1029→          ref={canvasRef}
+  1030→          className="block h-full w-full touch-none cursor-crosshair"
+  1031→          style={{ touchAction: 'none' }}
+  1032→          aria-label={T.canvasLabel}
+  1033→        />
+  1034→
+  1035→        {/* Mention permanente : pilules fictives */}
+  1036→        <span className="absolute bottom-1.5 right-2 z-10 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold text-stone-600 shadow-sm backdrop-blur-sm dark:bg-stone-800/80 dark:text-stone-300">
+  1037→          💊 {T.disclaimer}
+  1038→        </span>
+  1039→
+  1040→        {/* Écran d'accueil — compact, bouton Jouer immédiatement visible */}
+  1041→        {phase === 'idle' ? (
+  1042→          <div className="absolute inset-0 z-20 flex overflow-y-auto bg-stone-900/45 p-4 backdrop-blur-[2px]">
+  1043→            <div className="m-auto flex flex-col items-center gap-2.5 text-center">
+  1044→              <div className="flex gap-2 [@media(max-height:420px)]:hidden" aria-hidden="true">
+  1045→                {['💊', '✨', '🎯'].map((e, i) => (
+  1046→                  <span key={i} className={cn('text-3xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
+  1047→                ))}
+  1048→              </div>
+  1049→              <h3 className="font-display text-xl font-extrabold text-white drop-shadow">{T.aimTitle}</h3>
+  1050→              {hydrated && (bestScore > 0 || bestCombo > 0) ? (
+  1051→                <p className="text-xs font-semibold text-stone-100">
+  1052→                  {bestScore > 0 ? (
+  1053→                    <span title={T.bestScoreLabel}>⭐ {bestScore}</span>
+  1054→                  ) : null}
+  1055→                  {bestScore > 0 && bestCombo > 0 ? ' · ' : null}
+  1056→                  {bestCombo > 0 ? (
+  1057→                    <span title={T.bestStreakLabel}>🔥 ×{bestCombo}</span>
+  1058→                  ) : null}
+  1059→                </p>
+  1060→              ) : null}
+  1061→              <Button size="lg" className={cn('h-11 rounded-full px-7 text-base', !reduce && 'anim-glow')} onClick={handleStart}>
+  1062→                <Play className="h-5 w-5" aria-hidden="true" /> {T.play}
+  1063→              </Button>
+  1064→            </div>
+  1065→          </div>
+  1066→        ) : null}
+  1067→
+  1068→        {/* Résumé de manche — compact, tient dans l'aire de jeu */}
+  1069→        {phase === 'roundEnd' && summary ? (
+  1070→          <div className="absolute inset-0 z-20 flex overflow-y-auto bg-stone-900/50 p-3 backdrop-blur-[2px]" role="status">
+  1071→            <div className="anim-rise m-auto w-full max-w-[300px] rounded-2xl border bg-card p-4 text-center shadow-xl">
+  1072→              <p className="font-display text-lg font-extrabold text-primary">
+  1073→                {summary.cleared ? `🎉 ${T.cleared}` : T.roundOver.replace('{n}', String(summary.round))}
+  1074→              </p>
+  1075→              <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+  1076→                <div className="rounded-xl bg-secondary/70 p-1.5">
+  1077→                  <p className="text-base font-extrabold leading-tight tabular-nums">{summary.hits}/{summary.used}</p>
+  1078→                  <p className="text-[10px] leading-tight text-muted-foreground">{T.hits}</p>
+  1079→                </div>
+  1080→                <div className="rounded-xl bg-secondary/70 p-1.5">
+  1081→                  <p className="text-base font-extrabold leading-tight tabular-nums">{summary.acc}%</p>
+  1082→                  <p className="text-[10px] leading-tight text-muted-foreground">{T.accuracy}</p>
+  1083→                </div>
+  1084→                <div className="rounded-xl bg-secondary/70 p-1.5">
+  1085→                  <p className="text-base font-extrabold leading-tight tabular-nums">{summary.roundScore}</p>
+  1086→                  <p className="text-[10px] leading-tight text-muted-foreground">{T.roundScore}</p>
+  1087→                </div>
+  1088→              </div>
+  1089→              {summary.bonus > 0 ? (
+  1090→                <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+  1091→                  ✨ {T.bonus} : +{summary.bonus}
+  1092→                </p>
+  1093→              ) : null}
+  1094→              <p className="mt-2 text-xs text-muted-foreground">
+  1095→                {T.total} : <span className="font-extrabold tabular-nums text-foreground">{summary.total}</span>
+  1096→              </p>
+  1097→              {summary.isRecord ? (
+  1098→                <p className="mt-1 text-xs font-bold text-amber-600 dark:text-amber-400">🏆 {T.newBest}</p>
+  1099→              ) : null}
+  1100→              <div className="mt-3 flex justify-center gap-2">
+  1101→                <Button autoFocus className="h-10 rounded-full px-5 text-sm" onClick={handleNext}>
+  1102→                  <SkipForward className="h-4 w-4" aria-hidden="true" /> {T.next}
+  1103→                </Button>
+  1104→                <Button variant="secondary" className="h-10 rounded-full px-4 text-sm" onClick={handleEnd}>
+  1105→                  <Square className="h-3.5 w-3.5" aria-hidden="true" /> {T.end}
+  1106→                </Button>
+  1107→              </div>
+  1108→            </div>
+  1109→          </div>
+  1110→        ) : null}
+  1111→
+  1112→        {/* Fin de session */}
+  1113→        {phase === 'done' && summary ? (
+  1114→          <div className="absolute inset-0 z-20 flex overflow-y-auto bg-stone-900/55 p-3 backdrop-blur-[2px]" role="status">
+  1115→            <div className="anim-rise m-auto w-full max-w-[300px] rounded-2xl border bg-card p-5 text-center shadow-xl">
+  1116→              <p className="font-display text-xl font-extrabold">🏁 {T.sessionOver}</p>
+  1117→              <p className="mt-2 text-4xl font-extrabold tabular-nums text-primary">{summary.total}</p>
+  1118→              <p className="text-xs text-muted-foreground">{T.total}</p>
+  1119→              <p className="mt-1.5 text-xs text-muted-foreground">
+  1120→                {T.bestStreak} : <span className="font-bold tabular-nums text-foreground">×{summary.bestStreak}</span>
+  1121→              </p>
+  1122→              <div className="mt-3 flex justify-center">
+  1123→                <Button className="h-11 rounded-full px-6" onClick={handleStart}>
+  1124→                  <RotateCcw className="h-5 w-5" aria-hidden="true" /> {T.again}
+  1125→                </Button>
+  1126→              </div>
+  1127→            </div>
+  1128→          </div>
+  1129→        ) : null}
+  1130→      </div>
+  1131→
+  1132→      {/* Une seule ligne d'aide, sous l'aire de jeu, à l'accueil uniquement */}
+  1133→      {phase === 'idle' ? (
+  1134→        <p className="mt-1.5 text-center text-[11px] leading-tight text-muted-foreground">{T.hint}</p>
+  1135→      ) : null}
+  1136→    </div>
+  1137→  )
+  1138→}
+  1139→

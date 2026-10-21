@@ -1,0 +1,665 @@
+     1→'use client'
+     2→
+     3→import { useEffect, useRef, useState } from 'react'
+     4→import { BookOpen, Sprout, CircleCheckBig, Circle } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useLang, type Lang } from '@/lib/i18n'
+     8→import { useProfileStore } from '@/lib/progress/store'
+     9→import { loadSave, saveSave } from '@/lib/save'
+    10→import { useReducedMotion } from '@/lib/utils-game'
+    11→import type { GameSEOContent } from '@/lib/games/types'
+    12→import { Button } from '@/components/ui/button'
+    13→import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+    14→import { toast } from 'sonner'
+    15→
+    16→export const gameId = 'merge-garden'
+    17→
+    18→/* ================= Contenu SEO bilingue ================= */
+    19→export const content: GameSEOContent = {
+    20→  tagline: {
+    21→    fr: 'Fusionnez graines et plantes pour découvrir 16 espèces, du bourgeon jusqu’au jardin complet de Gran.',
+    22→    en: 'Merge seeds and plants to discover 16 species, from tiny buds all the way to Gran’s complete garden.',
+    23→  },
+    24→  description: {
+    25→    fr: [
+    26→      'Jardin de Gran est un jeu de fusion zen et gratuit dans lequel vous plantez des graines sur un plateau de 6×7 cases, puis combinez deux plantes identiques pour les faire évoluer en l’espèce supérieure, de la simple graine jusqu’au grand chêne et au jardin complet de Gran.',
+    27→      'Chaque fusion rapporte de l’expérience et chaque nouvelle espèce découverte enrichit votre livre de collection. Votre stock de graines se recharge automatiquement (une toutes les 20 secondes, dans la limite de 5), même quand vous quittez la page : le jardin pousse à votre rythme, sans game-over ni pression.',
+    28→      'Cinq objectifs progressifs structurent la partie — découvrir le tournesol, atteindre le grand chêne, planter 50 graines, fusionner 100 fois et compléter les 16 espèces — et tout est sauvegardé automatiquement sur votre appareil.',
+    29→    ],
+    30→    en: [
+    31→      'Gran’s Garden is a calm, free merge game where you plant seeds on a 6×7 board, then combine two identical plants to evolve them into the next species, from a simple seed all the way to the great oak and Gran’s complete garden.',
+    32→      'Every merge earns experience and each newly discovered species enriches your collection book. Your seed stock refills automatically (one every 20 seconds, up to 5), even while you are away: the garden grows at your own pace, with no game over and no pressure.',
+    33→      'Five progressive goals structure the game — discover the sunflower, reach the great oak, plant 50 seeds, merge 100 times and complete all 16 species — and everything is saved automatically on your device.',
+    34→    ],
+    35→  },
+    36→  rules: {
+    37→    fr: [
+    38→      'Touchez une plante pour la sélectionner (anneau de sélection).',
+    39→      'Touchez une case vide pour y déplacer la plante sélectionnée.',
+    40→      'Touchez une plante identique pour fusionner les deux en l’espèce supérieure.',
+    41→      'Le bouton « Planter une graine » place une graine (niveau 1) sur une case libre.',
+    42→      'Le stock de graines (maximum 5) se recharge d’une unité toutes les 20 secondes.',
+    43→      'Il n’y a pas de fin : découvrez les 16 espèces à votre rythme.',
+    44→    ],
+    45→    en: [
+    46→      'Tap a plant to select it (selection ring).',
+    47→      'Tap an empty cell to move the selected plant there.',
+    48→      'Tap an identical plant to merge both into the next species.',
+    49→      'The “Plant a seed” button drops a seed (tier 1) on a free cell.',
+    50→      'The seed stock (max 5) refills by one every 20 seconds.',
+    51→      'There is no end: discover the 16 species at your own pace.',
+    52→    ],
+    53→  },
+    54→  controls: {
+    55→    fr: [
+    56→      'Mobile et tablette : touchez une plante puis une autre case pour fusionner ou déplacer.',
+    57→      'Ordinateur : cliquez pour sélectionner puis agir ; maintenez et faites glisser une plante vers une autre case fonctionne aussi.',
+    58→      'Aucune commande clavier nécessaire — tout se joue au doigt ou à la souris.',
+    59→    ],
+    60→    en: [
+    61→      'Mobile & tablet: tap a plant, then tap another cell to merge or move.',
+    62→      'Desktop: click to select then act; holding and dragging a plant onto another cell works too.',
+    63→      'No keyboard needed — everything is played by finger or mouse.',
+    64→    ],
+    65→  },
+    66→  features: {
+    67→    fr: [
+    68→      '16 espèces à découvrir, de la graine 🌱 au jardin de Gran 🏡',
+    69→      'Plateau 6×7 sans game-over : une progression zen',
+    70→      'Stock de 5 graines rechargeable (1 toutes les 20 s, même hors ligne)',
+    71→      'Livre de collection des espèces découvertes',
+    72→      '5 objectifs progressifs avec récompenses d’expérience',
+    73→      'Sauvegarde automatique du jardin sur votre appareil',
+    74→    ],
+    75→    en: [
+    76→      '16 species to discover, from the seed 🌱 to Gran’s garden 🏡',
+    77→      '6×7 board with no game over: a zen progression',
+    78→      'Refillable stock of 5 seeds (1 every 20 s, even offline)',
+    79→      'Collection book of discovered species',
+    80→      '5 progressive goals with experience rewards',
+    81→      'Automatic save of your garden on your device',
+    82→    ],
+    83→  },
+    84→  tips: {
+    85→    fr: [
+    86→      'Regroupez les espèces par niveau dans des zones du plateau : vous verrez immédiatement les fusions possibles.',
+    87→      'Ne montez pas trop vite : garder plusieurs plantes de niveau intermédiaire évite de bloquer le plateau.',
+    88→      'Plantez vos graines à côté de plants de même niveau pour fusionner en un seul geste.',
+    89→      'Le stock se recharge même page fermée : revenez plus tard pour une session de plantation plus généreuse.',
+    90→    ],
+    91→    en: [
+    92→      'Group species by tier in zones of the board: you will instantly see the possible merges.',
+    93→      'Do not climb too fast: keeping several mid-tier plants avoids locking the board.',
+    94→      'Plant seeds next to same-tier sprouts to merge in a single gesture.',
+    95→      'The stock refills even with the page closed: come back later for a more generous planting session.',
+    96→    ],
+    97→  },
+    98→  faq: {
+    99→    fr: [
+   100→      { q: 'Jardin de Gran est-il vraiment gratuit ?', a: 'Oui, le jeu est entièrement gratuit, sans inscription ni téléchargement, et votre jardin est sauvegardé localement sur votre appareil.' },
+   101→      { q: 'Que se passe-t-il quand le plateau est plein ?', a: 'Il n’y a pas de game-over : fusionnez des plantes identiques pour libérer des cases. Avec 16 espèces pour 42 cases, une fusion reste toujours possible.' },
+   102→      { q: 'Comment se recharge le stock de graines ?', a: 'Une graine est ajoutée toutes les 20 secondes, jusqu’à un maximum de 5. La recharge continue même si vous quittez la page, grâce à l’horodatage sauvegardé.' },
+   103→      { q: 'Combien d’espèces existe-t-il ?', a: '16 espèces, de la graine (niveau 1) au jardin de Gran (niveau 16). Le livre de collection vous montre celles découvertes et celles qui restent.' },
+   104→      { q: 'Puis-je jouer sur mobile ?', a: 'Oui, le jeu est conçu pour le tactile : chaque case dépasse 44 pixels et se joue au doigt, en portrait comme en paysage.' },
+   105→    ],
+   106→    en: [
+   107→      { q: 'Is Gran’s Garden really free?', a: 'Yes, the game is completely free, with no sign-up and no download, and your garden is saved locally on your device.' },
+   108→      { q: 'What happens when the board is full?', a: 'There is no game over: merge identical plants to free cells. With 16 species for 42 cells, a merge is always still possible.' },
+   109→      { q: 'How does the seed stock refill?', a: 'One seed is added every 20 seconds, up to a maximum of 5. Refilling continues even if you leave the page, thanks to the saved timestamp.' },
+   110→      { q: 'How many species are there?', a: '16 species, from the seed (tier 1) to Gran’s garden (tier 16). The collection book shows the ones you have discovered and the ones left.' },
+   111→      { q: 'Can I play on mobile?', a: 'Yes, the game is touch-first: every cell is larger than 44 pixels and playable with a finger, in portrait or landscape.' },
+   112→    ],
+   113→  },
+   114→  records: {
+   115→    'species-discovered': { fr: 'Espèces découvertes', en: 'Species discovered' },
+   116→    'highest-tier': { fr: 'Espèce la plus élevée', en: 'Highest species reached' },
+   117→  },
+   118→}
+   119→
+   120→/* ================= Données de jeu ================= */
+   121→const COLS = 6
+   122→const ROWS = 7
+   123→const CELLS = COLS * ROWS
+   124→const MAX_TIER = 16
+   125→const SEED_MAX = 5
+   126→const SEED_MS = 20_000
+   127→
+   128→const SPECIES: { emoji: string; name: Record<Lang, string> }[] = [
+   129→  { emoji: '🌱', name: { fr: 'Graine', en: 'Seed' } },
+   130→  { emoji: '🌿', name: { fr: 'Pousse', en: 'Sprout' } },
+   131→  { emoji: '🪴', name: { fr: 'Jeune plant', en: 'Seedling' } },
+   132→  { emoji: '🌷', name: { fr: 'Bourgeon', en: 'Bud' } },
+   133→  { emoji: '🌸', name: { fr: 'Fleur', en: 'Bloom' } },
+   134→  { emoji: '🌺', name: { fr: 'Tulipe', en: 'Tulip' } },
+   135→  { emoji: '🌻', name: { fr: 'Tournesol', en: 'Sunflower' } },
+   136→  { emoji: '🌹', name: { fr: 'Rose', en: 'Rose' } },
+   137→  { emoji: '🌼', name: { fr: 'Marguerite', en: 'Daisy' } },
+   138→  { emoji: '🌵', name: { fr: 'Cactus', en: 'Cactus' } },
+   139→  { emoji: '🍄', name: { fr: 'Champignon', en: 'Mushroom' } },
+   140→  { emoji: '🌾', name: { fr: 'Blé', en: 'Wheat' } },
+   141→  { emoji: '🍁', name: { fr: 'Érable', en: 'Maple' } },
+   142→  { emoji: '🌲', name: { fr: 'Sapin', en: 'Fir' } },
+   143→  { emoji: '🌳', name: { fr: 'Grand chêne', en: 'Great oak' } },
+   144→  { emoji: '🏡', name: { fr: 'Jardin de Gran', en: 'Gran’s garden' } },
+   145→]
+   146→
+   147→const GOALS: { xp: number; label: Record<Lang, string> }[] = [
+   148→  { xp: 30, label: { fr: 'Découvrir le tournesol 🌻', en: 'Discover the sunflower 🌻' } },
+   149→  { xp: 60, label: { fr: 'Faire grandir le grand chêne 🌳', en: 'Grow the great oak 🌳' } },
+   150→  { xp: 40, label: { fr: 'Planter 50 graines', en: 'Plant 50 seeds' } },
+   151→  { xp: 60, label: { fr: 'Fusionner 100 fois', en: 'Merge 100 times' } },
+   152→  { xp: 150, label: { fr: 'Découvrir les 16 espèces', en: 'Discover all 16 species' } },
+   153→]
+   154→
+   155→const STR = {
+   156→  fr: {
+   157→    plant: 'Planter une graine',
+   158→    collection: 'Collection',
+   159→    species: 'Espèces',
+   160→    merges: 'Fusions',
+   161→    goals: 'Objectifs du jardin',
+   162→    goalReached: 'Objectif du jardin atteint',
+   163→    newSpecies: 'Nouvelle espèce découverte',
+   164→    howTo: 'Touchez une plante puis une autre case : deux plantes identiques fusionnent, une case vide accueille un déplacement. Le glisser-déposer fonctionne aussi.',
+   165→    nextSeed: 'prochaine graine',
+   166→    bookTitle: 'Livre du jardin',
+   167→    bookSub: 'Espèces découvertes',
+   168→    emptyCell: 'Case vide',
+   169→    board: 'Plateau du jardin',
+   170→    tier: 'niveau',
+   171→    boardFull: 'Plateau complet — fusionnez des plantes identiques !',
+   172→    noSeeds: 'Plus de graines — patientez la recharge',
+   173→  },
+   174→  en: {
+   175→    plant: 'Plant a seed',
+   176→    collection: 'Collection',
+   177→    species: 'Species',
+   178→    merges: 'Merges',
+   179→    goals: 'Garden goals',
+   180→    goalReached: 'Garden goal reached',
+   181→    newSpecies: 'New species discovered',
+   182→    howTo: 'Tap a plant then another cell: two identical plants merge, an empty cell receives a move. Drag & drop works too.',
+   183→    nextSeed: 'next seed',
+   184→    bookTitle: 'Garden book',
+   185→    bookSub: 'Discovered species',
+   186→    emptyCell: 'Empty cell',
+   187→    board: 'Garden board',
+   188→    tier: 'tier',
+   189→    boardFull: 'Board full — merge identical plants!',
+   190→    noSeeds: 'No seeds left — wait for the refill',
+   191→  },
+   192→}
+   193→
+   194→interface GardenSave {
+   195→  board: (number | null)[]
+   196→  discovered: number[]
+   197→  goalsDone: number[]
+   198→  seeds: number
+   199→  lastSeed: number
+   200→  plants: number
+   201→  merges: number
+   202→}
+   203→
+   204→/* ================= Composant principal ================= */
+   205→export default function MergeGardenGame() {
+   206→  const lang = useLang()
+   207→  const reduce = useReducedMotion()
+   208→  const L = STR[lang]
+   209→  const addXp = useProfileStore((s) => s.addXp)
+   210→  const setBest = useProfileStore((s) => s.setBest)
+   211→  const addPlay = useProfileStore((s) => s.addPlay)
+   212→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   213→
+   214→  const [board, setBoard] = useState<(number | null)[]>(() => new Array(CELLS).fill(null))
+   215→  const [discovered, setDiscovered] = useState<number[]>([])
+   216→  const [goalsDone, setGoalsDone] = useState<number[]>([])
+   217→  const [plants, setPlants] = useState(0)
+   218→  const [merges, setMerges] = useState(0)
+   219→  const [seedState, setSeedState] = useState<{ seeds: number; last: number }>(() => ({ seeds: 3, last: Date.now() }))
+   220→  const [selected, setSelected] = useState<number | null>(null)
+   221→  const [bumps, setBumps] = useState<number[]>(() => new Array(CELLS).fill(0))
+   222→  const [dragTarget, setDragTarget] = useState<number | null>(null)
+   223→  const [bookOpen, setBookOpen] = useState(false)
+   224→  const [now, setNow] = useState(0)
+   225→
+   226→  const restoredRef = useRef(false)
+   227→  const playCountedRef = useRef(false)
+   228→  const dragRef = useRef<{ from: number; target: number | null } | null>(null)
+   229→  const suppressUntilRef = useRef(0)
+   230→
+   231→  /* --- Recharge des graines : 1 toutes les 20 s (avec rattrapage hors ligne) --- */
+   232→  function regen(s: { seeds: number; last: number }): { seeds: number; last: number } {
+   233→    if (s.seeds >= SEED_MAX) return s
+   234→    const elapsed = Date.now() - s.last
+   235→    const gained = Math.floor(elapsed / SEED_MS)
+   236→    if (gained <= 0) return s
+   237→    const seeds = Math.min(SEED_MAX, s.seeds + gained)
+   238→    return { seeds, last: seeds >= SEED_MAX ? Date.now() : s.last + gained * SEED_MS }
+   239→  }
+   240→
+   241→  useEffect(() => {
+   242→    const id = window.setInterval(() => {
+   243→      setSeedState((s) => (s.seeds >= SEED_MAX ? s : regen(s)))
+   244→      setNow(Date.now())
+   245→    }, 1000)
+   246→    return () => window.clearInterval(id)
+   247→  }, [])
+   248→
+   249→  /* --- Restauration du jardin sauvegardé (callback asynchrone, jamais setState synchrone dans l'effet) --- */
+   250→  useEffect(() => {
+   251→    let alive = true
+   252→    Promise.resolve().then(() => {
+   253→      if (!alive) return
+   254→      const s = loadSave<GardenSave>(gameId)
+   255→      if (
+   256→        s &&
+   257→        Array.isArray(s.board) &&
+   258→        s.board.length === CELLS &&
+   259→        s.board.every((v) => v === null || (typeof v === 'number' && v >= 1 && v <= MAX_TIER)) &&
+   260→        Array.isArray(s.discovered)
+   261→      ) {
+   262→        restoredRef.current = true
+   263→        setBoard(s.board)
+   264→        setDiscovered(s.discovered)
+   265→        setGoalsDone(Array.isArray(s.goalsDone) ? s.goalsDone : [])
+   266→        setPlants(typeof s.plants === 'number' ? s.plants : 0)
+   267→        setMerges(typeof s.merges === 'number' ? s.merges : 0)
+   268→        setSeedState(regen({ seeds: typeof s.seeds === 'number' ? s.seeds : 3, last: typeof s.lastSeed === 'number' ? s.lastSeed : Date.now() }))
+   269→      } else {
+   270→        restoredRef.current = true
+   271→        // Nouveau jardin : deux graines pré-plantées pour jouer tout de suite
+   272→        const b: (number | null)[] = new Array(CELLS).fill(null)
+   273→        const i1 = Math.floor(Math.random() * CELLS)
+   274→        let i2 = Math.floor(Math.random() * (CELLS - 1))
+   275→        if (i2 >= i1) i2++
+   276→        b[i1] = 1
+   277→        b[i2] = 1
+   278→        setBoard(b)
+   279→        setDiscovered([1])
+   280→        setSeedState({ seeds: 3, last: Date.now() })
+   281→      }
+   282→      if (!playCountedRef.current) {
+   283→        playCountedRef.current = true
+   284→        addPlay(gameId)
+   285→      }
+   286→    })
+   287→    return () => {
+   288→      alive = false
+   289→    }
+   290→  }, [addPlay])
+   291→
+   292→  /* --- Sauvegarde automatique à chaque changement --- */
+   293→  useEffect(() => {
+   294→    if (!restoredRef.current) return
+   295→    const data: GardenSave = {
+   296→      board,
+   297→      discovered,
+   298→      goalsDone,
+   299→      plants,
+   300→      merges,
+   301→      seeds: seedState.seeds,
+   302→      lastSeed: seedState.last,
+   303→    }
+   304→    saveSave(gameId, data)
+   305→  }, [board, discovered, goalsDone, plants, merges, seedState])
+   306→
+   307→  /* --- Animations ciblées (remontée de la clé) --- */
+   308→  function bump(idx: number) {
+   309→    setBumps((b) => {
+   310→      const n = [...b]
+   311→      n[idx]++
+   312→      return n
+   313→    })
+   314→  }
+   315→
+   316→  /* --- Objectifs --- */
+   317→  function goalReached(i: number, d: number[], p: number, m: number): boolean {
+   318→    if (i === 0) return d.includes(7)
+   319→    if (i === 1) return d.includes(15)
+   320→    if (i === 2) return p >= 50
+   321→    if (i === 3) return m >= 100
+   322→    return d.length >= MAX_TIER
+   323→  }
+   324→
+   325→  function checkGoals(nd: number[], p: number, m: number) {
+   326→    const newly: number[] = []
+   327→    for (let i = 0; i < GOALS.length; i++) {
+   328→      if (goalsDone.includes(i)) continue
+   329→      if (goalReached(i, nd, p, m)) newly.push(i)
+   330→    }
+   331→    if (newly.length === 0) return
+   332→    setGoalsDone([...goalsDone, ...newly])
+   333→    const xp = newly.reduce((n, i) => n + GOALS[i].xp, 0)
+   334→    sfx.play('achievement')
+   335→    addXp(xp)
+   336→    toast('🏅', { description: `${L.goalReached} (+${xp} XP)`, duration: 4500 })
+   337→  }
+   338→
+   339→  /* --- Découverte d'une espèce --- */
+   340→  function onDiscover(tier: number, nd: number[]) {
+   341→    sfx.play('reveal')
+   342→    const sp = SPECIES[tier - 1]
+   343→    toast(sp.emoji, { description: `${L.newSpecies} — ${sp.name[lang]} (+${10 * tier} XP)`, duration: 4500 })
+   344→    addXp(10 * tier)
+   345→    setBest(gameId, 'species-discovered', nd.length, false)
+   346→    setBest(gameId, 'highest-tier', tier, false)
+   347→    if (nd.length >= 8) unlockBadge('merge-half')
+   348→    if (nd.length >= MAX_TIER) unlockBadge('merge-all')
+   349→  }
+   350→
+   351→  /* --- Fusion / déplacement --- */
+   352→  function doAction(from: number, to: number) {
+   353→    if (from === to) {
+   354→      setSelected(null)
+   355→      return
+   356→    }
+   357→    const tier = board[from]
+   358→    if (tier === null) return
+   359→    const target = board[to]
+   360→    if (target === null) {
+   361→      const next = [...board]
+   362→      next[to] = tier
+   363→      next[from] = null
+   364→      setBoard(next)
+   365→      setSelected(null)
+   366→      bump(to)
+   367→      sfx.play('drop')
+   368→    } else if (target === tier && tier < MAX_TIER) {
+   369→      const nt = tier + 1
+   370→      const next = [...board]
+   371→      next[to] = nt
+   372→      next[from] = null
+   373→      setBoard(next)
+   374→      setSelected(null)
+   375→      bump(to)
+   376→      sfx.play('merge')
+   377→      const m = merges + 1
+   378→      setMerges(m)
+   379→      addXp(nt)
+   380→      let nd = discovered
+   381→      if (!discovered.includes(nt)) {
+   382→        nd = [...discovered, nt]
+   383→        setDiscovered(nd)
+   384→        onDiscover(nt, nd)
+   385→      }
+   386→      checkGoals(nd, plants, m)
+   387→    } else {
+   388→      setSelected(to)
+   389→      sfx.play('click', { volume: 0.5 })
+   390→    }
+   391→  }
+   392→
+   393→  /* --- Plantation d'une graine --- */
+   394→  function plantSeed() {
+   395→    if (seedState.seeds <= 0) {
+   396→      sfx.play('wrong', { volume: 0.35 })
+   397→      return
+   398→    }
+   399→    const empties: number[] = []
+   400→    for (let i = 0; i < CELLS; i++) if (board[i] === null) empties.push(i)
+   401→    if (empties.length === 0) {
+   402→      sfx.play('wrong', { volume: 0.35 })
+   403→      return
+   404→    }
+   405→    const idx = empties[Math.floor(Math.random() * empties.length)]
+   406→    const next = [...board]
+   407→    next[idx] = 1
+   408→    setBoard(next)
+   409→    bump(idx)
+   410→    setSelected(null)
+   411→    setSeedState((s) => ({ seeds: Math.max(0, s.seeds - 1), last: s.seeds >= SEED_MAX ? Date.now() : s.last }))
+   412→    sfx.play('pop')
+   413→    const p = plants + 1
+   414→    setPlants(p)
+   415→    checkGoals(discovered, p, merges)
+   416→  }
+   417→
+   418→  /* --- Tap (clic) sur une case --- */
+   419→  function onTap(idx: number) {
+   420→    if (Date.now() < suppressUntilRef.current) return
+   421→    const tier = board[idx]
+   422→    if (selected === null) {
+   423→      if (tier !== null) {
+   424→        setSelected(idx)
+   425→        sfx.play('click', { volume: 0.5 })
+   426→      }
+   427→      return
+   428→    }
+   429→    if (selected === idx) {
+   430→      setSelected(null)
+   431→      sfx.play('click', { volume: 0.4 })
+   432→      return
+   433→    }
+   434→    const selTier = board[selected]
+   435→    if (tier === null || (selTier !== null && tier === selTier)) {
+   436→      doAction(selected, idx)
+   437→    } else {
+   438→      setSelected(idx)
+   439→      sfx.play('click', { volume: 0.5 })
+   440→    }
+   441→  }
+   442→
+   443→  /* --- Glisser-déposer (bonus, tactile + souris) --- */
+   444→  function cellFromPoint(x: number, y: number): number | null {
+   445→    const el = document.elementFromPoint(x, y) as HTMLElement | null
+   446→    const cell = el?.closest ? (el.closest('[data-cell]') as HTMLElement | null) : null
+   447→    if (!cell) return null
+   448→    const v = Number(cell.dataset.cell)
+   449→    return Number.isFinite(v) ? v : null
+   450→  }
+   451→
+   452→  function onBoardPointerDown(e: React.PointerEvent) {
+   453→    suppressUntilRef.current = 0
+   454→    const idx = cellFromPoint(e.clientX, e.clientY)
+   455→    if (idx === null || board[idx] === null) return
+   456→    dragRef.current = { from: idx, target: null }
+   457→  }
+   458→
+   459→  function onBoardPointerMove(e: React.PointerEvent) {
+   460→    const d = dragRef.current
+   461→    if (!d) return
+   462→    const idx = cellFromPoint(e.clientX, e.clientY)
+   463→    const target = idx !== null && idx !== d.from ? idx : null
+   464→    if (target !== d.target) {
+   465→      d.target = target
+   466→      setDragTarget(target)
+   467→    }
+   468→  }
+   469→
+   470→  function onBoardPointerUp(e: React.PointerEvent) {
+   471→    const d = dragRef.current
+   472→    dragRef.current = null
+   473→    setDragTarget(null)
+   474→    if (!d) return
+   475→    const idx = cellFromPoint(e.clientX, e.clientY)
+   476→    if (idx !== null && idx !== d.from && board[idx] !== undefined) {
+   477→      suppressUntilRef.current = Date.now() + 500
+   478→      doAction(d.from, idx)
+   479→    }
+   480→  }
+   481→
+   482→  function clearDrag() {
+   483→    dragRef.current = null
+   484→    setDragTarget(null)
+   485→  }
+   486→
+   487→  const progress =
+   488→    seedState.seeds >= SEED_MAX
+   489→      ? 1
+   490→      : Math.max(0, Math.min(1, (now > 0 ? now - seedState.last : 0) / SEED_MS))
+   491→
+   492→  const maxTier = discovered.reduce((a, b) => Math.max(a, b), 0)
+   493→
+   494→  /* --- Rendu --- */
+   495→  return (
+   496→    <div className="relative select-none">
+   497→      {/* Barre d'actions */}
+   498→      <div className="mb-3 flex flex-wrap items-center gap-2">
+   499→        <div
+   500→          className="flex h-11 items-center gap-2.5 rounded-full border border-emerald-200 bg-card px-3.5 dark:border-emerald-500/25"
+   501→          role="status"
+   502→          aria-label={`${L.species} : ${seedState.seeds}/${SEED_MAX}`}
+   503→        >
+   504→          <span className="text-lg" aria-hidden="true">🌱</span>
+   505→          <span className="text-sm font-extrabold tabular-nums">
+   506→            {seedState.seeds}
+   507→            <span className="font-semibold text-muted-foreground">/{SEED_MAX}</span>
+   508→          </span>
+   509→          <span className="relative block h-2 w-16 overflow-hidden rounded-full bg-secondary" title={L.nextSeed} aria-hidden="true">
+   510→            <span
+   511→              className="absolute inset-y-0 start-0 rounded-full bg-emerald-500 transition-[width] duration-500"
+   512→              style={{ width: `${Math.round(progress * 100)}%` }}
+   513→            />
+   514→          </span>
+   515→        </div>
+   516→        <Button size="lg" className="h-11 rounded-full" onClick={plantSeed} disabled={seedState.seeds <= 0} title={seedState.seeds <= 0 ? L.noSeeds : L.plant}>
+   517→          <Sprout className="h-4 w-4" aria-hidden="true" />
+   518→          {L.plant}
+   519→        </Button>
+   520→        <Button
+   521→          variant="secondary"
+   522→          size="lg"
+   523→          className="h-11 rounded-full"
+   524→          onClick={() => {
+   525→            sfx.play('pop')
+   526→            setBookOpen(true)
+   527→          }}
+   528→        >
+   529→          <BookOpen className="h-4 w-4" aria-hidden="true" />
+   530→          {L.collection}
+   531→          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold tabular-nums">
+   532→            {discovered.length}/{MAX_TIER}
+   533→          </span>
+   534→        </Button>
+   535→        <div className="ms-auto flex flex-wrap items-center gap-2">
+   536→          <StatPill icon="🌸" label={L.species} value={`${discovered.length}/${MAX_TIER}`} />
+   537→          <StatPill icon="✨" label={L.merges} value={merges} />
+   538→        </div>
+   539→      </div>
+   540→
+   541→      {/* Plateau */}
+   542→      <div
+   543→        role="grid"
+   544→        aria-label={L.board}
+   545→        className="checkerboard touch-none relative grid grid-cols-6 gap-1.5 rounded-2xl border-2 border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-amber-50 to-rose-50 p-2 dark:border-emerald-500/20 dark:from-emerald-500/10 dark:via-transparent dark:to-rose-500/10"
+   546→        onPointerDown={onBoardPointerDown}
+   547→        onPointerMove={onBoardPointerMove}
+   548→        onPointerUp={onBoardPointerUp}
+   549→        onPointerCancel={clearDrag}
+   550→      >
+   551→        {board.map((tier, i) => {
+   552→          const isSel = selected === i
+   553→          const isDrop = dragTarget === i
+   554→          const sp = tier !== null ? SPECIES[tier - 1] : null
+   555→          return (
+   556→            <button
+   557→              key={i}
+   558→              type="button"
+   559→              role="gridcell"
+   560→              data-cell={i}
+   561→              aria-label={sp ? `${sp.name[lang]} (${L.tier} ${tier})` : L.emptyCell}
+   562→              onClick={() => onTap(i)}
+   563→              className={cn(
+   564→                'relative flex aspect-square items-center justify-center rounded-xl border transition-all duration-150 focus-visible:outline-2 focus-visible:outline-ring',
+   565→                tier === null
+   566→                  ? 'border-emerald-200/40 bg-white/40 dark:border-white/5 dark:bg-white/5'
+   567→                  : 'border-amber-200/70 bg-white shadow-sm hover:border-amber-300 dark:border-amber-500/20 dark:bg-card',
+   568→                isSel && 'z-10 scale-105 ring-2 ring-primary',
+   569→                isDrop && 'z-10 scale-105 ring-2 ring-primary/60',
+   570→              )}
+   571→            >
+   572→              {sp && tier !== null ? (
+   573→                <span
+   574→                  key={`${tier}-${bumps[i]}`}
+   575→                  className={cn('no-select text-2xl leading-none sm:text-3xl', !reduce && 'anim-pop-in')}
+   576→                  aria-hidden="true"
+   577→                >
+   578→                  {sp.emoji}
+   579→                </span>
+   580→              ) : null}
+   581→            </button>
+   582→          )
+   583→        })}
+   584→      </div>
+   585→
+   586→      <p className="mt-3 text-center text-xs text-muted-foreground">{L.howTo}</p>
+   587→
+   588→      {/* Objectifs */}
+   589→      <div className="mt-4 rounded-2xl border bg-card/70 p-4">
+   590→        <h3 className="mb-3 flex items-center gap-2 font-display text-base font-bold">
+   591→          <span aria-hidden="true">🎯</span> {L.goals}
+   592→        </h3>
+   593→        <ul className="grid gap-2 sm:grid-cols-2">
+   594→          {GOALS.map((g, i) => {
+   595→            const done = goalsDone.includes(i)
+   596→            const count = i === 2 ? Math.min(plants, 50) : i === 3 ? Math.min(merges, 100) : null
+   597→            return (
+   598→              <li
+   599→                key={i}
+   600→                className={cn(
+   601→                  'flex items-center gap-2.5 rounded-xl border p-2.5 text-sm',
+   602→                  done ? 'border-emerald-300/70 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-border bg-card',
+   603→                )}
+   604→              >
+   605→                {done ? (
+   606→                  <CircleCheckBig className="h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
+   607→                ) : (
+   608→                  <Circle className="h-5 w-5 shrink-0 text-muted-foreground/50" aria-hidden="true" />
+   609→                )}
+   610→                <span className={cn('min-w-0 flex-1 leading-tight', done && 'line-through opacity-70')}>{g.label[lang]}</span>
+   611→                {count !== null && !done ? (
+   612→                  <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">{count}/{i === 2 ? 50 : 100}</span>
+   613→                ) : null}
+   614→              </li>
+   615→            )
+   616→          })}
+   617→        </ul>
+   618→      </div>
+   619→
+   620→      {/* Livre de collection */}
+   621→      <Dialog open={bookOpen} onOpenChange={(o) => setBookOpen(o)}>
+   622→        <DialogContent className="max-h-[85vh] overflow-y-auto nice-scroll">
+   623→          <DialogHeader>
+   624→            <DialogTitle className="font-display text-xl">📖 {L.bookTitle}</DialogTitle>
+   625→          </DialogHeader>
+   626→          <p className="text-sm text-muted-foreground">
+   627→            {L.bookSub} — {discovered.length}/{MAX_TIER} · {L.tier} max : {maxTier || '–'}
+   628→          </p>
+   629→          <div className="grid grid-cols-4 gap-2.5">
+   630→            {SPECIES.map((sp, i) => {
+   631→              const tier = i + 1
+   632→              const found = discovered.includes(tier)
+   633→              return (
+   634→                <div
+   635→                  key={tier}
+   636→                  className={cn(
+   637→                    'flex flex-col items-center gap-1 rounded-xl border p-2.5 text-center',
+   638→                    found
+   639→                      ? 'border-amber-200 bg-amber-50/70 dark:border-amber-500/25 dark:bg-amber-500/10'
+   640→                      : 'border-dashed border-border opacity-60',
+   641→                  )}
+   642→                >
+   643→                  <span className="text-3xl" aria-hidden="true">{found ? sp.emoji : '❓'}</span>
+   644→                  <span className="text-[11px] font-semibold leading-tight">{found ? sp.name[lang] : '?'}</span>
+   645→                  <span className="text-[10px] tabular-nums text-muted-foreground">#{tier}</span>
+   646→                </div>
+   647→              )
+   648→            })}
+   649→          </div>
+   650→        </DialogContent>
+   651→      </Dialog>
+   652→    </div>
+   653→  )
+   654→}
+   655→
+   656→function StatPill({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+   657→  return (
+   658→    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+   659→      <span aria-hidden="true">{icon}</span>
+   660→      <span className="text-muted-foreground">{label}</span>
+   661→      <span className="tabular-nums">{value}</span>
+   662→    </span>
+   663→  )
+   664→}
+   665→

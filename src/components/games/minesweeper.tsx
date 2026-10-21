@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Bomb, CalendarCheck, LayoutGrid, Lightbulb, Play, RotateCcw, Timer, Trophy, X } from 'lucide-react'
+import { Bomb, CalendarCheck, Flag, LayoutGrid, Lightbulb, Play, RotateCcw, Timer, Trophy, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
@@ -23,12 +23,12 @@ export const content: GameSEOContent = {
     fr: [
       "Le Démineur Santé est un jeu de logique gratuit en ligne dans lequel vous devez révéler toutes les cases d’une grille sans jamais déclencher une mine. Chaque case découverte affiche le nombre de mines présentes dans ses huit cases voisines : à vous d’en déduire où se cachent les explosifs et de les marquer d’un drapeau.",
       "Trois difficultés sont au programme : Facile (9×9, 10 mines), Intermédiaire (16×16, 40 mines) et Expert (24×16, 99 mines). Les mines ne sont placées qu’après votre premier clic : la case choisie et son voisinage immédiat sont toujours sans danger, et les zones vides se découvrent automatiquement en cascade.",
-      "Un défi du jour de taille Facile, identique pour tous les joueurs, est renouvelé chaque jour. Chronomètre avec pause automatique, records de temps par difficulté et une petite astuce bien-être après chaque partie : le classique du raisonnement déductif, jouable partout sans installation.",
+      "Un défi du jour de taille Facile, identique pour tous les joueurs, est renouvelé chaque jour. Chronomètre avec pause automatique, chording (clic sur un chiffre complet pour ouvrir ses voisines), records de temps par difficulté et une petite astuce bien-être après chaque partie : le classique du raisonnement déductif, jouable partout sans installation.",
     ],
     en: [
       "Minesweeper Health is a free online logic game in which you must reveal every cell of a grid without ever triggering a mine. Each uncovered cell shows how many mines hide in its eight neighbouring cells: deduce where the explosives are and flag them.",
       "Three difficulties are on offer: Easy (9×9, 10 mines), Intermediate (16×16, 40 mines) and Expert (24×16, 99 mines). Mines are only placed after your first click — the chosen cell and its immediate neighbourhood are always safe — and empty areas reveal themselves automatically in a cascade.",
-      "A daily challenge in Easy size, identical for every player, is refreshed each day. A timer with automatic pause, best times per difficulty and a small well-being tip after each game: the deductive-reasoning classic, playable anywhere with no download.",
+      "A daily challenge in Easy size, identical for every player, is refreshed each day. A timer with automatic pause, chording (click a satisfied number to open its neighbours), best times per difficulty and a small well-being tip after each game: the deductive-reasoning classic, playable anywhere with no download.",
     ],
   },
   rules: {
@@ -38,6 +38,7 @@ export const content: GameSEOContent = {
       'Marquez les mines d’un drapeau pour vous repérer ; le compteur affiche les mines restantes.',
       'Le premier clic est toujours sûr : les mines sont placées ensuite, hors de la zone cliquée.',
       'Une case vide découverte révèle automatiquement sa zone (propagation en cascade).',
+      'Cliquez un chiffre dont tous les drapeaux sont posés : les voisines restantes s’ouvrent d’un coup.',
       'Le défi du jour (Facile) est généré à partir de la date : la grille est identique pour tous les joueurs.',
     ],
     en: [
@@ -46,36 +47,39 @@ export const content: GameSEOContent = {
       'Flag the mines to keep track; the counter shows the remaining mines.',
       'The first click is always safe: mines are placed afterwards, outside the clicked zone.',
       'Revealing an empty cell automatically opens its whole area (cascade).',
+      'Click a number whose flags are all placed: the remaining neighbours open at once.',
       'The daily challenge (Easy) is generated from the date: the grid is identical for every player.',
     ],
   },
   controls: {
     fr: [
       'Clic gauche (ou toucher) : révéler une case.',
-      'Clic droit ou appui long (450 ms) : poser ou retirer un drapeau.',
-      'Sur mobile, le bouton « Mode drapeau » transforme le toucher en marquage.',
+      'Clic droit, appui long (450 ms) ou bouton « Mode drapeau » : poser ou retirer un drapeau.',
+      'Clic sur un chiffre entouré de ses drapeaux : révéler les voisines restantes (chording).',
       'Clavier : flèches pour déplacer le focus, Entrée pour révéler, F pour marquer, R pour recommencer.',
     ],
     en: [
       'Left click (or tap): reveal a cell.',
-      'Right click or long press (450 ms): place or remove a flag.',
-      'On mobile, the “Flag mode” button turns taps into flagging.',
+      'Right click, long press (450 ms) or the “Flag mode” button: place or remove a flag.',
+      'Click a number surrounded by its flags: reveal the remaining neighbours (chording).',
       'Keyboard: arrow keys to move the focus, Enter to reveal, F to flag, R to restart.',
     ],
   },
   features: {
     fr: [
-      'Trois difficultés : Facile 9×9, Intermédiaire 16×16, Expert 24×16 avec défilement horizontal.',
+      'Trois difficultés : Facile 9×9, Intermédiaire 16×16, Expert 24×16 avec défilement horizontal contenu.',
       'Premier clic garanti sans mine et révélation en cascade des zones vides.',
-      'Drapeaux au clic droit, à l’appui long ou via le mode drapeau tactile.',
+      'Chording : un clic sur un chiffre complet révèle toutes ses voisines d’un coup.',
+      'Drapeaux au clic droit, à l’appui long ou via le mode drapeau tactile bien visible.',
       'Chronomètre avec pause automatique quand vous quittez l’onglet.',
       'Défi du jour identique pour tous, records de temps par difficulté et succès à débloquer.',
       'Une astuce bien-être discrète et masquable après chaque partie.',
     ],
     en: [
-      'Three difficulties: Easy 9×9, Intermediate 16×16, Expert 24×16 with horizontal scrolling.',
+      'Three difficulties: Easy 9×9, Intermediate 16×16, Expert 24×16 with contained horizontal scrolling.',
       'Guaranteed-safe first click and cascading reveal of empty areas.',
-      'Flags via right click, long press or the touch-friendly flag mode.',
+      'Chording: click a satisfied number to open all its neighbours at once.',
+      'Flags via right click, long press or the clearly visible touch flag mode.',
       'Timer with automatic pause when you leave the tab.',
       'A daily challenge identical for everyone, best times per difficulty and achievements to unlock.',
       'A discreet, dismissible well-being tip after every game.',
@@ -85,6 +89,7 @@ export const content: GameSEOContent = {
     fr: [
       'Ouvrez d’abord vers le centre : les grandes zones vides se dévoilent en cascade et offrent de l’information gratuite.',
       'Un chiffre égal au nombre de ses cases voisines non révélées : toutes ces cases sont des mines.',
+      'Posez vos drapeaux puis cliquez les chiffres complétés : le chording ouvre les voisines restantes en un instant.',
       'Comparez le compteur de mines restantes au nombre de drapeaux posés pour valider vos déductions.',
       'Ne devinez qu’en dernier recours : dans la grille Expert, la logique suffit presque toujours.',
       'Les configurations 1-2-1 et 1-2-2-1 sont des motifs classiques : les mines s’y placent toujours de la même façon.',
@@ -92,6 +97,7 @@ export const content: GameSEOContent = {
     en: [
       'Open towards the centre first: large empty areas cascade open and hand you free information.',
       'A number equal to its count of unrevealed neighbours: every one of those cells is a mine.',
+      'Place your flags, then click completed numbers: chording opens the remaining neighbours instantly.',
       'Compare the remaining-mine counter with your flag count to double-check your deductions.',
       'Guess only as a last resort: in the Expert grid, logic is almost always enough.',
       'The 1-2-1 and 1-2-2-1 patterns are classics: the mines always sit in the same spots.',
@@ -109,7 +115,7 @@ export const content: GameSEOContent = {
       },
       {
         q: 'Comment marquer une mine sur mobile ?',
-        a: 'Maintenez un appui de 450 ms sur une case, ou activez le bouton « Mode drapeau » pour transformer chaque toucher en marquage.',
+        a: 'Activez le bouton « Mode drapeau » au-dessus de la grille : chaque toucher pose alors un drapeau. L’appui long (450 ms) fonctionne aussi, ainsi que le clic droit à la souris.',
       },
       {
         q: 'À quoi correspondent les couleurs des chiffres ?',
@@ -131,7 +137,7 @@ export const content: GameSEOContent = {
       },
       {
         q: 'How do I flag a mine on mobile?',
-        a: 'Long-press a cell for 450 ms, or turn on the “Flag mode” button to make every tap place a flag.',
+        a: 'Turn on the “Flag mode” button above the grid: every tap then places a flag. A long press (450 ms) works too, as does right click with a mouse.',
       },
       {
         q: 'What do the number colours mean?',
@@ -179,6 +185,20 @@ const NUM_COLORS = [
   'text-red-700 dark:text-red-300',
   'text-red-800 dark:text-red-300',
 ]
+
+/** Tailles de chiffres en unités de conteneur (cqw) : lisibles du mobile au desktop. */
+const CELL_TEXT: Record<Diff, string> = {
+  easy: 'text-[clamp(12px,5.6cqw,24px)]',
+  medium: 'text-[clamp(9px,3.2cqw,18px)]',
+  expert: 'text-[13px]',
+  daily: 'text-[clamp(12px,5.6cqw,24px)]',
+}
+const CELL_EMOJI: Record<Diff, string> = {
+  easy: 'text-[clamp(13px,6cqw,26px)]',
+  medium: 'text-[clamp(10px,3.6cqw,20px)]',
+  expert: 'text-[14px]',
+  daily: 'text-[clamp(13px,6cqw,26px)]',
+}
 
 const HEALTH_TIPS: Array<{ fr: string; en: string }> = [
   {
@@ -231,6 +251,7 @@ const L_FR = {
   dailyDesc: 'Grille Facile (9×9 · 10 mines) identique pour tous les joueurs, renouvelée chaque jour.',
   startDaily: 'Jouer le défi du jour',
   dailyDoneToday: 'Défi du jour réussi — revenez demain pour une nouvelle grille !',
+  replayDaily: 'Rejouer',
   play: 'Jouer',
   best: 'Record',
   minesLeft: 'Mines restantes',
@@ -266,6 +287,7 @@ const L_EN = {
   dailyDesc: 'An Easy grid (9×9 · 10 mines) identical for every player, refreshed daily.',
   startDaily: "Play today's challenge",
   dailyDoneToday: 'Daily challenge complete — come back tomorrow for a new grid!',
+  replayDaily: 'Replay',
   play: 'Play',
   best: 'Best',
   minesLeft: 'Mines left',
@@ -339,12 +361,12 @@ function placeMines(cells: Cell[], w: number, h: number, mines: number, safeIdx:
   }
 }
 
-/** Révélation en cascade (pile) ; retourne true si une mine est touchée. */
-function floodReveal(cells: Cell[], w: number, h: number, start: number): boolean {
-  if (cells[start].revealed || cells[start].flagged) return false
+/** Révélation en cascade (pile) ; retourne l’index de la mine touchée, ou -1 si rien n’explose. */
+function floodReveal(cells: Cell[], w: number, h: number, start: number): number {
+  if (cells[start].revealed || cells[start].flagged) return -1
   if (cells[start].mine) {
     cells[start].revealed = true
-    return true
+    return start
   }
   const stack = [start]
   while (stack.length > 0) {
@@ -357,7 +379,13 @@ function floodReveal(cells: Cell[], w: number, h: number, start: number): boolea
       }
     }
   }
-  return false
+  return -1
+}
+
+function countRevealed(cells: Cell[]): number {
+  let n = 0
+  for (const c of cells) if (c.revealed) n++
+  return n
 }
 
 function inOverlay(e: Event): boolean {
@@ -367,6 +395,15 @@ function inOverlay(e: Event): boolean {
     typeof t.closest === 'function' &&
     !!t.closest('[role="dialog"], [data-radix-popper-content-wrapper], [role="menu"]')
   )
+}
+
+/** Haptique légère (drapeau, mine) — ignorée sur les appareils sans vibrateur. */
+function buzz() {
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    try {
+      navigator.vibrate(10)
+    } catch {}
+  }
 }
 
 interface Press {
@@ -404,6 +441,7 @@ export default function MinesweeperGame() {
   const [confettiKey, setConfettiKey] = useState(0)
   const [newRecord, setNewRecord] = useState(false)
   const [finalTime, setFinalTime] = useState<number | null>(null)
+  const [finalXp, setFinalXp] = useState<number | null>(null)
   const [tipIdx, setTipIdx] = useState(0)
   const [tipOpen, setTipOpen] = useState(false)
 
@@ -425,6 +463,7 @@ export default function MinesweeperGame() {
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const cfg = DIFFS[diff]
+  const isExpert = diff === 'expert'
 
   /* --- Chronomètre --- */
   useEffect(() => {
@@ -469,14 +508,15 @@ export default function MinesweeperGame() {
     minesPlacedRef.current = false
     startRef.current = 0
     pauseStartRef.current = 0
+    cellRefs.current = []
     setDiff(d)
     setPhase('playing')
     setBoard(cells)
     setExploded(null)
     setElapsed(0)
     setPaused(false)
-    setFlagMode(false)
     setFinalTime(null)
+    setFinalXp(null)
     setNewRecord(false)
     setTipOpen(false)
     addPlay(gameId)
@@ -492,11 +532,21 @@ export default function MinesweeperGame() {
     }
   }
 
+  function backToLevels() {
+    sfx.play('click', { volume: 0.5 })
+    setPhase('idle')
+  }
+
+  /** Révèle une case cachée — ou joue le chording si la case est déjà révélée et chiffrée. */
   function revealAt(idx: number) {
     if (phaseRef.current !== 'playing') return
     const cur = boardRef.current
     if (cur.length === 0) return
-    if (cur[idx].revealed || cur[idx].flagged) return
+    if (cur[idx].revealed) {
+      chordAt(idx)
+      return
+    }
+    if (cur[idx].flagged) return
     const c = DIFFS[diffRef.current]
     const next = cur.map((x) => ({ ...x }))
     if (!minesPlacedRef.current) {
@@ -505,17 +555,46 @@ export default function MinesweeperGame() {
       startRef.current = Date.now()
     }
     const hit = floodReveal(next, c.w, c.h, idx)
-    sfx.play('pop')
+    const opened = countRevealed(next) - countRevealed(cur)
     setBoard(next)
-    if (hit) {
-      finishLose(idx, next)
+    if (hit >= 0) {
+      finishLose(hit, next)
       return
     }
-    let revealed = 0
-    for (const cell of next) {
-      if (cell.revealed) revealed++
+    if (opened > 0) sfx.play(opened >= 4 ? 'sweep' : 'pop')
+    if (countRevealed(next) === next.length - c.mines) finishWin(next)
+  }
+
+  /** Chording : clic sur un chiffre dont les drapeaux voisins sont exactement posés. */
+  function chordAt(idx: number) {
+    if (phaseRef.current !== 'playing') return
+    const cur = boardRef.current
+    if (cur.length === 0) return
+    const cell = cur[idx]
+    if (!cell.revealed || cell.mine || cell.adj === 0) return
+    const c = DIFFS[diffRef.current]
+    const nbrs = neighborsOf(idx, c.w, c.h)
+    let flagged = 0
+    for (const n of nbrs) {
+      if (cur[n].flagged) flagged++
     }
-    if (revealed === next.length - c.mines) finishWin(next)
+    if (flagged !== cell.adj) return
+    const next = cur.map((x) => ({ ...x }))
+    let hit = -1
+    for (const n of nbrs) {
+      if (!next[n].revealed && !next[n].flagged) {
+        const r = floodReveal(next, c.w, c.h, n)
+        if (r >= 0) hit = r
+      }
+    }
+    const opened = countRevealed(next) - countRevealed(cur)
+    setBoard(next)
+    if (hit >= 0) {
+      finishLose(hit, next)
+      return
+    }
+    if (opened > 0) sfx.play(opened >= 4 ? 'sweep' : 'pop')
+    if (countRevealed(next) === next.length - c.mines) finishWin(next)
   }
 
   function toggleFlagAt(idx: number) {
@@ -525,7 +604,8 @@ export default function MinesweeperGame() {
     const next = cur.map((x) => ({ ...x }))
     next[idx].flagged = !next[idx].flagged
     setBoard(next)
-    sfx.play('drop')
+    sfx.play(next[idx].flagged ? 'drop' : 'flip')
+    buzz()
   }
 
   function finishWin(cells: Cell[]) {
@@ -548,6 +628,7 @@ export default function MinesweeperGame() {
     if (d === 'daily' && dailyDone) return
     addWin(gameId)
     addXp(c.xp)
+    setFinalXp(c.xp)
     setNewRecord(setBest(gameId, c.metric, seconds, true))
     if (d === 'medium') unlockBadge('mine-medium')
     if (d === 'expert') unlockBadge('mine-expert')
@@ -563,6 +644,7 @@ export default function MinesweeperGame() {
     setExploded(explodedIdx)
     setPhase('lost')
     sfx.play('lose')
+    buzz()
     setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
     setTipOpen(true)
   }
@@ -571,11 +653,13 @@ export default function MinesweeperGame() {
 
   function onCellPointerDown(e: React.PointerEvent<HTMLButtonElement>, idx: number) {
     if (e.button !== 0 || phaseRef.current !== 'playing') return
-    pressRef.current = { idx, x: e.clientX, y: e.clientY, timer: 0, longFired: false, cancelled: false }
-    pressRef.current.timer = window.setTimeout(() => {
-      const p = pressRef.current
-      if (!p || p.cancelled) return
-      p.longFired = true
+    const press: Press = { idx, x: e.clientX, y: e.clientY, timer: 0, longFired: false, cancelled: false }
+    pressRef.current = press
+    // À la souris : pas d'appui long (le clic droit marque), uniquement toucher/stylet.
+    if (e.pointerType === 'mouse') return
+    press.timer = window.setTimeout(() => {
+      if (pressRef.current !== press || press.cancelled) return
+      press.longFired = true
       lastLongPressRef.current = { idx, t: Date.now() }
       toggleFlagAt(idx)
     }, 450)
@@ -602,7 +686,8 @@ export default function MinesweeperGame() {
     const wasCancelled = p.cancelled
     pressRef.current = null
     if (wasCancelled || wasLong) return
-    if (flagMode) toggleFlagAt(idx)
+    const cur = boardRef.current
+    if (flagMode && cur.length > 0 && !cur[idx].revealed) toggleFlagAt(idx)
     else revealAt(idx)
   }
 
@@ -669,7 +754,75 @@ export default function MinesweeperGame() {
   /* ================= Rendu ================= */
   const flags = board.reduce((n, c) => n + (c.flagged ? 1 : 0), 0)
   const minesLeft = cfg.mines - flags
-  const isExpert = diff === 'expert'
+  const popIn = reduce ? '' : 'anim-pop-in'
+
+  const cells = board.map((cell, idx) => {
+    const wrongFlag = phase === 'lost' && cell.flagged && !cell.mine
+    const isExploded = exploded === idx
+    const revealedMine = phase === 'lost' && cell.mine
+    return (
+      <button
+        key={idx}
+        ref={(el) => {
+          cellRefs.current[idx] = el
+        }}
+        type="button"
+        role="gridcell"
+        data-idx={idx}
+        tabIndex={idx === 0 ? 0 : -1}
+        aria-label={cellAria(cell)}
+        onPointerDown={(e) => onCellPointerDown(e, idx)}
+        onPointerMove={onCellPointerMove}
+        onPointerUp={() => onCellPointerUp(idx)}
+        onPointerCancel={cancelPress}
+        onPointerLeave={cancelPress}
+        onAuxClick={(e) => {
+          // Clic molette = chording (desktop)
+          if (e.button === 1) {
+            e.preventDefault()
+            chordAt(idx)
+          }
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          // Android émet aussi un contextmenu après l'appui long : ne pas double-marquer.
+          const lp = lastLongPressRef.current
+          if (lp && lp.idx === idx && Date.now() - lp.t < 700) return
+          toggleFlagAt(idx)
+        }}
+        className={cn(
+          'no-select flex select-none items-center justify-center border font-display font-extrabold leading-none transition-transform duration-75 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-ring active:scale-95',
+          isExpert ? 'h-[30px] w-[30px] rounded-[4px]' : 'aspect-square w-full rounded-[5px]',
+          cell.revealed
+            ? isExploded
+              ? 'anim-shake border-red-600 bg-red-500'
+              : revealedMine
+                ? 'border-red-300 bg-red-100 dark:border-red-500/40 dark:bg-red-500/20'
+                : 'border-border/60 bg-secondary/40'
+            : 'border-primary/30 bg-gradient-to-br from-primary to-orange-400/90 shadow-[inset_0_-2px_0_rgba(0,0,0,0.15)] hover:brightness-105',
+        )}
+      >
+        {cell.revealed ? (
+          cell.mine ? (
+            <span className={cn(CELL_EMOJI[diff], popIn)} aria-hidden="true">
+              💣
+            </span>
+          ) : cell.adj > 0 ? (
+            <span className={cn(CELL_TEXT[diff], NUM_COLORS[cell.adj], popIn)} aria-hidden="true">
+              {cell.adj}
+            </span>
+          ) : null
+        ) : cell.flagged ? (
+          <span className={cn('relative', CELL_EMOJI[diff], popIn)} aria-hidden="true">
+            🚩
+            {wrongFlag ? (
+              <span className="absolute inset-0 flex items-center justify-center text-[15px] font-black text-red-600">✕</span>
+            ) : null}
+          </span>
+        ) : null}
+      </button>
+    )
+  })
 
   return (
     <div className="relative select-none">
@@ -677,8 +830,8 @@ export default function MinesweeperGame() {
 
       {phase === 'idle' ? (
         <>
-          {/* Choix de difficulté */}
-          <div className="grid gap-3 sm:grid-cols-3">
+          {/* Choix de difficulté — compact : tout tient à l'écran sans scroll */}
+          <div className="grid grid-cols-3 gap-2">
             {(['easy', 'medium', 'expert'] as const).map((d) => {
               const c = DIFFS[d]
               const rec = records[c.metric]
@@ -687,20 +840,17 @@ export default function MinesweeperGame() {
                   key={d}
                   type="button"
                   onClick={() => startGame(d)}
-                  className="group flex min-h-[104px] flex-col items-start gap-1 rounded-2xl border border-border bg-card/70 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+                  className="group flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card/70 px-2 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring sm:min-h-[96px] sm:gap-1.5 sm:px-4"
                 >
-                  <span className="flex w-full items-center justify-between">
-                    <span className="font-display text-lg font-extrabold">{L[d]}</span>
-                    <Play
-                      className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary"
-                      aria-hidden="true"
-                    />
+                  <span className="flex items-center gap-1.5 font-display text-sm font-extrabold sm:text-lg">
+                    {L[d]}
+                    <Play className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-primary sm:h-4 sm:w-4" aria-hidden="true" />
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground sm:text-xs">
                     {c.w}×{c.h} · 💣 {c.mines}
                   </span>
-                  <span className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    {rec ? `🏆 ${L.best} : ${rec.value}s` : ''}
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 sm:text-xs">
+                    {rec ? `🏆 ${rec.value}s` : '—'}
                   </span>
                 </button>
               )
@@ -712,193 +862,150 @@ export default function MinesweeperGame() {
             <button
               type="button"
               onClick={() => startGame('daily')}
-              className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-left transition-transform hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-ring dark:border-amber-500/25 dark:bg-amber-500/10"
+              className="mt-2 flex w-full items-center gap-2.5 rounded-2xl border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-left transition-transform hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.99] dark:border-amber-500/25 dark:bg-amber-500/10"
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span className="text-xl sm:text-2xl" aria-hidden="true">
                 🎁
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">
+                <span className="block text-xs font-bold text-amber-700 sm:text-sm dark:text-amber-300">
                   💣 {L.dailyName} — {todayKey()}
                 </span>
-                <span className="block text-xs text-muted-foreground">{L.dailyDesc}</span>
+                <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">{L.dailyDesc}</span>
               </span>
-              <span className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white">
+              <span className="shrink-0 rounded-full bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white sm:px-4 sm:py-2 sm:text-xs">
                 {L.startDaily}
               </span>
             </button>
           ) : (
-            <p className="mt-3 flex items-center gap-2 rounded-2xl border border-emerald-300/50 bg-emerald-50/60 px-4 py-3 text-sm font-semibold text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <CalendarCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {L.dailyDoneToday}
-            </p>
+            <div className="mt-2 flex items-center gap-2.5 rounded-2xl border border-emerald-300/50 bg-emerald-50/60 px-3 py-2.5 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+              <CalendarCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <p className="min-w-0 flex-1 text-xs font-semibold leading-snug text-emerald-700 dark:text-emerald-300">{L.dailyDoneToday}</p>
+              <button
+                type="button"
+                onClick={() => startGame('daily')}
+                className="shrink-0 rounded-full border border-emerald-400/60 px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-ring dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/15"
+              >
+                <RotateCcw className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden="true" />
+                {L.replayDaily}
+              </button>
+            </div>
           )}
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">{L.firstClickHint}</p>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground sm:mt-3 sm:text-xs">{L.firstClickHint}</p>
         </>
       ) : (
         <>
-          {/* Barre d'état */}
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* HUD compact — une seule ligne : mines, chrono, mode drapeau, recommencer, niveaux */}
+          <div className="mb-2 flex items-center gap-1.5">
             <span
-              className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold"
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-secondary/70 px-2.5 text-sm font-bold tabular-nums"
               title={L.minesLeft}
             >
               <Bomb className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <span className="tabular-nums" aria-live="polite">
+              <span aria-live="polite" className={cn(minesLeft < 0 && 'text-rose-600 dark:text-rose-400')}>
                 {minesLeft}
               </span>
             </span>
             <span
-              className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold"
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-secondary/70 px-2.5 text-sm font-bold tabular-nums"
               title={L.timeLabel}
             >
               <Timer className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <span className="tabular-nums">{formatMs(elapsed)}</span>
+              <span>{paused ? `⏸ ${L.paused}` : formatMs(elapsed)}</span>
             </span>
-            {paused ? (
-              <span className="flex h-11 items-center rounded-full bg-orange-100 px-3.5 text-sm font-bold text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
-                ⏸ {L.paused}
-              </span>
-            ) : null}
             {diff === 'daily' ? (
-              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+              <span
+                className="hidden h-10 shrink-0 items-center gap-1.5 rounded-xl bg-amber-100 px-2.5 text-xs font-bold text-amber-700 sm:flex dark:bg-amber-500/20 dark:text-amber-300"
+                title={L.dailyName}
+              >
+                <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 {L.dailyName}
               </span>
             ) : null}
 
-            <div className="ms-auto flex flex-wrap items-center gap-2">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-11 rounded-full"
-                aria-pressed={flagMode}
-                onClick={() => {
-                  sfx.play('click', { volume: 0.5 })
-                  setFlagMode((v) => !v)
-                }}
-              >
-                <Bomb
-                  className={cn('h-4 w-4', flagMode && 'text-amber-500')}
-                  aria-hidden="true"
-                />
-                <span className={cn(flagMode && 'font-bold text-amber-600 dark:text-amber-400')}>
-                  {L.flagMode}
-                </span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-11 rounded-full"
-                aria-label={L.restart}
-                title={L.restart}
-                onClick={() => startGame(diff)}
-              >
-                <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{L.restart}</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-11 rounded-full"
-                aria-label={L.levels}
-                title={L.levels}
-                onClick={() => {
-                  sfx.play('click', { volume: 0.5 })
-                  setPhase('idle')
-                }}
-              >
-                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{L.levels}</span>
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              className={cn(
+                'h-10 min-w-0 flex-1 rounded-xl px-2 text-xs font-bold sm:text-sm',
+                flagMode &&
+                  'border border-amber-400/70 bg-amber-100 text-amber-700 hover:bg-amber-100/80 dark:bg-amber-500/20 dark:text-amber-300',
+              )}
+              aria-pressed={flagMode}
+              onClick={() => {
+                sfx.play('click', { volume: 0.5 })
+                setFlagMode((v) => !v)
+              }}
+            >
+              <Flag className={cn('h-4 w-4 shrink-0', flagMode ? 'text-amber-500' : 'text-muted-foreground')} aria-hidden="true" />
+              <span className="truncate">{L.flagMode}</span>
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-10 w-10 shrink-0 rounded-xl p-0"
+              aria-label={L.restart}
+              title={L.restart}
+              onClick={() => startGame(diff)}
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-10 w-10 shrink-0 rounded-xl p-0 sm:w-auto sm:gap-1.5 sm:px-3"
+              aria-label={L.levels}
+              title={L.levels}
+              onClick={backToLevels}
+            >
+              <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{L.levels}</span>
+            </Button>
           </div>
 
-          {/* Plateau */}
-          <div className={cn(isExpert && 'nice-scroll overflow-x-auto pb-2')}>
+          {/* Plateau — tient dans calc(100dvh - 250px), aucune coupure ni scroll page */}
+          {isExpert ? (
+            <div className="nice-scroll overscroll-x-contain overflow-x-auto pb-1">
+              <div
+                role="grid"
+                aria-label={L.boardLabel}
+                onKeyDown={onBoardKeyDown}
+                onContextMenu={(e) => e.preventDefault()}
+                className={cn(
+                  'grid w-fit touch-manipulation select-none gap-[2px]',
+                  phase === 'won' && 'anim-glow rounded-xl',
+                )}
+                style={{ gridTemplateColumns: `repeat(${cfg.w}, 30px)` }}
+              >
+                {cells}
+              </div>
+            </div>
+          ) : (
             <div
               role="grid"
               aria-label={L.boardLabel}
               onKeyDown={onBoardKeyDown}
-              className={cn('grid', isExpert ? 'w-fit gap-[2px]' : 'mx-auto w-[min(94vw,440px)] gap-[3px]')}
-              style={{ gridTemplateColumns: `repeat(${cfg.w}, ${isExpert ? '28px' : 'minmax(0,1fr)'})` }}
+              onContextMenu={(e) => e.preventDefault()}
+              className={cn(
+                '@container grid -mx-2 w-[calc(100%+1rem)] max-w-[calc(100dvh-250px)] touch-manipulation select-none gap-[2px] sm:mx-auto sm:w-full',
+                phase === 'won' && 'anim-glow rounded-xl',
+              )}
+              style={{ gridTemplateColumns: `repeat(${cfg.w}, minmax(0,1fr))` }}
             >
-              {board.map((cell, idx) => {
-                const wrongFlag = phase === 'lost' && cell.flagged && !cell.mine
-                const isExploded = exploded === idx
-                const revealedMine = phase === 'lost' && cell.mine
-                return (
-                  <button
-                    key={idx}
-                    ref={(el) => {
-                      cellRefs.current[idx] = el
-                    }}
-                    type="button"
-                    role="gridcell"
-                    data-idx={idx}
-                    tabIndex={idx === 0 ? 0 : -1}
-                    aria-label={cellAria(cell)}
-                    onPointerDown={(e) => onCellPointerDown(e, idx)}
-                    onPointerMove={onCellPointerMove}
-                    onPointerUp={() => onCellPointerUp(idx)}
-                    onPointerCancel={cancelPress}
-                    onPointerLeave={cancelPress}
-                    onContextMenu={(e) => {
-                      e.preventDefault()
-                      // Android émet aussi un contextmenu après l’appui long : ne pas double-marquer.
-                      const lp = lastLongPressRef.current
-                      if (lp && lp.idx === idx && Date.now() - lp.t < 700) return
-                      toggleFlagAt(idx)
-                    }}
-                    className={cn(
-                      'no-select flex select-none items-center justify-center rounded-[5px] border font-display font-bold leading-none transition-transform duration-75 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-ring',
-                      isExpert ? 'h-7 w-7 text-[13px]' : 'aspect-square w-full text-sm sm:text-base',
-                      cell.revealed
-                        ? isExploded
-                          ? 'border-red-600 bg-red-500'
-                          : revealedMine
-                            ? 'border-red-300 bg-red-100 dark:border-red-500/40 dark:bg-red-500/20'
-                            : 'border-border/60 bg-secondary/40'
-                        : 'border-primary/30 bg-gradient-to-br from-primary to-orange-400/90 shadow-[inset_0_-2px_0_rgba(0,0,0,0.15)] hover:brightness-105 active:scale-90',
-                    )}
-                  >
-                    {cell.revealed ? (
-                      cell.mine ? (
-                        <span className={isExpert ? 'text-[13px]' : 'text-base'} aria-hidden="true">
-                          💣
-                        </span>
-                      ) : cell.adj > 0 ? (
-                        <span className={NUM_COLORS[cell.adj]} aria-hidden="true">
-                          {cell.adj}
-                        </span>
-                      ) : null
-                    ) : cell.flagged ? (
-                      <span className={cn('relative', isExpert ? 'text-[13px]' : 'text-base')} aria-hidden="true">
-                        🚩
-                        {wrongFlag ? (
-                          <span className="absolute inset-0 flex items-center justify-center text-[15px] font-black text-red-600">
-                            ✕
-                          </span>
-                        ) : null}
-                      </span>
-                    ) : null}
-                  </button>
-                )
-              })}
+              {cells}
             </div>
-          </div>
+          )}
 
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            {isExpert ? L.expertHint : L.keyboardHint}
-          </p>
+          {isExpert ? (
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">{L.expertHint}</p>
+          ) : (
+            <p className="mt-2 hidden text-center text-xs text-muted-foreground sm:block">{L.keyboardHint}</p>
+          )}
 
           {/* Bannière de fin */}
           {phase === 'won' || phase === 'lost' ? (
             <div
               role="status"
               className={cn(
-                'anim-rise mt-4 rounded-2xl border-2 p-5 text-center',
+                'anim-rise mt-3 rounded-2xl border-2 p-4 text-center',
                 phase === 'won'
                   ? 'border-emerald-300/60 bg-emerald-50/60 dark:border-emerald-500/30 dark:bg-emerald-500/10'
                   : 'border-rose-300/60 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-500/10',
@@ -906,7 +1013,7 @@ export default function MinesweeperGame() {
             >
               <p
                 className={cn(
-                  'font-display text-2xl font-extrabold',
+                  'font-display text-xl font-extrabold sm:text-2xl',
                   phase === 'won' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300',
                 )}
               >
@@ -917,25 +1024,26 @@ export default function MinesweeperGame() {
                   ? `${L.winSub} ${finalTime !== null ? `— ${L.timeLabel} : ${finalTime}s` : ''}`
                   : L.loseSub}
               </p>
-              {phase === 'won' && newRecord ? (
-                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                  <Trophy className="h-3.5 w-3.5" aria-hidden="true" /> {L.newRecord}
+              {phase === 'won' && (newRecord || finalXp !== null) ? (
+                <p className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+                  {finalXp !== null ? (
+                    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
+                      +{finalXp} XP
+                    </span>
+                  ) : null}
+                  {newRecord ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                      <Trophy className="h-3.5 w-3.5" aria-hidden="true" /> {L.newRecord}
+                    </span>
+                  ) : null}
                 </p>
               ) : null}
-              <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-                <Button size="lg" className="rounded-full" onClick={() => startGame(diff)}>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <Button className="h-10 rounded-full" onClick={() => startGame(diff)}>
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   {L.playAgain}
                 </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="rounded-full"
-                  onClick={() => {
-                    sfx.play('click', { volume: 0.5 })
-                    setPhase('idle')
-                  }}
-                >
+                <Button variant="secondary" className="h-10 rounded-full" onClick={backToLevels}>
                   <LayoutGrid className="h-4 w-4" aria-hidden="true" />
                   {L.levels}
                 </Button>
@@ -945,13 +1053,13 @@ export default function MinesweeperGame() {
 
           {/* Astuce bien-être (masquable, jamais pendant la partie) */}
           {tipOpen && (phase === 'won' || phase === 'lost') ? (
-            <div className="mt-3 flex items-start gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-500/10">
-              <Lightbulb className="mt-1 h-5 w-5 shrink-0 text-amber-500" aria-hidden="true" />
+            <div className="mt-2.5 flex items-start gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-3.5 py-2.5 dark:border-amber-500/25 dark:bg-amber-500/10">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 sm:h-5 sm:w-5" aria-hidden="true" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                   {L.tipTitle}
                 </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                <p className="mt-0.5 text-xs leading-relaxed text-amber-900 sm:text-sm dark:text-amber-200">
                   {HEALTH_TIPS[tipIdx][lang]}
                 </p>
               </div>
@@ -962,7 +1070,7 @@ export default function MinesweeperGame() {
                   sfx.play('click', { volume: 0.4 })
                   setTipOpen(false)
                 }}
-                className="-m-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-amber-700 transition-colors hover:bg-amber-200/60 dark:text-amber-300 dark:hover:bg-amber-500/20"
+                className="-m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-amber-700 transition-colors hover:bg-amber-200/60 focus-visible:outline-2 focus-visible:outline-ring dark:text-amber-300 dark:hover:bg-amber-500/20"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

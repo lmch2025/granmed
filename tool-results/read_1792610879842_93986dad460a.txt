@@ -1,0 +1,824 @@
+     1→'use client'
+     2→
+     3→import { useCallback, useEffect, useRef, useState } from 'react'
+     4→import { Play, RotateCcw, Swords, Heart } from 'lucide-react'
+     5→import { cn } from '@/lib/utils'
+     6→import { sfx } from '@/lib/sound'
+     7→import { useLang } from '@/lib/i18n'
+     8→import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
+     9→import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString } from '@/lib/utils-game'
+    10→import type { GameSEOContent } from '@/lib/games/types'
+    11→import { Button } from '@/components/ui/button'
+    12→import { StatChip } from '@/components/shared/ui-bits'
+    13→import { Confetti } from '@/components/shared/confetti'
+    14→
+    15→export const gameId = 'fruit-slice'
+    16→
+    17→/* ================= Contenu SEO bilingue ================= */
+    18→export const content: GameSEOContent = {
+    19→  tagline: {
+    20→    fr: 'Tranchez les fruits du verger d’un geste fluide, enchaînez les combos et évitez les savons piégés.',
+    21→    en: 'Slice the orchard fruits with a fluid swipe, chain combos and avoid the trap soaps.',
+    22→  },
+    23→  description: {
+    24→    fr: [
+    25→      'Le Verger de Gran (Fruit Slice) est un jeu d’action et de réflexes gratuit dans lequel vous découpez au doigt les fruits projetés depuis le bas de l’écran. Balayez l’écran comme un couteau : chaque fruit traversé par votre geste se coupe en deux moitiés qui volent.',
+    26→      'Les fruits montent en arcs paraboliques, par vagues de 1 à 4, de plus en plus rapides. La pastèque géante rapporte 30 points, et trancher 3 fruits ou plus dans un même geste déclenche un combo bonus (×10 points par fruit). Attention aux savons 🧼 interdits : en couper un coûte une vie, et vous n’en avez que trois.',
+    27→      'Laisser tomber un fruit n’enlève rien : il casse simplement votre combo. Le jeu s’accélère progressivement, votre meilleur score est sauvegardé sur votre appareil, et un défi du jour déterministe vous donne un objectif de points différent chaque matin.',
+    28→    ],
+    29→    en: [
+    30→      'Gran’s Orchard (Fruit Slice) is a free action and reflex game in which you slice with your finger the fruits tossed up from the bottom of the screen. Swipe across the game like a knife: every fruit crossed by your gesture splits into two flying halves.',
+    31→      'Fruits rise in parabolic arcs, in waves of 1 to 4, faster and faster. The giant watermelon is worth 30 points, and slicing 3 or more fruits within one continuous swipe triggers a combo bonus (×10 points per fruit). Watch out for the forbidden soaps 🧼: slicing one costs a life, and you only have three.',
+    32→      'Letting a fruit fall costs nothing: it merely breaks your combo. The game speeds up progressively, your best score is saved on your device, and a deterministic daily challenge gives you a fresh points goal every morning.',
+    33→    ],
+    34→  },
+    35→  rules: {
+    36→    fr: [
+    37→      'Balayez l’écran avec le doigt (ou la souris) pour trancher : le geste doit être rapide pour couper.',
+    38→      'Chaque fruit tranché rapporte 10 points ; la pastèque géante 🍉 en rapporte 30.',
+    39→      'Tranchez 3 fruits ou plus en un seul geste (moins de 350 ms entre chaque coupe) : bonus de combo ×10 points par fruit.',
+    40→      'Ne tranchez jamais les savons 🧼 : chaque savon coupé coûte une vie (3 vies au total).',
+    41→      'Un fruit qui retombe entière n’enlève rien : il casse seulement votre combo.',
+    42→      'La partie s’arrête à 0 vie : le score final devient votre record.',
+    43→    ],
+    44→    en: [
+    45→      'Swipe across the screen with your finger (or the mouse) to slice: the gesture must be fast to cut.',
+    46→      'Each sliced fruit is worth 10 points; the giant watermelon 🍉 is worth 30.',
+    47→      'Slice 3 or more fruits in a single gesture (under 350 ms between cuts): combo bonus of ×10 points per fruit.',
+    48→      'Never slice the soaps 🧼: each soap cut costs a life (3 lives in total).',
+    49→      'A fruit falling off the screen costs nothing: it only breaks your combo.',
+    50→      'The game ends at 0 lives: the final score becomes your record.',
+    51→    ],
+    52→  },
+    53→  controls: {
+    54→    fr: [
+    55→      'Mobile et tablette : balayez l’écran avec un doigt, comme un couteau.',
+    56→      'Ordinateur : cliquez et tirez un trait rapide avec la souris.',
+    57→      'Un geste lent ne coupe pas : la vitesse fait la lame.',
+    58→    ],
+    59→    en: [
+    60→      'Mobile & tablet: swipe across the screen with one finger, like a knife.',
+    61→      'Desktop: click and drag a fast line with the mouse.',
+    62→      'A slow gesture does not cut: speed makes the blade.',
+    63→    ],
+    64→  },
+    65→  features: {
+    66→    fr: [
+    67→      'Découpe au doigt avec trainée lumineuse et jus de fruits',
+    68→      '9 fruits dont la pastèque géante à 30 points',
+    69→      'Combos : bonus ×10 points par fruit au-delà de 3 en un geste',
+    70→      'Savons piégés à éviter : 3 vies, flash rouge à l’erreur',
+    71→      'Vagues de plus en plus rapides et fréquentes',
+    72→      'Record de score sauvegardé + défi du jour déterministe',
+    73→    ],
+    74→    en: [
+    75→      'Finger slicing with a glowing trail and fruit juice',
+    76→      '9 fruits including the 30-point giant watermelon',
+    77→      'Combos: ×10 bonus points per fruit past 3 in one swipe',
+    78→      'Trap soaps to avoid: 3 lives, red flash on mistake',
+    79→      'Waves that get faster and more frequent',
+    80→      'Saved score record + deterministic daily challenge',
+    81→    ],
+    82→  },
+    83→  tips: {
+    84→    fr: [
+    85→      'Balayez en travers d’une vague entière plutôt que fruit par fruit : les combos font décoller le score.',
+    86→      'Repérez les savons avant de balayer : leur violet-rose se distingue des fruits au sommet de l’arc, quand tout ralentit.',
+    87→      'Les fruits sont plus lents au sommet de leur arc : c’est le meilleur moment pour trancher plusieurs fruits d’un geste.',
+    88→      'Gardez un œil sur vos vies, pas sur le score : la prudence avec les savons prolonge toujours les parties.',
+    89→    ],
+    90→    en: [
+    91→      'Sweep across a whole wave rather than fruit by fruit: combos make the score take off.',
+    92→      'Spot the soaps before swiping: their pink stands out from the fruits at the top of the arc, when everything slows down.',
+    93→      'Fruits are slowest at the top of their arc: it is the best moment to slice several with one gesture.',
+    94→      'Watch your lives, not the score: caution with soaps always makes games last longer.',
+    95→    ],
+    96→  },
+    97→  faq: {
+    98→    fr: [
+    99→      { q: 'Que se passe-t-il quand un fruit tombe sans être tranché ?', a: 'Rien de grave : vous ne perdez ni points ni vie. Seul votre combo en cours est remis à zéro, ce qui vous encourage à trancher la vague suivante en un seul geste.' },
+   100→      { q: 'Comment fonctionne le combo ?', a: 'Chaque coupe effectuée moins de 350 ms après la précédente augmente le compteur. À partir de 3 fruits, chaque coupe supplémentaire rapporte un bonus de 10 points × le nombre de fruits du combo, affiché en « COMBO ×N ».' },
+   101→      { q: 'Les savons apparaissent-ils dès le début ?', a: 'Non : ils apparaissent après environ 8 secondes, dans environ une projection sur huit. Leur proportion n’augmente pas avec le temps — seule la vitesse du jeu augmente.' },
+   102→      { q: 'Le jeu devient-il trop rapide ?', a: 'La vitesse et la fréquence des vagues augmentent progressivement et plafonnent après quelques minutes : le jeu reste jouable longtemps, sans mur de difficulté.' },
+   103→      { q: 'Puis-je jouer sans regarder les savons ?', a: 'Mieux vaut ne pas : chaque savon tranché coûte une vie. Mais un savon qui retombe intact ne pénalise en rien — l’ignorer complètement est une stratégie valide.' },
+   104→    ],
+   105→    en: [
+   106→      { q: 'What happens when a fruit falls unsliced?', a: 'Nothing bad: you lose neither points nor a life. Only your current combo resets, which encourages you to slice the next wave in one gesture.' },
+   107→      { q: 'How does the combo work?', a: 'Every cut made less than 350 ms after the previous one increases the counter. From 3 fruits up, each extra cut earns a bonus of 10 points × the number of fruits in the combo, shown as “COMBO ×N”.' },
+   108→      { q: 'Do soaps appear from the start?', a: 'No: they show up after about 8 seconds, in roughly one toss out of eight. Their share does not grow over time — only the game speed does.' },
+   109→      { q: 'Does the game get too fast?', a: 'Wave speed and frequency rise gradually and cap after a few minutes: the game stays playable for a long time, with no difficulty wall.' },
+   110→      { q: 'Can I play while ignoring the soaps?', a: 'Best not to: every sliced soap costs a life. But a soap falling back untouched penalizes nothing at all — fully ignoring them is a valid strategy.' },
+   111→    ],
+   112→  },
+   113→  records: {
+   114→    'best-score': { fr: 'Meilleur score', en: 'Best score' },
+   115→  },
+   116→}
+   117→
+   118→/* ================= Textes UI ================= */
+   119→const L = {
+   120→  fr: {
+   121→    play: 'Trancher !', replay: 'Rejouer', score: 'Score', best: 'Record', lives: 'Vies',
+   122→    combo: 'Combo', over: 'Verger terminé !', fruitsSliced: 'Fruits tranchés', bestCombo: 'Meilleur combo',
+   123→    daily: 'Défi du jour : atteindre {n} points', dailyDone: 'Défi du jour réussi !',
+   124→    newBest: 'Nouveau record !', hint: 'Balayez rapidement pour trancher — évitez les savons 🧼 !',
+   125→    tip: 'Astuce : tranchez au sommet de l’arc, là où les fruits ralentissent.',
+   126→    lostLife: '−1 vie', title: 'Le Verger de Gran',
+   127→  },
+   128→  en: {
+   129→    play: 'Slice!', replay: 'Play again', score: 'Score', best: 'Best', lives: 'Lives',
+   130→    combo: 'Combo', over: 'Orchard over!', fruitsSliced: 'Fruits sliced', bestCombo: 'Best combo',
+   131→    daily: 'Daily challenge: reach {n} points', dailyDone: 'Daily challenge complete!',
+   132→    newBest: 'New record!', hint: 'Swipe fast to slice — avoid the soaps 🧼!',
+   133→    tip: 'Tip: slice at the top of the arc, where fruits slow down.',
+   134→    lostLife: '−1 life', title: 'Gran’s Orchard',
+   135→  },
+   136→} as const
+   137→
+   138→/* ================= Données fruits ================= */
+   139→interface FruitDef { emoji: string; r: number; points: number; juice: string }
+   140→const FRUITS: FruitDef[] = [
+   141→  { emoji: '🍎', r: 26, points: 10, juice: '#e05b4b' },
+   142→  { emoji: '🍊', r: 27, points: 10, juice: '#f59a3c' },
+   143→  { emoji: '🍋', r: 25, points: 10, juice: '#ead94e' },
+   144→  { emoji: '🍐', r: 26, points: 10, juice: '#a8c66c' },
+   145→  { emoji: '🍑', r: 26, points: 10, juice: '#f4a07a' },
+   146→  { emoji: '🥝', r: 24, points: 10, juice: '#8fbf7f' },
+   147→  { emoji: '🍇', r: 27, points: 10, juice: '#a4536a' },
+   148→  { emoji: '🍌', r: 28, points: 10, juice: '#ead48a' },
+   149→  { emoji: '🍉', r: 42, points: 30, juice: '#e05b4b' },
+   150→]
+   151→const SOAP = { emoji: '🧼', r: 26 }
+   152→
+   153→/* ================= Monde ================= */
+   154→interface Fruit {
+   155→  id: number; emoji: string; x: number; y: number; vx: number; vy: number
+   156→  r: number; rot: number; vr: number; points: number; soap: boolean; juice: string
+   157→}
+   158→interface Half {
+   159→  emoji: string; x: number; y: number; vx: number; vy: number
+   160→  r: number; rot: number; vr: number; side: number; life: number
+   161→}
+   162→interface Juice { x: number; y: number; vx: number; vy: number; r: number; life: number; max: number; color: string }
+   163→interface Pop { x: number; y: number; text: string; life: number; max: number; color: string; size: number }
+   164→interface TrailPt { x: number; y: number; t: number }
+   165→
+   166→interface World {
+   167→  W: number; H: number; t: number
+   168→  startT: number
+   169→  fruits: Fruit[]
+   170→  halves: Half[]
+   171→  juices: Juice[]
+   172→  pops: Pop[]
+   173→  trail: TrailPt[]
+   174→  swipe: { active: boolean; x: number; y: number; t: number }
+   175→  lives: number
+   176→  score: number
+   177→  chain: number
+   178→  lastSlice: number
+   179→  bestChain: number
+   180→  fruitsSliced: number
+   181→  spawnT: number
+   182→  flash: number
+   183→  dead: boolean
+   184→  nextId: number
+   185→}
+   186→
+   187→function makeWorld(): World {
+   188→  return {
+   189→    W: 320, H: 240, t: 0,
+   190→    startT: 0,
+   191→    fruits: [], halves: [], juices: [], pops: [], trail: [],
+   192→    swipe: { active: false, x: 0, y: 0, t: 0 },
+   193→    lives: 3, score: 0, chain: 0, lastSlice: 0, bestChain: 0,
+   194→    fruitsSliced: 0, spawnT: 0.6, flash: 0, dead: false, nextId: 1,
+   195→  }
+   196→}
+   197→
+   198→/* ================= Helpers ================= */
+   199→function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+   200→  const rad = Math.min(r, w / 2, h / 2)
+   201→  ctx.beginPath()
+   202→  ctx.moveTo(x + rad, y)
+   203→  ctx.arcTo(x + w, y, x + w, y + h, rad)
+   204→  ctx.arcTo(x + w, y + h, x, y + h, rad)
+   205→  ctx.arcTo(x, y + h, x, y, rad)
+   206→  ctx.arcTo(x, y, x + w, y, rad)
+   207→  ctx.closePath()
+   208→}
+   209→
+   210→function emojiFont(size: number) {
+   211→  return `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif`
+   212→}
+   213→
+   214→function segCircle(
+   215→  x0: number, y0: number, x1: number, y1: number,
+   216→  cx: number, cy: number, r: number,
+   217→): boolean {
+   218→  const dx = x1 - x0
+   219→  const dy = y1 - y0
+   220→  const l2 = dx * dx + dy * dy
+   221→  let t = 0
+   222→  if (l2 > 0) t = clamp(((cx - x0) * dx + (cy - y0) * dy) / l2, 0, 1)
+   223→  const px = x0 + t * dx
+   224→  const py = y0 + t * dy
+   225→  return (px - cx) * (px - cx) + (py - cy) * (py - cy) <= r * r
+   226→}
+   227→
+   228→function drawBackdrop(ctx: CanvasRenderingContext2D, W: number, H: number) {
+   229→  // Ciel chaud
+   230→  const sky = ctx.createLinearGradient(0, 0, 0, H)
+   231→  sky.addColorStop(0, '#ffedd0')
+   232→  sky.addColorStop(0.55, '#f9d9a6')
+   233→  sky.addColorStop(1, '#f2c48c')
+   234→  ctx.fillStyle = sky
+   235→  ctx.fillRect(0, 0, W, H)
+   236→  // Halo de soleil
+   237→  const sun = ctx.createRadialGradient(W * 0.78, H * 0.16, 8, W * 0.78, H * 0.16, H * 0.5)
+   238→  sun.addColorStop(0, 'rgba(255,244,214,0.9)')
+   239→  sun.addColorStop(1, 'rgba(255,244,214,0)')
+   240→  ctx.fillStyle = sun
+   241→  ctx.fillRect(0, 0, W, H)
+   242→  // Collines
+   243→  ctx.fillStyle = 'rgba(143,191,127,0.55)'
+   244→  ctx.beginPath()
+   245→  ctx.moveTo(0, H)
+   246→  ctx.lineTo(0, H - 34)
+   247→  ctx.quadraticCurveTo(W * 0.3, H - 72, W * 0.62, H - 30)
+   248→  ctx.quadraticCurveTo(W * 0.85, H - 2, W, H - 26)
+   249→  ctx.lineTo(W, H)
+   250→  ctx.closePath()
+   251→  ctx.fill()
+   252→  // Silhouettes d'arbres
+   253→  const tree = (x: number, s: number) => {
+   254→    ctx.fillStyle = 'rgba(109,124,82,0.75)'
+   255→    ctx.fillRect(x - 3 * s, H - 34 * s, 6 * s, 34 * s)
+   256→    ctx.beginPath()
+   257→    ctx.arc(x, H - 44 * s, 16 * s, 0, Math.PI * 2)
+   258→    ctx.arc(x - 12 * s, H - 36 * s, 11 * s, 0, Math.PI * 2)
+   259→    ctx.arc(x + 12 * s, H - 36 * s, 11 * s, 0, Math.PI * 2)
+   260→    ctx.fill()
+   261→  }
+   262→  tree(W * 0.14, 1)
+   263→  tree(W * 0.52, 0.8)
+   264→  tree(W * 0.88, 1.1)
+   265→  // Sol
+   266→  ctx.fillStyle = 'rgba(122,96,58,0.5)'
+   267→  ctx.fillRect(0, H - 12, W, 12)
+   268→}
+   269→
+   270→/* ================= Composant ================= */
+   271→export default function FruitSliceGame() {
+   272→  const lang = useLang()
+   273→  const reduce = useReducedMotion()
+   274→  const hydrated = useHydrated()
+   275→  const dailyDone = useIsDailyDone(gameId)
+   276→  const T = L[lang]
+   277→
+   278→  const addPlay = useProfileStore((s) => s.addPlay)
+   279→  const addXp = useProfileStore((s) => s.addXp)
+   280→  const setBest = useProfileStore((s) => s.setBest)
+   281→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   282→  const completeDaily = useProfileStore((s) => s.completeDaily)
+   283→  const bestScore = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-score']?.value ?? 0)
+   284→
+   285→  const [phase, setPhase] = useState<'idle' | 'playing' | 'over'>('idle')
+   286→  const [hud, setHud] = useState({ score: 0, lives: 3, chain: 0 })
+   287→  const [result, setResult] = useState<null | { score: number; sliced: number; bestChain: number; isRecord: boolean }>(null)
+   288→  const [confetti, setConfetti] = useState(0)
+   289→
+   290→  const wrapRef = useRef<HTMLDivElement>(null)
+   291→  const canvasRef = useRef<HTMLCanvasElement>(null)
+   292→  const worldRef = useRef<World>(makeWorld())
+   293→  const phaseRef = useRef(phase)
+   294→  const reduceRef = useRef(reduce)
+   295→  const langRef = useRef(lang)
+   296→  const dailyDoneRef = useRef(dailyDone)
+   297→  const rafRef = useRef(0)
+   298→  const pausedRef = useRef(false)
+   299→
+   300→  useEffect(() => { phaseRef.current = phase }, [phase])
+   301→  useEffect(() => { reduceRef.current = reduce }, [reduce])
+   302→  useEffect(() => { langRef.current = lang }, [lang])
+   303→  useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+   304→
+   305→  /* Défi du jour déterministe : 120 / 160 / 200 points selon la date */
+   306→  const dailyTarget = (() => {
+   307→    const r = mulberry32(seedFromString(`fruit-slice:${todayKey()}`))
+   308→    return [120, 160, 200][Math.floor(r() * 3)]
+   309→  })()
+   310→
+   311→  const pushHud = useCallback(() => {
+   312→    const w = worldRef.current
+   313→    setHud({ score: w.score, lives: w.lives, chain: w.chain })
+   314→  }, [])
+   315→
+   316→  const handleStart = useCallback(() => {
+   317→    sfx.play('click')
+   318→    const w = worldRef.current
+   319→    const keepW = w.W
+   320→    const keepH = w.H
+   321→    const keepT = w.t
+   322→    Object.assign(w, makeWorld())
+   323→    w.W = keepW
+   324→    w.H = keepH
+   325→    w.t = keepT
+   326→    w.startT = w.t
+   327→    addPlay(gameId)
+   328→    setResult(null)
+   329→    setHud({ score: 0, lives: 3, chain: 0 })
+   330→    setPhase('playing')
+   331→  }, [addPlay])
+   332→
+   333→  const finishDeath = useCallback(() => {
+   334→    const w = worldRef.current
+   335→    if (w.dead) return
+   336→    w.dead = true
+   337→    const prevBest = useProfileStore.getState().profile.games[gameId]?.records?.['best-score']?.value ?? 0
+   338→    const isRecord = w.score > prevBest && w.score > 0
+   339→    if (w.score > 0) {
+   340→      setBest(gameId, 'best-score', w.score)
+   341→      addXp(Math.max(1, Math.floor(w.score / 10)))
+   342→    }
+   343→    if (w.score >= 150) unlockBadge('fruit-150')
+   344→    sfx.play('lose')
+   345→    setResult({ score: w.score, sliced: w.fruitsSliced, bestChain: w.bestChain, isRecord })
+   346→    setPhase('over')
+   347→  }, [addXp, setBest, unlockBadge])
+   348→
+   349→  /* ================= Boucle principale ================= */
+   350→  useEffect(() => {
+   351→    const cv = canvasRef.current
+   352→    const wrap = wrapRef.current
+   353→    if (!cv || !wrap) return
+   354→    const ctx = cv.getContext('2d')
+   355→    if (!ctx) return
+   356→    const w = worldRef.current
+   357→
+   358→    let bg: HTMLCanvasElement | null = null
+   359→    let dpr = 1
+   360→
+   361→    const resize = () => {
+   362→      const cw = wrap.clientWidth
+   363→      if (cw < 40) return
+   364→      const ch = Math.round(cw * 0.75)
+   365→      dpr = Math.min(window.devicePixelRatio || 1, 2)
+   366→      w.W = cw
+   367→      w.H = ch
+   368→      cv.width = Math.round(cw * dpr)
+   369→      cv.height = Math.round(ch * dpr)
+   370→      cv.style.height = `${ch}px`
+   371→      bg = document.createElement('canvas')
+   372→      bg.width = cv.width
+   373→      bg.height = cv.height
+   374→      const bctx = bg.getContext('2d')
+   375→      if (bctx) {
+   376→        bctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+   377→        drawBackdrop(bctx, cw, ch)
+   378→      }
+   379→    }
+   380→    resize()
+   381→
+   382→    const gravity = () => w.H * 2.6
+   383→
+   384→    /* ----- projection d'un objet ----- */
+   385→    const spawnItem = () => {
+   386→      const elapsed = w.t - w.startT
+   387→      const isSoap = elapsed > 8 && Math.random() < 0.13
+   388→      const def = isSoap
+   389→        ? null
+   390→        : Math.random() < 0.08
+   391→          ? FRUITS[FRUITS.length - 1]
+   392→          : FRUITS[Math.floor(Math.random() * (FRUITS.length - 1))]
+   393→      const r = def ? def.r : SOAP.r
+   394→      const x = w.W * (0.12 + Math.random() * 0.76)
+   395→      const apex = w.H * (0.66 + Math.random() * 0.28)
+   396→      const speedMul = 1 + Math.min(elapsed / 300, 0.35)
+   397→      w.fruits.push({
+   398→        id: w.nextId++,
+   399→        emoji: def ? def.emoji : SOAP.emoji,
+   400→        x,
+   401→        y: w.H + r + 6,
+   402→        vx: ((w.W / 2 - x) * 0.45 + (Math.random() - 0.5) * 140) * speedMul,
+   403→        vy: -Math.sqrt(2 * gravity() * apex) * speedMul,
+   404→        r,
+   405→        rot: Math.random() * Math.PI,
+   406→        vr: (Math.random() - 0.5) * 5,
+   407→        points: def ? def.points : 0,
+   408→        soap: isSoap,
+   409→        juice: def ? def.juice : '#d98cb3',
+   410→      })
+   411→    }
+   412→
+   413→    /* ----- trancher ----- */
+   414→    const sliceFruit = (f: Fruit, ang: number, now: number) => {
+   415→      if (w.dead) return
+   416→      w.fruits = w.fruits.filter((o) => o.id !== f.id)
+   417→      const px = -Math.sin(ang)
+   418→      const py = Math.cos(ang)
+   419→      for (const side of [-1, 1]) {
+   420→        w.halves.push({
+   421→          emoji: f.emoji,
+   422→          x: f.x + px * side * f.r * 0.4,
+   423→          y: f.y + py * side * f.r * 0.4,
+   424→          vx: f.vx * 0.55 + px * side * 190,
+   425→          vy: f.vy * 0.55 + py * side * 190 - 60,
+   426→          r: f.r,
+   427→          rot: ang,
+   428→          vr: side * 3.2,
+   429→          side,
+   430→          life: 0.9,
+   431→        })
+   432→      }
+   433→      if (!reduceRef.current) {
+   434→        for (let i = 0; i < 9; i++) {
+   435→          const a = Math.random() * Math.PI * 2
+   436→          const sp = 50 + Math.random() * 200
+   437→          w.juices.push({
+   438→            x: f.x, y: f.y,
+   439→            vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60,
+   440→            r: 2 + Math.random() * 4,
+   441→            life: 0.5 + Math.random() * 0.3, max: 0.8,
+   442→            color: f.juice,
+   443→          })
+   444→        }
+   445→      }
+   446→
+   447→      if (f.soap) {
+   448→        w.lives--
+   449→        w.flash = 1
+   450→        w.chain = 0
+   451→        sfx.play('wrong')
+   452→        w.pops.push({ x: f.x, y: f.y - 10, text: L[langRef.current].lostLife, life: 1, max: 1, color: '#d9553f', size: 20 })
+   453→        if (w.lives <= 0) {
+   454→          finishDeath()
+   455→        }
+   456→      } else {
+   457→        w.fruitsSliced++
+   458→        w.chain = now - w.lastSlice <= 350 ? w.chain + 1 : 1
+   459→        w.lastSlice = now
+   460→        w.bestChain = Math.max(w.bestChain, w.chain)
+   461→        let gained = f.points
+   462→        if (w.chain >= 3) {
+   463→          const bonus = w.chain * 10
+   464→          gained += bonus
+   465→          sfx.play('coin')
+   466→          w.pops.push({
+   467→            x: f.x, y: f.y - 34,
+   468→            text: `COMBO ×${w.chain} +${bonus}`,
+   469→            life: 1.1, max: 1.1, color: '#b45309', size: 19,
+   470→          })
+   471→        } else {
+   472→          sfx.play('slice')
+   473→        }
+   474→        w.score += gained
+   475→        w.pops.push({ x: f.x, y: f.y - 6, text: `+${gained}`, life: 0.85, max: 0.85, color: '#7c4a1e', size: 15 })
+   476→        if (w.chain >= 4) unlockBadge('fruit-combo-4')
+   477→        // Défi du jour
+   478→        if (!dailyDoneRef.current && w.score >= dailyTarget) {
+   479→          completeDaily(gameId)
+   480→          sfx.play('win')
+   481→          setConfetti((k) => k + 1)
+   482→        }
+   483→      }
+   484→      pushHud()
+   485→    }
+   486→
+   487→    /* ----- entrées ----- */
+   488→    const rectPos = (e: PointerEvent) => {
+   489→      const r = cv.getBoundingClientRect()
+   490→      return { x: e.clientX - r.left, y: e.clientY - r.top }
+   491→    }
+   492→    const onDown = (e: PointerEvent) => {
+   493→      if (phaseRef.current === 'over') {
+   494→        handleStart()
+   495→        return
+   496→      }
+   497→      if (phaseRef.current !== 'playing') return
+   498→      const p = rectPos(e)
+   499→      w.swipe = { active: true, x: p.x, y: p.y, t: performance.now() }
+   500→      w.trail.push({ x: p.x, y: p.y, t: performance.now() })
+   501→      cv.setPointerCapture(e.pointerId)
+   502→    }
+   503→    const onMove = (e: PointerEvent) => {
+   504→      if (!w.swipe.active || phaseRef.current !== 'playing') return
+   505→      const now = performance.now()
+   506→      const p = rectPos(e)
+   507→      const dt = now - w.swipe.t
+   508→      const dist = Math.hypot(p.x - w.swipe.x, p.y - w.swipe.y)
+   509→      // Seuil : ~6 px par frame (0,36 px/ms) pour que la lame coupe
+   510→      if (dt > 0 && dist / dt > 0.36 && dist >= 3) {
+   511→        const ang = Math.atan2(p.y - w.swipe.y, p.x - w.swipe.x)
+   512→        for (const f of [...w.fruits]) {
+   513→          if (segCircle(w.swipe.x, w.swipe.y, p.x, p.y, f.x, f.y, f.r * 0.95)) {
+   514→            sliceFruit(f, ang, now)
+   515→            if (phaseRef.current !== 'playing') break
+   516→          }
+   517→        }
+   518→      }
+   519→      w.swipe.x = p.x
+   520→      w.swipe.y = p.y
+   521→      w.swipe.t = now
+   522→      w.trail.push({ x: p.x, y: p.y, t: now })
+   523→    }
+   524→    const onUp = () => { w.swipe.active = false }
+   525→    const onCtx = (e: Event) => e.preventDefault()
+   526→    const onVis = () => { pausedRef.current = document.hidden }
+   527→
+   528→    cv.addEventListener('pointerdown', onDown)
+   529→    cv.addEventListener('pointermove', onMove)
+   530→    cv.addEventListener('pointerup', onUp)
+   531→    cv.addEventListener('pointercancel', onUp)
+   532→    cv.addEventListener('contextmenu', onCtx)
+   533→    document.addEventListener('visibilitychange', onVis)
+   534→
+   535→    /* ----- simulation ----- */
+   536→    const update = (dt: number, now: number) => {
+   537→      if (phaseRef.current !== 'playing') {
+   538→        // Les restes continuent de tomber derrière l'écran de fin
+   539→        for (const f of w.fruits) {
+   540→          f.vy += gravity() * dt
+   541→          f.x += f.vx * dt
+   542→          f.y += f.vy * dt
+   543→          f.rot += f.vr * dt
+   544→        }
+   545→        w.fruits = w.fruits.filter((f) => f.y < w.H + f.r + 60)
+   546→        updateDebris(dt)
+   547→        return
+   548→      }
+   549→      const elapsed = w.t - w.startT
+   550→      w.spawnT -= dt
+   551→      if (w.spawnT <= 0) {
+   552→        w.spawnT = Math.max(0.55, 1.35 - elapsed * 0.007) * (0.75 + Math.random() * 0.5)
+   553→        const count = 1 + (Math.random() < 0.35 ? 1 : 0) + (Math.random() < 0.2 ? 1 : 0) + (Math.random() < 0.1 ? 1 : 0)
+   554→        for (let i = 0; i < count; i++) spawnItem()
+   555→      }
+   556→      for (const f of w.fruits) {
+   557→        f.vy += gravity() * dt
+   558→        f.x += f.vx * dt
+   559→        f.y += f.vy * dt
+   560→        f.rot += f.vr * dt
+   561→      }
+   562→      // Fruits manqués : casse le combo, rien de plus
+   563→      const before = w.fruits.length
+   564→      w.fruits = w.fruits.filter((f) => f.y < w.H + f.r + 40)
+   565→      if (w.fruits.length < before && w.chain > 0) {
+   566→        w.chain = 0
+   567→        pushHud()
+   568→      }
+   569→      // Fin de fenêtre combo
+   570→      if (w.chain > 0 && now - w.lastSlice > 350) {
+   571→        w.chain = 0
+   572→        pushHud()
+   573→      }
+   574→      updateDebris(dt)
+   575→    }
+   576→    const updateDebris = (dt: number) => {
+   577→      for (let i = w.halves.length - 1; i >= 0; i--) {
+   578→        const h = w.halves[i]
+   579→        h.vy += gravity() * dt
+   580→        h.x += h.vx * dt
+   581→        h.y += h.vy * dt
+   582→        h.rot += h.vr * dt
+   583→        h.life -= dt
+   584→        if (h.life <= 0 || h.y > w.H + 90) w.halves.splice(i, 1)
+   585→      }
+   586→      for (let i = w.juices.length - 1; i >= 0; i--) {
+   587→        const j = w.juices[i]
+   588→        j.vy += 700 * dt
+   589→        j.x += j.vx * dt
+   590→        j.y += j.vy * dt
+   591→        j.life -= dt
+   592→        if (j.life <= 0) w.juices.splice(i, 1)
+   593→      }
+   594→      for (let i = w.pops.length - 1; i >= 0; i--) {
+   595→        const p = w.pops[i]
+   596→        p.y -= 32 * dt
+   597→        p.life -= dt
+   598→        if (p.life <= 0) w.pops.splice(i, 1)
+   599→      }
+   600→      const cutoff = performance.now() - 150
+   601→      while (w.trail.length > 0 && w.trail[0].t < cutoff) w.trail.shift()
+   602→      if (w.flash > 0) w.flash = Math.max(0, w.flash - dt * 2.2)
+   603→    }
+   604→
+   605→    /* ----- rendu ----- */
+   606→    const draw = () => {
+   607→      const W = w.W, H = w.H
+   608→      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+   609→      ctx.clearRect(0, 0, W, H)
+   610→      // Secousse à l'erreur (désactivée si mouvement réduit)
+   611→      if (w.flash > 0.55 && !reduceRef.current) {
+   612→        ctx.translate((Math.random() - 0.5) * 6 * w.flash, (Math.random() - 0.5) * 6 * w.flash)
+   613→      }
+   614→      if (bg) ctx.drawImage(bg, 0, 0, W, H)
+   615→
+   616→      // Trainée lumineuse du geste
+   617→      if (!reduceRef.current && w.trail.length > 1) {
+   618→        ctx.save()
+   619→        ctx.lineCap = 'round'
+   620→        ctx.lineJoin = 'round'
+   621→        for (let i = 1; i < w.trail.length; i++) {
+   622→          const a = i / w.trail.length
+   623→          ctx.strokeStyle = `rgba(255,246,220,${0.7 * a})`
+   624→          ctx.lineWidth = 2 + 7 * a
+   625→          ctx.shadowColor = 'rgba(247,200,115,0.9)'
+   626→          ctx.shadowBlur = 12
+   627→          ctx.beginPath()
+   628→          ctx.moveTo(w.trail[i - 1].x, w.trail[i - 1].y)
+   629→          ctx.lineTo(w.trail[i].x, w.trail[i].y)
+   630→          ctx.stroke()
+   631→        }
+   632→        ctx.restore()
+   633→      }
+   634→
+   635→      // Jus
+   636→      for (const j of w.juices) {
+   637→        ctx.globalAlpha = clamp(j.life / j.max, 0, 1)
+   638→        ctx.fillStyle = j.color
+   639→        ctx.beginPath()
+   640→        ctx.arc(j.x, j.y, j.r, 0, Math.PI * 2)
+   641→        ctx.fill()
+   642→      }
+   643→      ctx.globalAlpha = 1
+   644→
+   645→      ctx.textAlign = 'center'
+   646→      ctx.textBaseline = 'middle'
+   647→
+   648→      // Moitiés
+   649→      for (const h of w.halves) {
+   650→        ctx.save()
+   651→        ctx.globalAlpha = clamp(h.life / 0.9, 0, 1)
+   652→        ctx.translate(h.x, h.y)
+   653→        ctx.rotate(h.rot)
+   654→        const cr = h.r * 1.6
+   655→        ctx.beginPath()
+   656→        ctx.rect(-cr, h.side < 0 ? -cr : 0, cr * 2, cr)
+   657→        ctx.clip()
+   658→        ctx.font = emojiFont(h.r * 2)
+   659→        ctx.fillText(h.emoji, 0, 0)
+   660→        ctx.restore()
+   661→      }
+   662→
+   663→      // Fruits et savons
+   664→      for (const f of w.fruits) {
+   665→        ctx.save()
+   666→        ctx.translate(f.x, f.y)
+   667→        ctx.rotate(f.rot)
+   668→        ctx.font = emojiFont(f.r * 2)
+   669→        ctx.fillText(f.emoji, 0, 0)
+   670→        if (f.soap) {
+   671→          ctx.fillStyle = 'rgba(217,140,179,0.3)'
+   672→          ctx.beginPath()
+   673→          ctx.arc(0, 0, f.r + 7, 0, Math.PI * 2)
+   674→          ctx.fill()
+   675→        }
+   676→        ctx.restore()
+   677→      }
+   678→
+   679→      // Textes flottants
+   680→      for (const p of w.pops) {
+   681→        ctx.globalAlpha = clamp(p.life / p.max, 0, 1)
+   682→        ctx.fillStyle = p.color
+   683→        ctx.font = `800 ${p.size}px "Nunito", system-ui, sans-serif`
+   684→        ctx.fillText(p.text, p.x, p.y)
+   685→      }
+   686→      ctx.globalAlpha = 1
+   687→
+   688→      // Flash rouge (savon tranché)
+   689→      if (w.flash > 0) {
+   690→        const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75)
+   691→        g.addColorStop(0, 'rgba(200,50,40,0)')
+   692→        g.addColorStop(1, `rgba(200,50,40,${0.55 * w.flash})`)
+   693→        ctx.fillStyle = g
+   694→        ctx.fillRect(0, 0, W, H)
+   695→      }
+   696→    }
+   697→
+   698→    let last = performance.now()
+   699→    const step = (now: number) => {
+   700→      rafRef.current = requestAnimationFrame(step)
+   701→      const dt = Math.min((now - last) / 1000, 0.05)
+   702→      last = now
+   703→      if (pausedRef.current) return
+   704→      w.t += dt
+   705→      update(dt, now)
+   706→      draw()
+   707→    }
+   708→    rafRef.current = requestAnimationFrame(step)
+   709→
+   710→    const ro = new ResizeObserver(resize)
+   711→    ro.observe(wrap)
+   712→
+   713→    return () => {
+   714→      cancelAnimationFrame(rafRef.current)
+   715→      ro.disconnect()
+   716→      cv.removeEventListener('pointerdown', onDown)
+   717→      cv.removeEventListener('pointermove', onMove)
+   718→      cv.removeEventListener('pointerup', onUp)
+   719→      cv.removeEventListener('pointercancel', onUp)
+   720→      cv.removeEventListener('contextmenu', onCtx)
+   721→      document.removeEventListener('visibilitychange', onVis)
+   722→    }
+   723→  }, [completeDaily, dailyTarget, finishDeath, handleStart, pushHud, unlockBadge])
+   724→
+   725→  /* ================= Rendu React ================= */
+   726→  return (
+   727→    <div className="relative select-none">
+   728→      <Confetti fire={confetti} count={reduce ? 0 : 90} />
+   729→
+   730→      {/* Barre d'état */}
+   731→      <div className="mb-3 flex flex-wrap items-center gap-2">
+   732→        {phase === 'playing' ? (
+   733→          <>
+   734→            <StatChip icon="⭐" label={T.score} value={hud.score} />
+   735→            <div className="flex h-11 items-center gap-1.5 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold" aria-label={T.lives}>
+   736→              <span className="text-muted-foreground">{T.lives}</span>
+   737→              <span className="flex gap-0.5" aria-hidden="true">
+   738→                {[0, 1, 2].map((i) => (
+   739→                  <Heart key={i} className={cn('h-4 w-4', i < hud.lives ? 'fill-rose-500 text-rose-500' : 'text-foreground/20')} />
+   740→                ))}
+   741→              </span>
+   742→            </div>
+   743→            {hud.chain >= 2 ? <StatChip icon="🔥" label={T.combo} value={`×${hud.chain}`} /> : null}
+   744→            {!dailyDone ? (
+   745→              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+   746→                🎯 {T.daily.replace('{n}', String(dailyTarget))}
+   747→              </span>
+   748→            ) : null}
+   749→          </>
+   750→        ) : (
+   751→          <>
+   752→            {hydrated && bestScore > 0 ? <StatChip icon="⭐" label={`${T.score} — ${T.best}`} value={bestScore} /> : null}
+   753→            {!dailyDone ? (
+   754→              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+   755→                🎯 {T.daily.replace('{n}', String(dailyTarget))}
+   756→              </span>
+   757→            ) : null}
+   758→          </>
+   759→        )}
+   760→      </div>
+   761→
+   762→      {/* Canvas + habillage */}
+   763→      <div ref={wrapRef} className="relative w-full overflow-hidden rounded-2xl border shadow-inner">
+   764→        <canvas
+   765→          ref={canvasRef}
+   766→          className="block w-full touch-none"
+   767→          style={{ touchAction: 'none' }}
+   768→          aria-label="Fruit Slice"
+   769→        />
+   770→
+   771→        {/* Écran d'accueil */}
+   772→        {phase === 'idle' ? (
+   773→          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-stone-900/40 p-6 text-center backdrop-blur-[2px]">
+   774→            <div className="flex gap-2" aria-hidden="true">
+   775→              {['🍉', '🔪', '🍎'].map((e, i) => (
+   776→                <span key={i} className="text-4xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
+   777→              ))}
+   778→            </div>
+   779→            <h3 className="font-display text-2xl font-extrabold text-white drop-shadow">🍉 {T.title}</h3>
+   780→            <p className="max-w-sm text-sm text-stone-100">{content.tagline[lang]}</p>
+   781→            <p className="max-w-xs rounded-xl bg-white/15 px-3 py-2 text-xs text-stone-100">{T.hint}</p>
+   782→            <Button size="lg" className="h-12 rounded-full px-7 text-base anim-glow" onClick={handleStart}>
+   783→              <Play className="h-5 w-5" aria-hidden="true" /> {T.play}
+   784→            </Button>
+   785→          </div>
+   786→        ) : null}
+   787→
+   788→        {/* Game over */}
+   789→        {phase === 'over' && result ? (
+   790→          <div className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/55 p-4 backdrop-blur-[2px]">
+   791→            <div className="anim-rise w-full max-w-sm rounded-2xl border bg-card p-6 text-center shadow-xl">
+   792→              <p className="font-display text-xl font-extrabold">🍉 {T.over}</p>
+   793→              <p className="mt-3 text-5xl font-extrabold tabular-nums text-primary">{result.score}</p>
+   794→              <p className="text-xs text-muted-foreground">{T.score}</p>
+   795→              <div className="mt-3 flex justify-center gap-3 text-sm">
+   796→                <span className="rounded-xl bg-secondary/70 px-3 py-2">
+   797→                  <Swords className="mr-1 inline h-4 w-4 text-muted-foreground" aria-hidden="true" />
+   798→                  <span className="font-bold tabular-nums">{result.sliced}</span> <span className="text-muted-foreground">{T.fruitsSliced}</span>
+   799→                </span>
+   800→                <span className="rounded-xl bg-secondary/70 px-3 py-2">
+   801→                  🔥 <span className="font-bold tabular-nums">×{result.bestChain}</span> <span className="text-muted-foreground">{T.bestCombo}</span>
+   802→                </span>
+   803→              </div>
+   804→              {result.isRecord ? (
+   805→                <p className="mt-3 text-sm font-bold text-amber-600 dark:text-amber-400">🏆 {T.newBest}</p>
+   806→              ) : (
+   807→                <p className="mt-3 text-sm text-muted-foreground">
+   808→                  {T.best} : <span className="font-bold tabular-nums">{Math.max(bestScore, result.score)}</span>
+   809→                </p>
+   810→              )}
+   811→              <p className="mt-2 text-xs text-muted-foreground">{T.tip}</p>
+   812→              <div className="mt-4 flex justify-center">
+   813→                <Button size="lg" className="h-12 rounded-full px-8" onClick={handleStart}>
+   814→                  <RotateCcw className="h-5 w-5" aria-hidden="true" /> {T.replay}
+   815→                </Button>
+   816→              </div>
+   817→            </div>
+   818→          </div>
+   819→        ) : null}
+   820→      </div>
+   821→    </div>
+   822→  )
+   823→}
+   824→

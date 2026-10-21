@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Play, BookOpen, CalendarCheck, Check } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Play, BookOpen, CalendarCheck, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
@@ -10,7 +10,6 @@ import { loadSave, saveSave } from '@/lib/save'
 import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
-import { StatChip } from '@/components/shared/ui-bits'
 import { Confetti } from '@/components/shared/confetti'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -150,10 +149,12 @@ const RARITY_XP: Record<Rarity, number> = { common: 3, rare: 10, legendary: 25 }
 /* ================= Textes UI ================= */
 const L = {
   fr: {
-    play: 'Pêcher', collection: 'Collection', species: 'Espèces', cast: 'Descente',
+    play: 'Pêcher', collection: 'Collection', species: 'Espèces', onHook: 'Prise de la descente',
     today: 'Aujourd’hui', depth: 'Profondeur', meters: 'm', title: 'Pêche Miraculeuse',
     hint: 'Maintenez pour descendre, relâchez pour remonter : on pêche à la remontée.',
-    goalTitle: 'Défis du jour', goalDone: 'Défi du jour réussi !', newSpecies: 'Nouvelle espèce !',
+    goalTitle: 'Défis du jour', goalDone: 'Défi du jour réussi !', newRecord: 'Nouveau record !', newSpecies: 'Nouvelle espèce !',
+    exit: 'Quitter la partie',
+    ariaCanvas: 'Aquarium de la pêche zen : maintenez pour descendre l’hameçon, relâchez pour remonter.',
     rarity: { common: 'Commune', rare: 'Rare', legendary: 'Légendaire' } as Record<Rarity, string>,
     bands: ['Eau peu profonde', 'Mi-profondeur', 'Grandes profondeurs'],
     goals: ['Attraper 5 poissons en une descente', 'Attraper un poisson des profondeurs', 'Attraper 10 poissons aujourd’hui'],
@@ -161,10 +162,12 @@ const L = {
     unknown: 'Pas encore découvert',
   },
   en: {
-    play: 'Fish', collection: 'Collection', species: 'Species', cast: 'Descent',
+    play: 'Fish', collection: 'Collection', species: 'Species', onHook: 'Current descent catch',
     today: 'Today', depth: 'Depth', meters: 'm', title: 'Miraculous Fishing',
     hint: 'Hold to descend, release to reel up: you catch on the way up.',
-    goalTitle: 'Today’s challenges', goalDone: 'Daily challenge complete!', newSpecies: 'New species!',
+    goalTitle: 'Today’s challenges', goalDone: 'Daily challenge complete!', newRecord: 'New record!', newSpecies: 'New species!',
+    exit: 'Quit the game',
+    ariaCanvas: 'Zen fishing aquarium: hold to lower the hook, release to reel up.',
     rarity: { common: 'Common', rare: 'Rare', legendary: 'Legendary' } as Record<Rarity, string>,
     bands: ['Shallow water', 'Mid depth', 'Deep waters'],
     goals: ['Catch 5 fish in one descent', 'Catch a deep-water fish', 'Catch 10 fish today'],
@@ -199,7 +202,7 @@ interface Bubble { x: number; y: number; r: number; vy: number; phase: number }
 interface Flyer { sp: number; x0: number; y0: number; t: number; delay: number }
 
 interface World {
-  W: number; H: number; t: number
+  W: number; H: number; t: number; scale: number
   fishes: Fish[]
   bubbles: Bubble[]
   flyers: Flyer[]
@@ -210,6 +213,7 @@ interface World {
   bubbleT: number
   rippleT: number
   rippleY: number
+  bedTouched: boolean
 }
 
 function pickSpeciesIndex(band: number): number {
@@ -246,10 +250,10 @@ function spawnFish(band: number, fromEdge: boolean, W: number): Fish {
 
 function makeWorld(): World {
   const w: World = {
-    W: 320, H: 240, t: 0,
+    W: 320, H: 240, t: 0, scale: 1,
     fishes: [], bubbles: [], flyers: [],
     hookY: 0, hookState: 'top', holding: false,
-    castCount: 0, bubbleT: 0, rippleT: 0, rippleY: 0,
+    castCount: 0, bubbleT: 0, rippleT: 0, rippleY: 0, bedTouched: false,
   }
   for (let b = 0; b < 3; b++) {
     for (let i = 0; i < 4; i++) w.fishes.push(spawnFish(b, false, w.W))
@@ -258,17 +262,6 @@ function makeWorld(): World {
 }
 
 /* ================= Helpers dessin ================= */
-function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const rad = Math.min(r, w / 2, h / 2)
-  ctx.beginPath()
-  ctx.moveTo(x + rad, y)
-  ctx.arcTo(x + w, y, x + w, y + h, rad)
-  ctx.arcTo(x + w, y + h, x, y + h, rad)
-  ctx.arcTo(x, y + h, x, y, rad)
-  ctx.arcTo(x, y, x + w, y, rad)
-  ctx.closePath()
-}
-
 function emojiFont(size: number) {
   return `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif`
 }
@@ -349,6 +342,32 @@ function drawBoat(ctx: CanvasRenderingContext2D, W: number, surfaceY: number, t:
   ctx.fill()
 }
 
+/* ================= Utilitaires locaux ================= */
+type Banner = { kind: 'daily' } | { kind: 'record'; value: number }
+
+/** Haptique légère, sans échec sur les navigateurs non compatibles. */
+function buzz(pattern: number | number[]) {
+  try {
+    navigator.vibrate?.(pattern)
+  } catch {
+    /* non supporté */
+  }
+}
+
+/** Pastille compacte du HUD (une seule ligne sur mobile). */
+function Pill({ icon, label, children }: { icon: string; label: string; children: ReactNode }) {
+  return (
+    <span
+      title={label}
+      className="flex h-9 min-w-0 shrink-0 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-bold tabular-nums"
+    >
+      <span aria-hidden="true">{icon}</span>
+      <span className="truncate">{children}</span>
+      <span className="sr-only">{label}</span>
+    </span>
+  )
+}
+
 /* ================= Composant ================= */
 export default function ZenFishingGame() {
   const lang = useLang()
@@ -367,30 +386,52 @@ export default function ZenFishingGame() {
   const bestCatch = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-catch']?.value ?? 0)
 
   const [phase, setPhase] = useState<'idle' | 'playing'>('idle')
-  const [hud, setHud] = useState({ cast: 0, today: 0, species: 0, depth: 0 })
+  const [hud, setHud] = useState({ cast: 0, today: 0, depth: 0 })
   const [caught, setCaught] = useState<Set<string>>(new Set())
   const [dayStats, setDayStats] = useState({ dayCount: 0, bestCast: 0, deep: false })
   const [discovery, setDiscovery] = useState<FishSpec | null>(null)
   const [bookOpen, setBookOpen] = useState(false)
   const [confetti, setConfetti] = useState(0)
+  const [banner, setBanner] = useState<Banner | null>(null)
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const worldRef = useRef<World>(makeWorld())
   const phaseRef = useRef(phase)
   const reduceRef = useRef(reduce)
-  const langRef = useRef(lang)
   const dailyDoneRef = useRef(dailyDone)
   const rafRef = useRef(0)
   const pausedRef = useRef(false)
   const caughtRef = useRef<Set<string>>(new Set())
   const dayRef = useRef<FishSave>({ caught: [], day: todayKey(), dayCount: 0, bestCastToday: 0, deepToday: false })
   const discoveryQueueRef = useRef<FishSpec[]>([])
+  const lastStartRef = useRef(0)
+  const bannerTimerRef = useRef(0)
+  const timersRef = useRef<Set<number>>(new Set())
 
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
-  useEffect(() => { langRef.current = lang }, [lang])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+
+  /* Minuteurs suivis — tous purgés au démontage */
+  const later = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      timersRef.current.delete(id)
+      fn()
+    }, ms)
+    timersRef.current.add(id)
+    return id
+  }, [])
+  const clearLater = useCallback((id: number) => {
+    window.clearTimeout(id)
+    timersRef.current.delete(id)
+  }, [])
+  useEffect(() => {
+    const ids = timersRef.current
+    return () => {
+      for (const id of ids) window.clearTimeout(id)
+    }
+  }, [])
 
   /* Défi du jour déterministe : 0, 1 ou 2 selon la date */
   const dailyGoal = useMemo(
@@ -415,7 +456,7 @@ export default function ZenFishingGame() {
       dayRef.current = { ...base, caught: [...set] }
       setCaught(set)
       setDayStats({ dayCount: base.dayCount, bestCast: base.bestCastToday, deep: base.deepToday })
-      setHud((h) => ({ ...h, species: set.size, today: base.dayCount }))
+      setHud((h) => ({ ...h, today: base.dayCount }))
     }, 0)
     return () => window.clearTimeout(id)
   }, [])
@@ -432,10 +473,11 @@ export default function ZenFishingGame() {
 
   const pushHud = useCallback(() => {
     const w = worldRef.current
+    const span = Math.max(1, w.H * 0.95 - w.H * 0.14)
     setHud((h) => ({
       ...h,
       cast: w.castCount,
-      depth: Math.max(0, Math.round((w.hookY - w.H * 0.14) / 10)),
+      depth: Math.max(0, Math.round(((w.hookY - w.H * 0.14) / span) * 30)),
     }))
   }, [])
 
@@ -449,22 +491,52 @@ export default function ZenFishingGame() {
     let delay = Math.max(0, discoveryBusyUntilRef.current - now)
     discoveryBusyUntilRef.current = now + delay + queue.length * 2850
     for (const spec of queue) {
-      window.setTimeout(() => {
+      later(() => {
         setDiscovery(spec)
         sfx.play('reveal')
+        buzz(15)
       }, delay)
-      window.setTimeout(() => {
+      later(() => {
         setDiscovery(null)
       }, delay + 2500)
       delay += 2850
     }
+  }, [later])
+
+  /* Bandeau d'annonce (défi réussi / record battu) */
+  const showBanner = useCallback((b: Banner) => {
+    setBanner(b)
+    if (bannerTimerRef.current) clearLater(bannerTimerRef.current)
+    bannerTimerRef.current = later(() => setBanner(null), 2600)
+  }, [clearLater, later])
+
+  const openBook = useCallback(() => {
+    sfx.play('flip', { volume: 0.5 })
+    worldRef.current.holding = false
+    setBookOpen(true)
   }, [])
 
   const handleStart = useCallback(() => {
+    const now = performance.now()
+    if (now - lastStartRef.current < 400) return
+    lastStartRef.current = now
     sfx.play('click')
     addPlay(gameId)
     setPhase('playing')
   }, [addPlay])
+
+  /* Retour à l'accueil : relâche proprement hameçon et poissons */
+  const handleExit = useCallback(() => {
+    sfx.play('click', { volume: 0.5 })
+    const w = worldRef.current
+    for (const f of w.fishes) f.hooked = false
+    w.holding = false
+    w.hookState = 'top'
+    w.hookY = w.H * 0.14 + 8
+    w.castCount = 0
+    setPhase('idle')
+    setHud((h) => ({ ...h, cast: 0, depth: 0 }))
+  }, [])
 
   /* ================= Boucle principale ================= */
   useEffect(() => {
@@ -477,18 +549,41 @@ export default function ZenFishingGame() {
 
     let dpr = 1
 
+    /* Population adaptée à la surface de l'aquarium (éléments en %) */
+    const syncPopulation = () => {
+      const target = Math.round(clamp((w.W * w.H) / 34000, 4, 10))
+      for (let b = 0; b < 3; b++) {
+        let count = 0
+        for (const f of w.fishes) {
+          if (!f.hooked && SPECIES[f.sp].band === b) count++
+        }
+        let diff = target - count
+        while (diff > 0) {
+          w.fishes.push(spawnFish(b, false, w.W))
+          diff--
+        }
+        while (diff < 0) {
+          const idx = w.fishes.findIndex((f) => !f.hooked && SPECIES[f.sp].band === b)
+          if (idx < 0) break
+          w.fishes.splice(idx, 1)
+          diff++
+        }
+      }
+    }
+
     const resize = () => {
       const cw = wrap.clientWidth
-      if (cw < 40) return
-      const ch = Math.round(cw * 0.75)
+      const ch = wrap.clientHeight
+      if (cw < 40 || ch < 40) return
       dpr = Math.min(window.devicePixelRatio || 1, 2)
       w.W = cw
       w.H = ch
+      w.scale = clamp(ch / 430, 1, 1.45)
       if (w.hookState === 'top') w.hookY = ch * 0.14 + 8
       w.hookY = Math.min(w.hookY, ch * 0.95)
       cv.width = Math.round(cw * dpr)
       cv.height = Math.round(ch * dpr)
-      cv.style.height = `${ch}px`
+      syncPopulation()
     }
     resize()
 
@@ -501,23 +596,32 @@ export default function ZenFishingGame() {
     }
     const fishY = (f: Fish) => {
       if (f.hooked) {
-        return Math.max(surfaceY() + 10, w.hookY - 16 - f.slot * 26)
+        return Math.max(surfaceY() + 10, w.hookY - 16 * w.scale - f.slot * 26 * w.scale)
       }
-      return bandY(SPECIES[f.sp].band, f.yFrac) + Math.sin(w.t * f.bobF + f.phase) * f.bobA
+      return bandY(SPECIES[f.sp].band, f.yFrac) + Math.sin(w.t * f.bobF + f.phase) * f.bobA * w.scale
     }
     const fishX = (f: Fish) => {
       if (f.hooked) return w.W / 2 + Math.sin(w.t * 5 + f.slot * 1.4) * 9
       return f.x
     }
 
-    /* ----- entrées ----- */
+    /* ----- entrées : maintien fiable, multi-pointeurs propre ----- */
+    const activePointers = new Set<number>()
     const onDown = (e: PointerEvent) => {
       if (phaseRef.current !== 'playing') return
       e.preventDefault()
+      activePointers.add(e.pointerId)
       w.holding = true
-      cv.setPointerCapture(e.pointerId)
+      try {
+        cv.setPointerCapture(e.pointerId)
+      } catch {
+        /* capture refusée */
+      }
     }
-    const onUp = () => { w.holding = false }
+    const onRelease = (e: PointerEvent) => {
+      activePointers.delete(e.pointerId)
+      if (activePointers.size === 0) w.holding = false
+    }
     const onKeyDown = (e: KeyboardEvent) => {
       if (phaseRef.current !== 'playing') return
       if (e.code === 'Space' || e.code === 'ArrowDown') {
@@ -529,10 +633,13 @@ export default function ZenFishingGame() {
       if (e.code === 'Space' || e.code === 'ArrowDown') w.holding = false
     }
     const onCtx = (e: Event) => e.preventDefault()
-    const onVis = () => { pausedRef.current = document.hidden }
+    const onVis = () => {
+      pausedRef.current = document.hidden
+    }
     cv.addEventListener('pointerdown', onDown)
-    cv.addEventListener('pointerup', onUp)
-    cv.addEventListener('pointercancel', onUp)
+    cv.addEventListener('pointerup', onRelease)
+    cv.addEventListener('pointercancel', onRelease)
+    cv.addEventListener('lostpointercapture', onRelease)
     cv.addEventListener('contextmenu', onCtx)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -543,22 +650,24 @@ export default function ZenFishingGame() {
       const hooked = w.fishes.filter((f) => f.hooked)
       const n = hooked.length
       if (n === 0) return
-      sfx.play('splash')
+      sfx.play('splash', { volume: 0.7 })
       let xp = 0
       let newSpecies = false
       let deepCaught = false
       let legendary = false
+      let rareCaught = false
       for (const f of hooked) {
         const spec = SPECIES[f.sp]
         xp += RARITY_XP[spec.rarity]
         if (spec.band === 2) deepCaught = true
         if (spec.rarity === 'legendary') legendary = true
+        if (spec.rarity !== 'common') rareCaught = true
         if (!caughtRef.current.has(spec.id)) {
           newSpecies = true
           caughtRef.current.add(spec.id)
           discoveryQueueRef.current.push(spec)
         }
-        // Vol vers le compteur
+        // Vol vers le compteur du jour
         w.flyers.push({ sp: f.sp, x0: fishX(f), y0: fishY(f), t: 0, delay: f.slot * 0.09 })
       }
       // Remplace les poissons pêchés
@@ -567,25 +676,32 @@ export default function ZenFishingGame() {
       w.castCount = 0
       // Gamification
       addXp(xp)
-      setBest(gameId, 'best-catch', n)
+      const isRecord = setBest(gameId, 'best-catch', n)
+      if (isRecord && n >= 2) showBanner({ kind: 'record', value: n })
       const size = caughtRef.current.size
       if (newSpecies) {
         setBest(gameId, 'species', size)
         setCaught(new Set(caughtRef.current))
         if (size >= 10) unlockBadge('fish-10')
-        if (hooked.some((f) => SPECIES[f.sp].rarity !== 'common')) unlockBadge('fish-rare')
         processDiscovery()
       }
-      if (hooked.some((f) => SPECIES[f.sp].rarity !== 'common')) unlockBadge('fish-rare')
+      if (rareCaught) unlockBadge('fish-rare')
       if (n >= 5) addWin(gameId)
       if (legendary) setConfetti((k) => k + 1)
-      // Défis du jour
+      // Défis du jour (remise à zéro si la partie traverse minuit)
+      const today = todayKey()
       const day = dayRef.current
+      if (day.day !== today) {
+        day.day = today
+        day.dayCount = 0
+        day.bestCastToday = 0
+        day.deepToday = false
+      }
       day.dayCount += n
       day.bestCastToday = Math.max(day.bestCastToday, n)
       if (deepCaught) day.deepToday = true
       setDayStats({ dayCount: day.dayCount, bestCast: day.bestCastToday, deep: day.deepToday })
-      setHud((h) => ({ ...h, today: day.dayCount, species: caughtRef.current.size }))
+      setHud((h) => ({ ...h, today: day.dayCount }))
       persist()
       const goalMet =
         dailyGoal === 0 ? day.bestCastToday >= 5
@@ -595,41 +711,58 @@ export default function ZenFishingGame() {
         completeDaily(gameId)
         sfx.play('win')
         setConfetti((k) => k + 1)
+        showBanner({ kind: 'daily' })
+        buzz(20)
       }
     }
 
     /* ----- simulation ----- */
     let lastDepth = -1
+    let depthAcc = 0
     const update = (dt: number) => {
       const playing = phaseRef.current === 'playing'
       // Hameçon
       if (playing) {
         if (w.hookState === 'top' && w.holding) {
           w.hookState = 'down'
+          w.bedTouched = false
           w.rippleT = 0.5
           w.rippleY = surfaceY()
           sfx.play('splash', { volume: 0.6 })
         } else if (w.hookState === 'down') {
-          w.hookY += 235 * dt
+          w.hookY += 235 * w.scale * dt
           if (!w.holding) w.hookState = 'up'
           if (w.hookY >= bedY()) {
             w.hookY = bedY()
+            if (!w.bedTouched) {
+              w.bedTouched = true
+              sfx.play('drop', { volume: 0.35 })
+            }
             if (!w.holding) w.hookState = 'up'
           }
         } else if (w.hookState === 'up') {
-          w.hookY -= 270 * dt
+          w.hookY -= 270 * w.scale * dt
           // Capture à la remontée
           for (const f of w.fishes) {
             if (f.hooked) continue
             const spec = SPECIES[f.sp]
-            const r = spec.size / 2
+            const r = (spec.size * w.scale) / 2
             const fx = fishX(f)
             const fy = fishY(f)
-            if (Math.abs(fx - w.W / 2) < r + 14 && Math.abs(fy - w.hookY) < r + 16) {
+            if (Math.abs(fx - w.W / 2) < r + 15 * w.scale && Math.abs(fy - w.hookY) < r + 17 * w.scale) {
               f.hooked = true
               f.slot = w.castCount
               w.castCount++
-              sfx.play('splash', { volume: 0.5 })
+              if (spec.rarity === 'legendary') {
+                sfx.play('reveal', { volume: 0.55 })
+                buzz([10, 40, 10])
+              } else if (spec.rarity === 'rare') {
+                sfx.play('coin', { volume: 0.45 })
+                buzz(15)
+              } else {
+                sfx.play('splash', { volume: 0.4 })
+                buzz(10)
+              }
               pushHud()
             }
           }
@@ -688,7 +821,7 @@ export default function ZenFishingGame() {
         if (b.y < surfaceY() + 4) w.bubbles.splice(i, 1)
       }
 
-      // Vols vers le compteur
+      // Vols vers le compteur (petit pop à l'arrivée)
       for (let i = w.flyers.length - 1; i >= 0; i--) {
         const fl = w.flyers[i]
         if (fl.delay > 0) {
@@ -696,16 +829,24 @@ export default function ZenFishingGame() {
           continue
         }
         fl.t += dt / 0.55
-        if (fl.t >= 1) w.flyers.splice(i, 1)
+        if (fl.t >= 1) {
+          w.flyers.splice(i, 1)
+          sfx.play('pop', { volume: 0.28 })
+        }
       }
 
       if (w.rippleT > 0) w.rippleT -= dt
 
-      // Profondeur (HUD)
-      const depth = Math.max(0, Math.round((w.hookY - surfaceY()) / 10))
-      if (playing && depth !== lastDepth) {
-        lastDepth = depth
-        pushHud()
+      // Profondeur (HUD throttlé — 0 à 30 m, proportionnel)
+      depthAcc += dt
+      if (depthAcc >= 0.12) {
+        depthAcc = 0
+        const span = Math.max(1, bedY() - surfaceY())
+        const depth = Math.max(0, Math.round(((w.hookY - surfaceY()) / span) * 30))
+        if (playing && depth !== lastDepth) {
+          lastDepth = depth
+          pushHud()
+        }
       }
     }
 
@@ -734,8 +875,8 @@ export default function ZenFishingGame() {
       ctx.restore()
 
       // Algues
-      for (let i = 0; i < 4; i++) {
-        const sx = W * (0.1 + i * 0.26)
+      for (let i = 0; i < 5; i++) {
+        const sx = W * (0.08 + i * 0.21)
         const sway = reduceRef.current ? 0 : Math.sin(w.t * 1.1 + i) * 8
         ctx.strokeStyle = 'rgba(46,124,92,0.75)'
         ctx.lineWidth = 3
@@ -755,7 +896,7 @@ export default function ZenFishingGame() {
         ctx.stroke()
       }
 
-      // Ligne + hameçon
+      // Ligne + hameçon + appât
       const hookX = W / 2
       ctx.strokeStyle = 'rgba(244,233,208,0.75)'
       ctx.lineWidth = 1.2
@@ -766,17 +907,17 @@ export default function ZenFishingGame() {
       if (w.hookState !== 'top' || phaseRef.current === 'playing') {
         const hy = w.hookState === 'top' ? sY + 8 : w.hookY
         ctx.strokeStyle = '#e8e0c8'
-        ctx.lineWidth = 2.5
+        ctx.lineWidth = 2.5 * w.scale
         ctx.beginPath()
-        ctx.arc(hookX + 2, hy + 4, 6, -Math.PI * 0.4, Math.PI * 0.75)
+        ctx.arc(hookX + 2, hy + 4 * w.scale, 6 * w.scale, -Math.PI * 0.4, Math.PI * 0.75)
         ctx.stroke()
         ctx.fillStyle = '#e2725b'
         ctx.beginPath()
-        ctx.arc(hookX, hy - 1, 3, 0, Math.PI * 2)
+        ctx.arc(hookX, hy - 1, 3 * w.scale, 0, Math.PI * 2)
         ctx.fill()
       }
 
-      // Poissons
+      // Poissons (taille adaptée à l'aquarium)
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       for (const f of w.fishes) {
@@ -784,34 +925,39 @@ export default function ZenFishingGame() {
         const fx = fishX(f)
         const fy = fishY(f)
         if (fx < -60 || fx > W + 60) continue
+        const size = spec.size * w.scale
         ctx.save()
         ctx.translate(fx, fy)
-        if (f.hooked) ctx.rotate(Math.sin(w.t * 6 + f.slot) * 0.25)
-        else ctx.scale(f.dir === 1 ? -1 : 1, 1)
+        if (f.hooked) {
+          ctx.rotate(Math.sin(w.t * 6 + f.slot) * 0.25)
+        } else {
+          if (!reduceRef.current) ctx.rotate(Math.sin(w.t * 3.2 + f.phase) * 0.05)
+          ctx.scale(f.dir === 1 ? -1 : 1, 1)
+        }
         if (spec.rarity === 'legendary') {
-          const g = ctx.createRadialGradient(0, 0, 2, 0, 0, spec.size)
+          const g = ctx.createRadialGradient(0, 0, 2, 0, 0, size)
           g.addColorStop(0, 'rgba(247,200,115,0.65)')
           g.addColorStop(1, 'rgba(247,200,115,0)')
           ctx.fillStyle = g
           ctx.beginPath()
-          ctx.arc(0, 0, spec.size, 0, Math.PI * 2)
+          ctx.arc(0, 0, size, 0, Math.PI * 2)
           ctx.fill()
         }
-        ctx.font = emojiFont(spec.size)
+        ctx.font = emojiFont(size)
         ctx.fillText(spec.emoji, 0, 0)
         if (spec.rarity === 'legendary') {
-          ctx.font = emojiFont(12)
-          ctx.fillText('✨', -spec.size * 0.55, -spec.size * 0.45)
+          ctx.font = emojiFont(12 * w.scale)
+          ctx.fillText('✨', -size * 0.55, -size * 0.45)
         }
         ctx.restore()
       }
 
-      // Vols vers le compteur
+      // Vols vers le compteur du jour
       for (const fl of w.flyers) {
         if (fl.delay > 0) continue
         const spec = SPECIES[fl.sp]
         const t = clamp(fl.t, 0, 1)
-        const ex = W - 52, ey = 24
+        const ex = W - 46, ey = 22
         const cxp = (fl.x0 + ex) / 2
         const cyp = Math.min(fl.y0, ey) - 110
         const x = (1 - t) * (1 - t) * fl.x0 + 2 * (1 - t) * t * cxp + t * t * ex
@@ -820,7 +966,7 @@ export default function ZenFishingGame() {
         ctx.globalAlpha = 1 - t * 0.25
         ctx.translate(x, y)
         ctx.scale(1 - t * 0.4, 1 - t * 0.4)
-        ctx.font = emojiFont(spec.size)
+        ctx.font = emojiFont(spec.size * w.scale)
         ctx.fillText(spec.emoji, 0, 0)
         ctx.restore()
       }
@@ -857,14 +1003,15 @@ export default function ZenFishingGame() {
       cancelAnimationFrame(rafRef.current)
       ro.disconnect()
       cv.removeEventListener('pointerdown', onDown)
-      cv.removeEventListener('pointerup', onUp)
-      cv.removeEventListener('pointercancel', onUp)
+      cv.removeEventListener('pointerup', onRelease)
+      cv.removeEventListener('pointercancel', onRelease)
+      cv.removeEventListener('lostpointercapture', onRelease)
       cv.removeEventListener('contextmenu', onCtx)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [addWin, addXp, completeDaily, dailyGoal, persist, processDiscovery, pushHud, setBest, unlockBadge])
+  }, [addWin, addXp, completeDaily, dailyGoal, persist, processDiscovery, pushHud, setBest, showBanner, unlockBadge])
 
   /* ================= Rendu React ================= */
   const rarityChip = (r: Rarity) =>
@@ -881,54 +1028,101 @@ export default function ZenFishingGame() {
   }
 
   return (
-    <div className="relative select-none">
+    <div className="relative select-none touch-manipulation">
       <Confetti fire={confetti} count={reduce ? 0 : 80} />
 
-      {/* Barre d'état */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      {/* HUD compact — une seule ligne */}
+      <div className="mb-2 flex items-center gap-1.5">
         {phase === 'playing' ? (
           <>
-            <StatChip icon="🎣" label={T.cast} value={`×${hud.cast}`} />
-            <StatChip icon="📅" label={T.today} value={hud.today} />
-            <StatChip icon="📖" label={T.species} value={`${caught.size}/12`} />
-            <StatChip icon="📏" label={T.depth} value={`${hud.depth} ${T.meters}`} />
+            <Pill icon="🎣" label={T.onHook}>×{hud.cast}</Pill>
+            <Pill icon="📖" label={T.species}>{caught.size}/12</Pill>
+            <Pill icon="📏" label={T.depth}>{hud.depth} {T.meters}</Pill>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ms-auto h-9 w-9 shrink-0 rounded-full p-0"
+              aria-label={T.exit}
+              title={T.exit}
+              onClick={handleExit}
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-9 w-9 shrink-0 rounded-full p-0"
+              aria-label={`${T.collection} — ${caught.size}/12`}
+              title={T.collection}
+              onClick={openBook}
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+            </Button>
           </>
         ) : (
           <>
-            {hydrated && bestSpecies > 0 ? <StatChip icon="📖" label={`${T.species} — ${T.best}`} value={`${bestSpecies}/12`} /> : null}
-            {hydrated && bestCatch > 0 ? <StatChip icon="🎣" label={T.catchBest} value={`×${bestCatch}`} /> : null}
+            {hydrated ? <Pill icon="📖" label={`${T.best} · ${T.speciesBest}`}>{bestSpecies}/12</Pill> : null}
+            {hydrated && bestCatch > 0 ? <Pill icon="🎣" label={`${T.best} · ${T.catchBest}`}>×{bestCatch}</Pill> : null}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ms-auto h-9 shrink-0 gap-1.5 rounded-full px-3"
+              onClick={openBook}
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              {T.collection} {caught.size}/12
+            </Button>
           </>
         )}
-        <Button
-          variant="secondary"
-          size="sm"
-          className="ms-auto h-11 gap-1.5 rounded-full px-4"
-          onClick={() => { sfx.play('click'); setBookOpen(true) }}
-        >
-          <BookOpen className="h-4 w-4" aria-hidden="true" />
-          {T.collection} {caught.size}/12
-        </Button>
       </div>
 
-      {/* Canvas + habillage */}
-      <div ref={wrapRef} className="relative w-full overflow-hidden rounded-2xl border shadow-inner">
+      {/* Aquarium — tient dans le budget vertical mobile, éléments en % */}
+      <div
+        ref={wrapRef}
+        className="relative w-full overflow-hidden rounded-2xl border shadow-inner h-[calc(100dvh-244px)] max-h-[680px] min-h-[300px]"
+      >
         <canvas
           ref={canvasRef}
-          className="block w-full touch-none"
+          role="img"
+          aria-label={T.ariaCanvas}
+          className="no-select block h-full w-full touch-none"
           style={{ touchAction: 'none' }}
-          aria-label="Zen Fishing"
         />
 
         {/* Compteur du jour (cible des vols de poissons) */}
         {phase === 'playing' ? (
-          <span className="pointer-events-none absolute right-2 top-2 z-10 flex h-9 items-center gap-1.5 rounded-full bg-white/80 px-3 text-sm font-bold text-stone-700 shadow-sm backdrop-blur-sm dark:bg-stone-800/80 dark:text-stone-200">
-            🐟 ×{hud.today}
+          <span
+            className="pointer-events-none absolute right-2 top-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-white/85 px-2.5 text-xs font-bold tabular-nums text-stone-700 shadow-sm backdrop-blur-sm dark:bg-stone-900/70 dark:text-stone-200"
+            title={T.today}
+          >
+            <span aria-hidden="true">🐟</span> ×{hud.today}{dailyDone ? ' ✅' : ''}
+            <span className="sr-only">{T.today}</span>
           </span>
+        ) : null}
+
+        {/* Bandeau d'annonce (défi du jour / record) */}
+        {banner ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center px-4" role="status">
+            <div
+              className={cn(
+                'anim-rise flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold shadow-xl backdrop-blur',
+                banner.kind === 'daily'
+                  ? 'border-emerald-300/70 bg-emerald-50/95 text-emerald-700 dark:bg-emerald-950/85 dark:text-emerald-200'
+                  : 'border-amber-300/70 bg-amber-50/95 text-amber-700 dark:bg-amber-950/85 dark:text-amber-200',
+              )}
+            >
+              {banner.kind === 'daily' ? (
+                <><span aria-hidden="true">🎯</span>{T.goalDone}</>
+              ) : (
+                <><span aria-hidden="true">🏆</span>{T.newRecord} · ×{banner.value}</>
+              )}
+            </div>
+          </div>
         ) : null}
 
         {/* Carte de découverte */}
         {discovery ? (
-          <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex justify-center px-4">
+          <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex justify-center px-4" role="status">
             <div className="anim-rise flex items-center gap-3 rounded-2xl border border-amber-300/70 bg-card/95 px-4 py-3 shadow-xl">
               <span className="text-4xl" aria-hidden="true">{discovery.emoji}</span>
               <div className="text-left">
@@ -942,44 +1136,56 @@ export default function ZenFishingGame() {
           </div>
         ) : null}
 
-        {/* Écran d'accueil */}
+        {/* Écran d'accueil — bouton Jouer visible immédiatement */}
         {phase === 'idle' ? (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-stone-900/40 p-6 text-center backdrop-blur-[2px]">
-            <div className="flex gap-2" aria-hidden="true">
-              {['⛵', '🐟', '✨'].map((e, i) => (
-                <span key={i} className="text-4xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
-              ))}
-            </div>
-            <h3 className="font-display text-2xl font-extrabold text-white drop-shadow">⛵ {T.title}</h3>
-            <p className="max-w-sm text-sm text-stone-100">{content.tagline[lang]}</p>
-            <p className="max-w-xs rounded-xl bg-white/15 px-3 py-2 text-xs text-stone-100">{T.hint}</p>
-            <Button size="lg" className="h-12 rounded-full px-7 text-base anim-glow" onClick={handleStart}>
-              <Play className="h-5 w-5" aria-hidden="true" /> {T.play}
-            </Button>
-            {/* Défis du jour */}
-            <div className="w-full max-w-sm rounded-xl bg-white/10 p-3 text-left backdrop-blur-sm">
-              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-amber-200">
-                <CalendarCheck className="h-3.5 w-3.5" aria-hidden="true" /> {T.goalTitle}
-              </p>
-              <ul className="space-y-1">
-                {T.goals.map((goal, i) => (
-                  <li key={i} className={cn('flex items-center gap-2 text-xs text-stone-100', i === dailyGoal && 'font-bold text-amber-200')}>
-                    <span aria-hidden="true">{i === dailyGoal ? '🎯' : '•'}</span>
-                    <span className="min-w-0 flex-1">
-                      {goal}
-                      {i === 0 ? ` (${dayStats.bestCast}/5)` : i === 2 ? ` (${dayStats.dayCount}/10)` : ''}
-                    </span>
-                    {goalProgress(i) ? <Check className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" /> : null}
-                  </li>
+          <div className="absolute inset-0 z-20 overflow-y-auto nice-scroll bg-stone-900/40 backdrop-blur-[2px]">
+            <div className="flex min-h-full flex-col items-center justify-center gap-3 p-4 text-center">
+              <div className="flex gap-2" aria-hidden="true">
+                {['⛵', '🐟', '✨'].map((e, i) => (
+                  <span key={i} className="text-3xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
                 ))}
-              </ul>
+              </div>
+              <h3 className="font-display text-xl font-extrabold text-white drop-shadow sm:text-2xl">⛵ {T.title}</h3>
+              <p className="max-w-sm text-xs text-stone-100 sm:text-sm">{content.tagline[lang]}</p>
+              <p className="max-w-xs rounded-xl bg-white/15 px-3 py-1.5 text-[11px] text-stone-100">{T.hint}</p>
+              <Button size="lg" className="h-11 rounded-full px-7 anim-glow" onClick={handleStart}>
+                <Play className="h-5 w-5" aria-hidden="true" /> {T.play}
+              </Button>
+              {/* Défis du jour */}
+              <div className="w-full max-w-sm rounded-xl bg-white/10 p-2.5 text-left backdrop-blur-sm">
+                <p className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-amber-200">
+                  <CalendarCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{T.goalTitle}</span>
+                  {dailyDone ? (
+                    <span className="ms-auto shrink-0 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] text-emerald-200">✓ {T.goalDone}</span>
+                  ) : null}
+                </p>
+                <ul className="space-y-0.5">
+                  {T.goals.map((goal, i) => (
+                    <li key={i} className={cn('flex items-center gap-1.5 text-[11px] text-stone-100', i === dailyGoal && 'font-bold text-amber-200')}>
+                      <span aria-hidden="true">{i === dailyGoal ? '🎯' : '•'}</span>
+                      <span className="min-w-0 flex-1">
+                        {goal}
+                        {i === 0 ? ` (${dayStats.bestCast}/5)` : i === 2 ? ` (${dayStats.dayCount}/10)` : ''}
+                      </span>
+                      {goalProgress(i) ? <Check className="h-3 w-3 shrink-0 text-emerald-400" aria-hidden="true" /> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         ) : null}
       </div>
 
       {/* Carnet de collection */}
-      <Dialog open={bookOpen} onOpenChange={setBookOpen}>
+      <Dialog
+        open={bookOpen}
+        onOpenChange={(o) => {
+          setBookOpen(o)
+          if (!o) sfx.play('click', { volume: 0.4 })
+        }}
+      >
         <DialogContent className="max-h-[85vh] overflow-y-auto nice-scroll">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">📖 {T.collection} — {caught.size}/12</DialogTitle>
@@ -1009,7 +1215,9 @@ export default function ZenFishingGame() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            {hydrated && bestCatch > 0 ? `${T.catchBest} : ×${bestCatch} · ` : ''}
+            {hydrated && bestCatch > 0 ? `${T.catchBest} : ×${bestCatch} · ` : ''}❓ {T.unknown}
+          </p>
+          <p className="text-xs text-muted-foreground">
             {T.bands[0]} · {T.bands[1]} · {T.bands[2]}
           </p>
         </DialogContent>

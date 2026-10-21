@@ -1,12 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Play, RotateCcw, CalendarCheck, Timer, Zap, Footprints, Trophy, Share2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
+import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle, useReducedMotion } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, shuffle, shareText } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -155,11 +157,11 @@ const THEMES: Record<ThemeId, { icon: string; label: Record<'fr' | 'en', string>
 }
 
 type SizeId = '6' | '8' | '12' | '15'
-const SIZES: Record<SizeId, { pairs: number; label: Record<'fr' | 'en', string>; diffKey: string; cols: string }> = {
-  '6': { pairs: 6, label: { fr: 'Facile · 6 paires', en: 'Easy · 6 pairs' }, diffKey: 'common.easy', cols: 'grid-cols-4' },
-  '8': { pairs: 8, label: { fr: 'Moyen · 8 paires', en: 'Medium · 8 pairs' }, diffKey: 'common.medium', cols: 'grid-cols-4' },
-  '12': { pairs: 12, label: { fr: 'Difficile · 12 paires', en: 'Hard · 12 pairs' }, diffKey: 'common.hard', cols: 'grid-cols-4 sm:grid-cols-6' },
-  '15': { pairs: 15, label: { fr: 'Expert · 15 paires', en: 'Expert · 15 pairs' }, diffKey: 'common.expert', cols: 'grid-cols-4 sm:grid-cols-6' },
+const SIZES: Record<SizeId, { pairs: number; label: Record<'fr' | 'en', string> }> = {
+  '6': { pairs: 6, label: { fr: 'Facile · 6 paires', en: 'Easy · 6 pairs' } },
+  '8': { pairs: 8, label: { fr: 'Moyen · 8 paires', en: 'Medium · 8 pairs' } },
+  '12': { pairs: 12, label: { fr: 'Difficile · 12 paires', en: 'Hard · 12 pairs' } },
+  '15': { pairs: 15, label: { fr: 'Expert · 15 paires', en: 'Expert · 15 pairs' } },
 }
 
 interface Card {
@@ -173,11 +175,44 @@ function buildDeck(theme: ThemeId, pairs: number, rand: () => number): Card[] {
   return shuffle(deck, rand)
 }
 
+/* ================= Textes locaux ================= */
+const LOC = {
+  fr: {
+    board: 'Plateau de jeu',
+    card: 'Carte',
+    matched: 'paire trouvée',
+    pairs: 'Paires',
+    pairsWord: 'paires',
+    flawless: 'Sans aucune erreur',
+  },
+  en: {
+    board: 'Game board',
+    card: 'Card',
+    matched: 'pair found',
+    pairs: 'Pairs',
+    pairsWord: 'pairs',
+    flawless: 'No mistakes',
+  },
+} as const
+
+/** Breakpoint sm : 6 colonnes pour les grandes grilles (12/15 paires). */
+function useMinWidth(px: number): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(`(min-width: ${px}px)`)
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => window.matchMedia(`(min-width: ${px}px)`).matches,
+    () => false,
+  )
+}
+
 /* ================= Composant principal ================= */
 export default function MemoryMatchGame() {
   const t = useT()
   const lang = useLang()
-  const reduce = useReducedMotion()
+  const L = LOC[lang]
   const dailyDone = useIsDailyDone(gameId)
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
@@ -194,13 +229,18 @@ export default function MemoryMatchGame() {
   const [phase, setPhase] = useState<'idle' | 'playing' | 'won'>('idle')
   const [flipped, setFlipped] = useState<number[]>([])
   const [matched, setMatched] = useState<Set<number>>(new Set())
+  const [wrongPair, setWrongPair] = useState<number[] | null>(null)
   const [moves, setMoves] = useState(0)
   const [mistakes, setMistakes] = useState(0)
   const [elapsed, setElapsed] = useState(0)
-  const [won, setWon] = useState<{ time: number; moves: number; isRecord: boolean } | null>(null)
+  const [won, setWon] = useState<{ time: number; moves: number; mistakes: number; isRecord: boolean; xp: number } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [deal, setDeal] = useState(0)
   const lockRef = useRef(false)
+  const genRef = useRef(0)
   const startRef = useRef(0)
+  const hiddenAtRef = useRef(0)
+  const replayBtnRef = useRef<HTMLButtonElement>(null)
 
   /* --- Défi du jour : thème + taille déterministes --- */
   const dailyConfig = useMemo(() => {
@@ -210,26 +250,41 @@ export default function MemoryMatchGame() {
     return { theme: themes[Math.floor(rand() * themes.length)], size: sizes[Math.floor(rand() * sizes.length)] }
   }, [])
 
+  /* --- Lancement d'une partie (incrément de génération : invalide
+         les timeouts en attente d'une partie précédente) --- */
   const startGame = useCallback(
     (opts?: { daily?: boolean }) => {
       const isDaily = opts?.daily ?? false
       const gTheme = isDaily ? dailyConfig.theme : theme
       const gSize = isDaily ? dailyConfig.size : size
       const rand = isDaily ? mulberry32(seedFromString(`memory-deck:${todayKey()}`)) : Math.random
+      genRef.current += 1
+      lockRef.current = false
+      hiddenAtRef.current = 0
       setDeck(buildDeck(gTheme, SIZES[gSize].pairs, rand))
       setDailyMode(isDaily)
       setPhase('playing')
       setFlipped([])
       setMatched(new Set())
+      setWrongPair(null)
       setMoves(0)
       setMistakes(0)
       setElapsed(0)
       setWon(null)
+      setDeal((d) => d + 1)
       startRef.current = Date.now()
       addPlay(gameId)
+      sfx.play('sweep')
     },
     [theme, size, dailyConfig, addPlay],
   )
+
+  const goIdle = useCallback(() => {
+    sfx.play('click')
+    setPhase('idle')
+    setWon(null)
+    setDailyMode(false)
+  }, [])
 
   /* --- Victoire (appelée depuis le handler, jamais depuis un effet) --- */
   const finishWin = useCallback(
@@ -239,12 +294,14 @@ export default function MemoryMatchGame() {
       const rec1 = setBest(gameId, `best-moves-${pairs}`, finalMoves, true)
       const rec2 = setBest(gameId, `best-time-${pairs}`, Math.round(time / 100) / 10, true)
       const isRecord = rec1 || rec2
+      const xp = 15 + pairs * 2 + (isRecord ? 10 : 0)
       setPhase('won')
-      setWon({ time, moves: finalMoves, isRecord })
+      setWon({ time, moves: finalMoves, mistakes: finalMistakes, isRecord, xp })
       setConfettiKey((k) => k + 1)
       sfx.play('win')
+      navigator.vibrate?.(30)
       addWin(gameId)
-      addXp(15 + pairs * 2 + (isRecord ? 10 : 0))
+      addXp(xp)
       if (finalMistakes === 0) unlockBadge('memory-perfect')
       if (pairs === 15) unlockBadge('memory-master')
       if (dailyMode) completeDaily(gameId)
@@ -252,11 +309,29 @@ export default function MemoryMatchGame() {
     [dailyMode, dailyConfig.size, size, setBest, addWin, addXp, unlockBadge, completeDaily],
   )
 
-  /* --- Chronomètre --- */
+  /* --- Chronomètre (pause quand l'onglet est masqué) --- */
   useEffect(() => {
     if (phase !== 'playing') return
-    const id = window.setInterval(() => setElapsed(Date.now() - startRef.current), 200)
-    return () => window.clearInterval(id)
+    const id = window.setInterval(() => setElapsed(Date.now() - startRef.current), 250)
+    const onVis = () => {
+      if (document.hidden) {
+        hiddenAtRef.current = Date.now()
+      } else if (hiddenAtRef.current > 0) {
+        startRef.current += Date.now() - hiddenAtRef.current
+        hiddenAtRef.current = 0
+        setElapsed(Date.now() - startRef.current)
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [phase])
+
+  /* --- Focus clavier immédiat sur « Rejouer » après la victoire --- */
+  useEffect(() => {
+    if (phase === 'won') replayBtnRef.current?.focus({ preventScroll: true })
   }, [phase])
 
   /* --- Logique de retournement --- */
@@ -268,82 +343,143 @@ export default function MemoryMatchGame() {
     const next = [...flipped, idx]
     setFlipped(next)
 
-    if (next.length === 2) {
-      const newMoves = moves + 1
-      setMoves(newMoves)
-      lockRef.current = true
-      const [a, b] = next
-      if (deck[a].emoji === deck[b].emoji) {
-        window.setTimeout(() => {
-          sfx.play('pair')
-          const nextMatched = new Set([...matched, a, b])
-          setMatched(nextMatched)
-          setFlipped([])
-          lockRef.current = false
-          if (nextMatched.size === deck.length) {
-            finishWin(newMoves, mistakes)
-          }
-        }, 420)
-      } else {
-        setMistakes((m) => m + 1)
-        window.setTimeout(() => {
-          sfx.play('wrong', { volume: 0.35 })
-          setFlipped([])
-          lockRef.current = false
-        }, 850)
-      }
+    if (next.length !== 2) return
+
+    const gen = genRef.current
+    const [a, b] = next
+    const newMoves = moves + 1
+    setMoves(newMoves)
+    lockRef.current = true
+
+    if (deck[a].emoji === deck[b].emoji) {
+      window.setTimeout(() => {
+        if (genRef.current !== gen) return
+        sfx.play('pair')
+        navigator.vibrate?.(10)
+        const nextMatched = new Set(matched)
+        nextMatched.add(a)
+        nextMatched.add(b)
+        setMatched(nextMatched)
+        setFlipped([])
+        lockRef.current = false
+        if (nextMatched.size === deck.length) {
+          finishWin(newMoves, mistakes)
+        }
+      }, 420)
+    } else {
+      setMistakes((m) => m + 1)
+      setWrongPair([a, b])
+      window.setTimeout(() => {
+        if (genRef.current !== gen) return
+        sfx.play('wrong', { volume: 0.35 })
+        navigator.vibrate?.(15)
+        setFlipped([])
+        setWrongPair(null)
+        lockRef.current = false
+      }, 850)
     }
   }
 
-  const pairsTotal = deck.length / 2
+  /* --- Géométrie du plateau : la grille entière tient dans le budget
+         vertical mobile (≈ 100dvh − 246px) grâce à une largeur maximale
+         dérivée du ratio colonnes/lignes (espacement 8 px inclus). --- */
+  const gSize: SizeId = dailyMode ? dailyConfig.size : size
+  const pairsTotal = SIZES[gSize].pairs
   const foundPairs = matched.size / 2
+  const wide = useMinWidth(640)
+  const cols = pairsTotal >= 12 && wide ? 6 : 4
+  const rows = Math.ceil((pairsTotal * 2) / cols)
+  const ratio = cols / rows
+  const extraGap = (ratio - 1) * 8
+  const gridStyle: React.CSSProperties = {
+    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+    maxWidth: `min(100%, 620px, calc((100dvh - 246px) * ${ratio.toFixed(4)} ${extraGap >= 0 ? '+' : '-'} ${Math.abs(extraGap).toFixed(1)}px))`,
+    containerType: 'inline-size',
+  }
+
+  /* --- Partage du résultat --- */
+  const onShare = useCallback(async () => {
+    if (!won) return
+    sfx.play('click')
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
+        : ''
+    const txt =
+      lang === 'fr'
+        ? `J’ai terminé la grille de ${pairsTotal} paires de Memory Match en ${won.moves} coups (${fmt(won.time)}) sur Granmed ! Peux-tu faire mieux ? ${url}`
+        : `I cleared the ${pairsTotal}-pair Memory Match grid in ${won.moves} moves (${fmt(won.time)}) on Granmed! Can you beat that? ${url}`
+    const ok = await shareText('Granmed — Memory Match', txt)
+    if (ok) toast.success(t('common.copied'))
+  }, [won, lang, pairsTotal, t])
 
   /* --- Rendu --- */
   return (
     <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+      <Confetti fire={confettiKey} count={110} />
 
-      {/* Barre de configuration */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {phase === 'idle' || phase === 'won' ? (
-          <>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.theme_name')}>
-              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={theme === id && !dailyMode}
-                  onClick={() => {
-                    sfx.play('click', { volume: 0.5 })
-                    setTheme(id)
-                    setDailyMode(false)
-                  }}
-                  className={cn(
-                    'flex h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-all',
-                    theme === id && !dailyMode
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
-                  )}
-                >
-                  <span aria-hidden="true">{THEMES[id].icon}</span>
-                  <span className="hidden sm:inline">{THEMES[id].label[lang]}</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.difficulty')}>
+      {phase === 'idle' ? (
+        /* ============ Écran de réglages compact : « Jouer » visible sans scroll ============ */
+        <div className="space-y-2">
+          {!dailyDone ? (
+            <button
+              type="button"
+              onClick={() => startGame({ daily: true })}
+              className="flex h-11 w-full items-center gap-2 rounded-xl border border-amber-300/60 bg-amber-50 px-3 text-left transition-colors hover:bg-amber-100/70 active:scale-[0.99] dark:border-amber-500/25 dark:bg-amber-500/10 dark:hover:bg-amber-500/15"
+            >
+              <CalendarCheck className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-xs font-bold text-amber-800 dark:text-amber-300">
+                {t('common.daily')} · {THEMES[dailyConfig.theme].label[lang]} · {SIZES[dailyConfig.size].pairs} {L.pairsWord}
+              </span>
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white">
+                <Play className="h-3 w-3" aria-hidden="true" />
+                {t('common.play')}
+              </span>
+            </button>
+          ) : null}
+
+          {/* Thèmes — chips condensées sur une ligne */}
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.theme_name')}>
+            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={theme === id}
+                title={THEMES[id].label[lang]}
+                onClick={() => {
+                  sfx.play('click', { volume: 0.5 })
+                  setTheme(id)
+                }}
+                className={cn(
+                  'flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all',
+                  theme === id
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                )}
+              >
+                <span aria-hidden="true">{THEMES[id].icon}</span>
+                <span className="hidden sm:inline">{THEMES[id].label[lang]}</span>
+                <span className="sr-only sm:hidden">{THEMES[id].label[lang]}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Tailles + chronomètre */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.size')}>
               {(Object.keys(SIZES) as SizeId[]).map((id) => (
                 <button
                   key={id}
                   type="button"
-                  aria-pressed={size === id && !dailyMode}
+                  aria-pressed={size === id}
+                  title={SIZES[id].label[lang]}
                   onClick={() => {
                     sfx.play('click', { volume: 0.5 })
                     setSize(id)
-                    setDailyMode(false)
                   }}
                   className={cn(
-                    'h-11 rounded-full border px-3.5 text-sm font-bold transition-all',
-                    size === id && !dailyMode
+                    'flex h-9 min-w-11 items-center justify-center gap-1 rounded-full border px-2.5 text-xs font-bold transition-all',
+                    size === id
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
                   )}
@@ -352,169 +488,152 @@ export default function MemoryMatchGame() {
                 </button>
               ))}
             </div>
-            <div className="ms-auto flex items-center gap-3">
-              <div className="flex h-11 items-center gap-2 rounded-full border bg-card px-3.5">
-                <Switch
-                  id="timer-switch"
-                  checked={showTimer}
-                  onCheckedChange={(v) => {
-                    sfx.play('click', { volume: 0.4 })
-                    setShowTimer(v)
-                  }}
-                  aria-label={t('common.optionalTimer')}
-                />
-                <Label htmlFor="timer-switch" className="cursor-pointer text-sm text-muted-foreground">
-                  <Timer className="h-4 w-4" aria-hidden="true" />
-                </Label>
-              </div>
-              <Button size="lg" className="h-11 rounded-full px-5 anim-glow" onClick={() => startGame()}>
-                <Play className="h-4 w-4" aria-hidden="true" />
-                {t('common.start')}
-              </Button>
+            <div className="ms-auto flex h-9 shrink-0 items-center gap-2 rounded-full border bg-card px-3">
+              <Switch
+                id="timer-switch"
+                checked={showTimer}
+                onCheckedChange={(v) => {
+                  sfx.play('click', { volume: 0.4 })
+                  setShowTimer(v)
+                }}
+                aria-label={t('common.optionalTimer')}
+              />
+              <Label htmlFor="timer-switch" className="cursor-pointer text-muted-foreground">
+                <Timer className="h-4 w-4" aria-hidden="true" />
+              </Label>
             </div>
-          </>
-        ) : (
-          <>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatPill icon={<Footprints className="h-4 w-4" aria-hidden="true" />} label={t('common.moves')} value={moves} />
-              {showTimer ? <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={fmt(elapsed)} /> : null}
-              <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={t('common.progress')} value={`${foundPairs}/${pairsTotal}`} />
-              {dailyMode ? (
-                <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                  {t('common.daily')}
+          </div>
+
+          {/* Jouer */}
+          <Button size="lg" className="anim-glow h-12 w-full rounded-2xl text-base" onClick={() => startGame()}>
+            <Play className="h-5 w-5" aria-hidden="true" />
+            {t('common.playNow')}
+          </Button>
+
+          {/* Aperçu compact du thème choisi */}
+          <div className="checkerboard flex h-[min(24dvh,190px)] w-full flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center">
+            <div className="flex gap-2.5" aria-hidden="true">
+              {THEMES[theme].emojis.slice(0, 4).map((e, i) => (
+                <span key={i} className="anim-floaty text-3xl" style={{ animationDelay: `${i * 0.45}s` }}>
+                  {e}
                 </span>
-              ) : null}
+              ))}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {THEMES[theme].label[lang]} · {SIZES[size].label[lang]}
+            </p>
+          </div>
+        </div>
+      ) : phase === 'playing' ? (
+        /* ============ Partie en cours : HUD une ligne + plateau à l'écran ============ */
+        <>
+          <div className="mb-2 flex items-center gap-1.5">
+            <StatChip icon={<Footprints className="h-3.5 w-3.5" aria-hidden="true" />} label={t('common.moves')} value={moves} />
+            <StatChip icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.pairs} value={`${foundPairs}/${pairsTotal}`} />
+            {showTimer ? <StatChip icon={<Timer className="h-3.5 w-3.5" aria-hidden="true" />} value={fmt(elapsed)} /> : null}
+            {dailyMode ? (
+              <span
+                title={t('common.daily')}
+                className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+              >
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t('common.daily')}</span>
+              </span>
+            ) : null}
             <Button
               variant="secondary"
-              size="lg"
-              className="ms-auto h-11 rounded-full"
-              onClick={() => {
-                sfx.play('click')
-                startGame({ daily: dailyMode })
-              }}
+              size="sm"
+              className="ms-auto h-9 shrink-0 gap-1.5 rounded-full px-3"
+              aria-label={t('common.restart')}
+              onClick={() => startGame({ daily: dailyMode })}
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {t('common.restart')}
+              <span className="hidden sm:inline">{t('common.restart')}</span>
             </Button>
-          </>
-        )}
-      </div>
-
-      {/* Bouton défi du jour */}
-      {phase !== 'playing' && !dailyDone ? (
-        <button
-          type="button"
-          onClick={() => {
-            sfx.play('pop')
-            startGame({ daily: true })
-          }}
-          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-left transition-transform hover:scale-[1.01] dark:border-amber-500/25 dark:bg-amber-500/10"
-        >
-          <span className="text-2xl" aria-hidden="true">🎁</span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">{t('common.daily')} — {todayKey()}</span>
-            <span className="block text-xs text-muted-foreground">
-              {THEMES[dailyConfig.theme].label[lang]} · {SIZES[dailyConfig.size].label[lang]}
-            </span>
-          </span>
-          <span className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white">{t('game.startDaily')}</span>
-        </button>
-      ) : null}
-
-      {/* Plateau */}
-      {phase === 'idle' ? (
-        <div className="checkerboard flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
-          <div className="flex gap-2" aria-hidden="true">
-            {['🍓', '🥕', '🐝', '📺'].map((e, i) => (
-              <span key={i} className="text-4xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>
-                {e}
-              </span>
-            ))}
           </div>
-          <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
-        </div>
-      ) : (
-        <div
-          className={cn(
-            'mx-auto grid w-fit gap-2 sm:gap-3',
-            SIZES[dailyMode ? dailyConfig.size : size].cols,
-          )}
-          role="grid"
-          aria-label={t('common.rules')}
-        >
-          {deck.map((card, idx) => {
-            const isFlipped = flipped.includes(idx) || matched.has(idx)
-            const isMatched = matched.has(idx)
-            return (
-              <button
-                key={card.id}
-                type="button"
-                role="gridcell"
-                aria-label={isFlipped ? card.emoji : t('common.play')}
-                disabled={isMatched}
-                onClick={() => flip(idx)}
-                className={cn(
-                  'flip-scene h-[ clamp(56px, 16vw, 88px) ] w-[ clamp(56px, 16vw, 88px) ] focus-visible:outline-2 focus-visible:outline-ring sm:h-20 sm:w-20 md:h-24 md:w-24',
-                  isMatched && 'anim-pop-in',
-                )}
-              >
-                <div className={cn('flip-inner relative h-full w-full no-select', isFlipped && 'flipped')}>
-                  <div className="flip-face absolute inset-0 flex items-center justify-center rounded-xl border-2 border-primary/25 bg-gradient-to-br from-primary to-orange-400 shadow-sm transition-transform hover:scale-[1.04]">
-                    <svg viewBox="0 0 24 24" className="h-6 w-6 text-primary-foreground/90" fill="none" aria-hidden="true">
-                      <path d="M12 21c-4.5-2.2-7.5-5.6-7.5-9.6C4.5 7.5 7.5 5 10.2 5c1 0 1.8.4 1.8.4S12.8 5 13.8 5C16.5 5 19.5 7.5 19.5 11.4c0 4-3 7.4-7.5 9.6Z" fill="currentColor" opacity="0.35" />
-                      <path d="M12 17.5v-5m0 0c0-1.8 1.6-3 3.4-3 0 1.9-1.5 3-3.4 3Zm0 1.2c0-1.6-1.4-2.8-3-2.8 0 1.7 1.3 2.8 3 2.8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div
-                    className={cn(
-                      'flip-face flip-back absolute inset-0 flex items-center justify-center rounded-xl border-2 text-3xl shadow-sm sm:text-4xl md:text-5xl',
-                      isMatched
-                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/15'
-                        : 'border-border bg-card',
-                    )}
-                  >
-                    {card.emoji}
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      )}
 
-      {/* Écran de victoire */}
-      {won ? (
-        <div className="anim-rise mt-5 rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10" role="status">
-          <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
-            <StatPill icon={<Footprints className="h-4 w-4" aria-hidden="true" />} label={t('common.moves')} value={won.moves} />
-            <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={fmt(won.time)} />
+          <div key={deal} className="anim-rise mx-auto grid w-full gap-2" style={gridStyle} role="group" aria-label={L.board}>
+            {deck.map((card, idx) => {
+              const isFlipped = flipped.includes(idx) || matched.has(idx)
+              const isMatched = matched.has(idx)
+              const isWrong = wrongPair?.includes(idx) ?? false
+              return (
+                <button
+                  key={`${deal}-${card.id}`}
+                  type="button"
+                  aria-label={
+                    isMatched
+                      ? `${L.card} ${idx + 1} — ${L.matched}`
+                      : isFlipped
+                        ? `${L.card} ${idx + 1} : ${card.emoji}`
+                        : `${L.card} ${idx + 1}`
+                  }
+                  disabled={isMatched}
+                  onClick={() => flip(idx)}
+                  className={cn(
+                    'flip-scene aspect-square w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    isWrong && 'anim-shake',
+                    isMatched && 'anim-pop-in',
+                  )}
+                >
+                  <div className={cn('flip-inner relative h-full w-full no-select', isFlipped && 'flipped')}>
+                    <div className="flip-face absolute inset-0 flex items-center justify-center rounded-xl border-2 border-primary/25 bg-gradient-to-br from-primary to-orange-400 shadow-sm transition-transform hover:scale-[1.04]">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 text-primary-foreground/90 sm:h-6 sm:w-6" fill="none" aria-hidden="true">
+                        <path d="M12 21c-4.5-2.2-7.5-5.6-7.5-9.6C4.5 7.5 7.5 5 10.2 5c1 0 1.8.4 1.8.4S12.8 5 13.8 5C16.5 5 19.5 7.5 19.5 11.4c0 4-3 7.4-7.5 9.6Z" fill="currentColor" opacity="0.35" />
+                        <path d="M12 17.5v-5m0 0c0-1.8 1.6-3 3.4-3 0 1.9-1.5 3-3.4 3Zm0 1.2c0-1.6-1.4-2.8-3-2.8 0 1.7 1.3 2.8 3 2.8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div
+                      className={cn(
+                        'flip-face flip-back absolute inset-0 flex items-center justify-center rounded-xl border-2 shadow-sm',
+                        isMatched ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/15' : 'border-border bg-card',
+                      )}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="leading-none"
+                        style={{ fontSize: cols === 4 ? 'min(14cqw, 4rem)' : 'min(10cqw, 3.5rem)' }}
+                      >
+                        {card.emoji}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      ) : won ? (
+        /* ============ Victoire : résumé + actions immédiatement visibles ============ */
+        <div
+          className="anim-rise mx-auto w-full max-w-md rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-4 text-center sm:p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10"
+          role="status"
+        >
+          <p className="font-display text-xl font-extrabold text-emerald-700 dark:text-emerald-300 sm:text-2xl">🎉 {t('common.victory')}</p>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            <StatChip icon={<Footprints className="h-3.5 w-3.5" aria-hidden="true" />} label={t('common.moves')} value={won.moves} />
+            <StatChip icon={<Timer className="h-3.5 w-3.5" aria-hidden="true" />} label={t('common.time')} value={fmt(won.time)} />
+            <StatChip icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.pairs} value={pairsTotal} />
+            <StatChip icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} value={`+${won.xp} XP`} />
+            {won.mistakes === 0 ? (
+              <span className="flex h-9 items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                ✨ {L.flawless}
+              </span>
+            ) : null}
             {won.isRecord ? (
-              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+              <span className="flex h-9 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
                 <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
               </span>
             ) : null}
           </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => startGame({ daily: dailyMode })}>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Button ref={replayBtnRef} size="lg" className="rounded-full" onClick={() => startGame({ daily: dailyMode })}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
             </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="rounded-full"
-              onClick={async () => {
-                sfx.play('click')
-                const url = typeof window !== 'undefined' ? window.location.href.split('#')[0] + `#/${lang === 'fr' ? 'fr/jeu-memory' : 'en/memory-match'}` : ''
-                const txt =
-                  lang === 'fr'
-                    ? `J’ai terminé la grille de ${pairsTotal} paires de Memory Match en ${won.moves} coups (${fmt(won.time)}) sur Granmed ! Peux-tu faire mieux ? ${url}`
-                    : `I cleared the ${pairsTotal}-pair Memory Match grid in ${won.moves} moves (${fmt(won.time)}) on Granmed! Can you beat that? ${url}`
-                await shareGame(txt)
-              }}
-            >
+            <Button size="lg" variant="secondary" className="rounded-full" onClick={goIdle}>
+              <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
+            </Button>
+            <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
               <Share2 className="h-4 w-4" aria-hidden="true" /> {t('common.share')}
             </Button>
           </div>
@@ -524,11 +643,12 @@ export default function MemoryMatchGame() {
   )
 }
 
-function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+/* ================= Sous-composants ================= */
+function StatChip({ icon, label, value }: { icon: React.ReactNode; label?: string; value: React.ReactNode }) {
   return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+    <span className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-semibold">
       <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
-      <span className="text-muted-foreground">{label}</span>
+      {label ? <span className="text-[11px] font-medium text-muted-foreground">{label}</span> : null}
       <span className="tabular-nums">{value}</span>
     </span>
   )
@@ -539,18 +659,4 @@ function fmt(ms: number): string {
   if (s < 60) return `${s.toFixed(1)}s`
   const m = Math.floor(s / 60)
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`
-}
-
-async function shareGame(text: string) {
-  try {
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      await navigator.share({ title: 'Granmed — Memory Match', text })
-      return
-    }
-  } catch {
-    /* annulé */
-  }
-  try {
-    await navigator.clipboard.writeText(text)
-  } catch {}
 }

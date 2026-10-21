@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, Undo2, CalendarCheck, Timer, Hash } from 'lucide-react'
+import { Play, RotateCcw, Undo2, CalendarCheck, Hash, Trophy, Cherry } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
+import type { Lang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 import { todayKey, seedFromString, shuffle, useReducedMotion } from '@/lib/utils-game'
@@ -100,7 +101,7 @@ export const content: GameSEOContent = {
       { q: '2048 Nutrition est-il le vrai 2048 ?', a: 'Oui : les mécaniques sont exactement celles du 2048 original — puissances de 2, fusions limitées à une par tuile et par coup, apparitions aléatoires de 2 et de 4. Seul l’habillage visuel change.' },
       { q: 'Comment le score est-il calculé ?', a: 'Chaque fusion ajoute la valeur de la tuile créée : fusionner deux tuiles 128 ajoute ainsi 256 au score, et ainsi de suite.' },
       { q: 'Peut-on dépasser 2048 ?', a: 'Oui. Après la tuile 2048, un bouton « Continuer » vous laisse jouer vers 4096, 8192 et au-delà — des badges récompensent chaque palier.' },
-      { q: 'Le défi du jour est-il le même pour tous ?', a: 'Oui : les tuiles de départ sont tirées d’une graine déterministe basée sur la date, et toute la partie suit cette graine. Tout le joueur joue donc la même grille ce jour-là.' },
+      { q: 'Le défi du jour est-il le même pour tous ?', a: 'Oui : les tuiles de départ sont tirées d’une graine déterministe basée sur la date, et toute la partie suit cette graine. Tous les joueurs jouent donc la même grille ce jour-là.' },
       { q: 'Puis-je annuler un coup ?', a: 'Oui, trois fois par partie. L’annulation restaure le plateau et le score d’avant votre dernier coup ; elle est utilisable même après un game over.' },
     ],
     en: [
@@ -152,11 +153,21 @@ const KEYMAP: Record<string, Dir> = {
   d: 'right', D: 'right',
 }
 
+/** Seuil de déclenchement d'un balayage tactile (px). */
+const SWIPE_THRESHOLD = 24
+
+interface PrevState {
+  board: number[]
+  score: number
+  rngState: number
+  moves: number
+}
+
 interface Game2048 {
   board: number[]
   score: number
   undos: number
-  prev: { board: number[]; score: number } | null
+  prev: PrevState | null
   won: boolean
   ack: boolean
   over: boolean
@@ -168,7 +179,7 @@ interface Game2048 {
   xpAwarded: boolean
 }
 
-/** Générateur pseudo-aléatoire dont l'état (serialisable) permet des parties déterministes. */
+/** Générateur pseudo-aléatoire dont l'état (sérialisable) permet des parties déterministes. */
 function rngStep(s: number): [number, number] {
   const a = (s + 0x6d2b79f5) | 0
   let t = Math.imul(a ^ (a >>> 15), 1 | a)
@@ -188,7 +199,7 @@ function makeRng(seed: number): { next: () => number; state: () => number } {
   }
 }
 
-/** Fusionne une ligne de 4 valeurs dans l'ordre du mouvement. */
+/** Fusionne une ligne de 4 valeurs dans l'ordre du mouvement (au plus une fusion par tuile et par coup). */
 function slideLine(vals: number[]): { line: number[]; gained: number; merged: boolean[] } {
   const out: number[] = []
   const merged: boolean[] = []
@@ -237,14 +248,37 @@ function canMove(b: number[]): boolean {
   return false
 }
 
+function highestTile(b: number[]): number {
+  return b.reduce((a, v) => Math.max(a, v), 0)
+}
+
+function isPow2(v: number): boolean {
+  return v > 0 && (v & (v - 1)) === 0
+}
+
+/** 12340 → « 12 340 » (fr) / « 12,340 » (en) au-delà de 9 999. */
+function formatNum(v: number, lang: Lang): string {
+  return v >= 10000 ? v.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US') : String(v)
+}
+
+/** Taille de police d'une tuile chiffres, proportionnelle au plateau (container queries). */
+function tileFontClass(v: number): string {
+  if (v >= 4096) return 'text-[clamp(15px,6.4cqw,30px)]'
+  if (v >= 1024) return 'text-[clamp(17px,7.2cqw,34px)]'
+  return 'text-[clamp(20px,9cqw,40px)]'
+}
+
 const STR = {
   fr: {
     score: 'Score',
     moves: 'Coups',
-    undo: 'Annuler',
+    undo: 'Annuler le dernier coup',
+    undosLeft: 'Annuler ({n} restant)',
     classic: 'Classique',
     themed: 'Thématique',
-    dailyGoal: 'Objectif du jour : atteindre 256',
+    toClassic: 'Basculer en mode Classique (chiffres)',
+    toThemed: 'Basculer en mode Thématique (aliments)',
+    dailyGoal: 'Objectif du jour : créer la tuile 256',
     dailyDone: 'Objectif du jour atteint : tuile 256 !',
     winTitle: '2048 atteint !',
     winSub: 'Banquet complet 🍉 — continuez vers 4096 ou lancez une nouvelle partie.',
@@ -255,14 +289,19 @@ const STR = {
     dailyGame: 'Défi du jour en cours',
     points: 'points',
     board: 'Plateau 2048',
+    recordLive: 'Vous battez votre record !',
+    bestLine: 'Record',
   },
   en: {
     score: 'Score',
     moves: 'Moves',
-    undo: 'Undo',
+    undo: 'Undo last move',
+    undosLeft: 'Undo ({n} left)',
     classic: 'Classic',
     themed: 'Themed',
-    dailyGoal: 'Daily goal: reach 256',
+    toClassic: 'Switch to Classic mode (numbers)',
+    toThemed: 'Switch to Themed mode (foods)',
+    dailyGoal: 'Daily goal: create the 256 tile',
     dailyDone: 'Daily goal reached: 256 tile!',
     winTitle: '2048 reached!',
     winSub: 'Full banquet 🍉 — keep going for 4096 or start a new game.',
@@ -273,6 +312,8 @@ const STR = {
     dailyGame: 'Daily challenge in progress',
     points: 'points',
     board: '2048 board',
+    recordLive: 'You are beating your record!',
+    bestLine: 'Best',
   },
 }
 
@@ -289,22 +330,47 @@ export default function Game2048() {
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
+  const bestScoreRaw = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-score']?.value)
+  const bestTileRaw = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-tile']?.value)
+  const bestScore = bestScoreRaw ?? 0
+  const bestTile = bestTileRaw ?? 0
 
   const [game, setGame] = useState<Game2048 | null>(null)
   const [restored, setRestored] = useState<Game2048 | null>(null)
+  const [modePref, setModePref] = useState<Mode>('classic')
   const [bumps, setBumps] = useState<number[]>(() => new Array(16).fill(0))
   const [animKind, setAnimKind] = useState<AnimKind[]>(() => new Array(16).fill(null))
   const [confettiKey, setConfettiKey] = useState(0)
+  const [gainFx, setGainFx] = useState<{ n: number; k: number } | null>(null)
   const swipeRef = useRef<{ x: number; y: number } | null>(null)
   const moveRef = useRef<(d: Dir) => void>(() => {})
+  const lockedRef = useRef(true)
+  const fxKey = useRef(0)
 
-  /* --- Restauration au montage (callback asynchrone) --- */
+  /* --- Restauration au montage (callback asynchrone, conforme set-state-in-effect) --- */
   useEffect(() => {
     let alive = true
     Promise.resolve().then(() => {
       if (!alive) return
       const s = loadSave<Game2048>(gameId)
-      if (s && Array.isArray(s.board) && s.board.length === 16 && !s.over) setRestored(s)
+      if (
+        s &&
+        Array.isArray(s.board) &&
+        s.board.length === 16 &&
+        s.board.every((v) => v === 0 || isPow2(v)) &&
+        typeof s.score === 'number' &&
+        typeof s.rngState === 'number' &&
+        !s.over
+      ) {
+        setRestored({
+          ...s,
+          mode: s.mode === 'themed' ? 'themed' : 'classic',
+          prev:
+            s.prev && typeof s.prev.rngState === 'number' && typeof s.prev.moves === 'number' && Array.isArray(s.prev.board) && s.prev.board.length === 16
+              ? s.prev
+              : null,
+        })
+      }
     })
     return () => {
       alive = false
@@ -317,28 +383,26 @@ export default function Game2048() {
     saveSave(gameId, game)
   }, [game])
 
-  /* --- Animations ciblées --- */
-  function markAnim(idxs: number[], kind: Exclude<AnimKind, null>) {
-    if (idxs.length === 0) return
-    setBumps((b) => {
-      const n = [...b]
-      for (const i of idxs) n[i]++
-      return n
-    })
-    setAnimKind((k) => {
-      const n = [...k]
-      for (const i of idxs) n[i] = kind
-      return n
-    })
-  }
+  /* --- Clavier : flèches + WASD/ZQSD (abonné une seule fois) --- */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (lockedRef.current || e.defaultPrevented) return
+      const dir = KEYMAP[e.key]
+      if (!dir) return
+      // Ne pas voler les touches pendant qu'un dialogue ou un menu global est ouvert.
+      if (document.querySelector('[role="dialog"], [role="menu"]')) return
+      e.preventDefault()
+      moveRef.current(dir)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
-  /* --- Fin de partie : XP + records (une seule fois) --- */
-  function awardEnd(score: number, board: number[], alreadyAwarded: boolean): boolean {
-    if (alreadyAwarded) return true
-    addXp(Math.floor(score / 50))
+  /* --- Fin de partie : XP une seule fois, records à chaque palier (setBest est idempotent) --- */
+  function awardEnd(score: number, board: number[], alreadyAwarded: boolean): void {
     setBest(gameId, 'best-score', score, false)
-    setBest(gameId, 'best-tile', board.reduce((a, b) => Math.max(a, b), 0), false)
-    return true
+    setBest(gameId, 'best-tile', highestTile(board), false)
+    if (!alreadyAwarded) addXp(Math.floor(score / 50))
   }
 
   /* --- Nouvelle partie --- */
@@ -353,12 +417,17 @@ export default function Game2048() {
     board[spots[1]] = rng.next() < 0.9 ? 2 : 4
     setRestored(null)
     setBumps(new Array(16).fill(0))
-    setAnimKind(new Array(16).fill(null))
+    setAnimKind(() => {
+      const n: AnimKind[] = new Array(16).fill(null)
+      n[spots[0]] = 'new'
+      n[spots[1]] = 'new'
+      return n
+    })
+    setGainFx(null)
     setGame({
       board, score: 0, undos: 3, prev: null, won: false, ack: false, over: false,
-      daily, daily256: false, rngState: rng.state(), mode: game?.mode ?? 'classic', moves: 0, xpAwarded: false,
+      daily, daily256: false, rngState: rng.state(), mode: modePref, moves: 0, xpAwarded: false,
     })
-    markAnim([spots[0], spots[1]], 'new')
     addPlay(gameId)
     sfx.play('pop')
   }
@@ -369,6 +438,7 @@ export default function Game2048() {
     setRestored(null)
     setBumps(new Array(16).fill(0))
     setAnimKind(new Array(16).fill(null))
+    setModePref(restored.mode)
     addPlay(gameId)
     sfx.play('pop')
   }
@@ -398,6 +468,7 @@ export default function Game2048() {
     sfx.play('swish', { volume: 0.25 })
     if (mergedIdx.length > 0) sfx.play('merge')
 
+    // Spawn d'une nouvelle tuile (2 ou 4) sur une case LIBRE uniquement.
     const rng = makeRng(game.rngState)
     let spawnIdx = -1
     const empties: number[] = []
@@ -405,23 +476,47 @@ export default function Game2048() {
     if (empties.length > 0) {
       spawnIdx = empties[Math.floor(rng.next() * empties.length)]
       next[spawnIdx] = rng.next() < 0.9 ? 2 : 4
+      sfx.play('pop', { volume: 0.18 })
     }
 
     const newScore = score + gained
     if (Math.floor(newScore / 500) > Math.floor(score / 500)) sfx.play('coin')
+    if (mergedIdx.length >= 2) navigator.vibrate?.(10)
+
+    // Franchissement du record personnel en direct.
+    if (bestScore > 0 && score <= bestScore && newScore > bestScore) {
+      sfx.play('coin')
+      navigator.vibrate?.(10)
+    }
 
     setGame({
       ...game,
       board: next,
       score: newScore,
-      prev: { board, score },
+      prev: { board, score, rngState: game.rngState, moves: game.moves },
       rngState: rng.state(),
       moves: game.moves + 1,
     })
-    markAnim(mergedIdx, 'merged')
-    if (spawnIdx >= 0) markAnim([spawnIdx], 'new')
 
-    const maxTile = next.reduce((a, b) => Math.max(a, b), 0)
+    // Animations reconstruites à chaque coup (aucune classe périmée).
+    const nextAnim: AnimKind[] = new Array(16).fill(null)
+    for (const i of mergedIdx) nextAnim[i] = 'merged'
+    if (spawnIdx >= 0) nextAnim[spawnIdx] = 'new'
+    setAnimKind(nextAnim)
+    if (mergedIdx.length > 0 || spawnIdx >= 0) {
+      setBumps((b) => {
+        const n = [...b]
+        for (const i of mergedIdx) n[i]++
+        if (spawnIdx >= 0) n[spawnIdx]++
+        return n
+      })
+    }
+    if (gained > 0) {
+      fxKey.current += 1
+      setGainFx({ n: gained, k: fxKey.current })
+    }
+
+    const maxTile = highestTile(next)
     if (maxTile >= 1024) unlockBadge('n2048-1024')
     if (maxTile >= 2048) unlockBadge('n2048-2048')
     if (maxTile >= 4096) unlockBadge('n2048-4096')
@@ -429,59 +524,75 @@ export default function Game2048() {
     if (game.daily && !game.daily256 && maxTile >= 256) {
       setGame((g) => (g ? { ...g, daily256: true } : g))
       sfx.play('achievement')
+      navigator.vibrate?.(10)
       completeDaily(gameId)
       toast('🎯', { description: L.dailyDone, duration: 4500 })
     }
 
     if (!game.won && maxTile >= 2048) {
-      const awarded = awardEnd(newScore, next, game.xpAwarded)
-      setGame((g) => (g ? { ...g, won: true, xpAwarded: awarded } : g))
+      awardEnd(newScore, next, game.xpAwarded)
+      setGame((g) => (g ? { ...g, won: true, xpAwarded: true } : g))
       setConfettiKey((k) => k + 1)
       sfx.play('win')
+      navigator.vibrate?.(20)
       addWin(gameId)
     } else if (!canMove(next)) {
-      const awarded = awardEnd(newScore, next, game.xpAwarded)
-      setGame((g) => (g ? { ...g, over: true, xpAwarded: awarded } : g))
+      awardEnd(newScore, next, game.xpAwarded)
+      setGame((g) => (g ? { ...g, over: true, xpAwarded: true } : g))
       sfx.play('lose')
       clearSave(gameId)
     }
   }
 
-  /* --- Annulation --- */
+  /* --- Refs toujours à jour (handlers globaux sans closure périmée) --- */
+  useEffect(() => {
+    moveRef.current = move
+    lockedRef.current = !game || game.over || (game.won && !game.ack)
+  })
+
+  /* --- Annulation : vrai retour arrière (plateau, score, RNG et coups) --- */
   function undo() {
     if (!game || !game.prev || game.undos <= 0) return
     sfx.play('sweep')
+    const p = game.prev
     setGame({
       ...game,
-      board: game.prev.board,
-      score: game.prev.score,
+      board: p.board,
+      score: p.score,
+      rngState: p.rngState,
+      moves: p.moves,
       prev: null,
       undos: game.undos - 1,
       over: false,
     })
-    setAnimKind(new Array(16).fill(null))
+    setGainFx(null)
+    const nextAnim: AnimKind[] = new Array(16).fill(null)
+    const idxs: number[] = []
+    for (let i = 0; i < 16; i++) {
+      if (p.board[i] !== 0) {
+        nextAnim[i] = 'new'
+        idxs.push(i)
+      }
+    }
+    setAnimKind(nextAnim)
+    setBumps((b) => {
+      const n = [...b]
+      for (const i of idxs) n[i]++
+      return n
+    })
   }
 
-  /* --- Clavier : flèches + WASD/ZQSD (ref => toujours à jour) --- */
-  useEffect(() => {
-    moveRef.current = move
-  })
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!game || game.over || (game.won && !game.ack)) return
-      const dir = KEYMAP[e.key]
-      if (!dir) return
-      e.preventDefault()
-      moveRef.current(dir)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [game])
+  /* --- Mode d'affichage (chiffres / aliments) --- */
+  function toggleMode() {
+    sfx.play('click', { volume: 0.5 })
+    setModePref((m) => (m === 'classic' ? 'themed' : 'classic'))
+    setGame((g) => (g ? { ...g, mode: g.mode === 'classic' ? 'themed' : 'classic' } : g))
+  }
 
-  /* --- Balayage tactile --- */
+  /* --- Balayage tactile (pointer events + capture, seuil 24 px, axe dominant) --- */
   function onPointerDown(e: React.PointerEvent) {
     // Pas de capture quand un voile (victoire / fin) affiche des boutons : le clic doit passer.
-    if (game?.over || (game?.won && !game.ack)) return
+    if (lockedRef.current) return
     swipeRef.current = { x: e.clientX, y: e.clientY }
     try {
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
@@ -496,34 +607,42 @@ export default function Game2048() {
     const dy = e.clientY - s.y
     const adx = Math.abs(dx)
     const ady = Math.abs(dy)
-    if (Math.max(adx, ady) < 28) return
+    if (Math.max(adx, ady) < SWIPE_THRESHOLD) return
     if (adx > ady) moveRef.current(dx > 0 ? 'right' : 'left')
     else moveRef.current(dy > 0 ? 'down' : 'up')
   }
 
-  /* --- Rendu --- */
+  /* --- Rendu : écran d'accueil compact (bouton Jouer immédiatement visible) --- */
   if (!game) {
-    /* Menu : reprise / nouvelle partie / défi du jour */
     return (
-      <div className="checkerboard flex min-h-[360px] select-none flex-col items-center justify-center gap-5 rounded-2xl border p-6 text-center">
+      <div className="checkerboard flex min-h-[300px] select-none flex-col items-center justify-center gap-3.5 rounded-2xl border p-5 text-center sm:min-h-[380px] sm:gap-4 sm:p-8">
         <div className="flex gap-2" aria-hidden="true">
           {['🍒', '🍓', '🍊', '🍉'].map((e, i) => (
-            <span key={i} className={cn('text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
+            <span key={i} className={cn('text-3xl sm:text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
               {e}
             </span>
           ))}
         </div>
-        <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
-        {restored ? (
-          <Button size="lg" className="rounded-full px-6 anim-glow" onClick={resumeGame}>
-            <Play className="h-4 w-4" aria-hidden="true" />
-            {t('game.resume')}
-          </Button>
+        {bestScore > 0 ? (
+          <p className="flex items-center gap-1.5 rounded-full bg-secondary/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
+            <Trophy className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+            {L.bestLine}&nbsp;<span className="font-extrabold tabular-nums text-foreground">{formatNum(bestScore, lang)}</span>
+            <span aria-hidden="true">·</span>
+            <span aria-hidden="true">{FOOD[bestTile] ?? '🍽️'}</span>
+            <span className="tabular-nums">{bestTile}</span>
+          </p>
         ) : null}
+        <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
         <div className="flex flex-wrap items-center justify-center gap-2.5">
+          {restored ? (
+            <Button size="lg" className="rounded-full anim-glow" onClick={resumeGame}>
+              <Play className="h-4 w-4" aria-hidden="true" />
+              {t('game.resume')}
+            </Button>
+          ) : null}
           <Button size="lg" variant={restored ? 'secondary' : 'default'} className="rounded-full" onClick={() => startNew(false)}>
             <Play className="h-4 w-4" aria-hidden="true" />
-            {t('game.newGame')}
+            {restored ? t('game.newGame') : t('common.playNow')}
           </Button>
           <Button size="lg" variant="outline" className="rounded-full" onClick={() => startNew(true)} disabled={dailyDone}>
             <CalendarCheck className="h-4 w-4" aria-hidden="true" />
@@ -532,108 +651,136 @@ export default function Game2048() {
         </div>
         {restored ? (
           <p className="text-xs text-muted-foreground">
-            {restored.daily ? L.dailyGame : L.savedGame} — {restored.score} {L.points}
+            {restored.daily ? L.dailyGame : L.savedGame} — {formatNum(restored.score, lang)} {L.points}
           </p>
         ) : null}
+        <ModeToggle mode={modePref} labels={L} onToggle={toggleMode} />
       </div>
     )
   }
 
   const winOverlay = game.won && !game.ack && !game.over
-  const maxTile = game.board.reduce((a, b) => Math.max(a, b), 0)
+  const maxTile = highestTile(game.board)
+  const recordLive = bestScore > 0 && game.score > bestScore
+  const mode = game.mode
 
   return (
-    <div className="relative select-none">
+    <div className="relative mx-auto w-full max-w-[420px] select-none">
       <style>{'@keyframes merge-pulse-g { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } } .anim-merge-pulse-g { animation: merge-pulse-g 0.28s ease-out; }'}</style>
       <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
 
-      {/* Barre d'actions */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <StatPill icon={<Hash className="h-4 w-4" aria-hidden="true" />} label={L.score} value={game.score} />
-        <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={L.moves} value={game.moves} />
+      {/* HUD compact une ligne : score + record, annuler, mode, nouvelle partie */}
+      <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
+        <div className="relative flex h-11 min-w-[72px] flex-col items-center justify-center rounded-xl bg-secondary/70 px-2.5">
+          <span className="text-[10px] font-bold uppercase leading-none tracking-wider text-muted-foreground">{L.score}</span>
+          <span className={cn('mt-1 text-lg font-extrabold leading-none tabular-nums', recordLive && 'text-emerald-600 dark:text-emerald-400')}>
+            {formatNum(game.score, lang)}
+          </span>
+          {gainFx ? (
+            <span key={gainFx.k} aria-hidden="true" className="anim-score pointer-events-none absolute -top-1 end-2 text-sm font-extrabold text-emerald-500">
+              +{gainFx.n}
+            </span>
+          ) : null}
+        </div>
+        <div
+          title={recordLive ? L.recordLive : t('common.best')}
+          className={cn(
+            'flex h-11 min-w-[72px] flex-col items-center justify-center rounded-xl px-2.5 transition-colors',
+            recordLive ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-secondary/70',
+          )}
+        >
+          <span className="text-[10px] font-bold uppercase leading-none tracking-wider text-muted-foreground">{t('common.best')}</span>
+          <span className="mt-1 flex items-center gap-1 text-lg font-extrabold leading-none tabular-nums">
+            {recordLive ? <span className="text-xs" aria-hidden="true">🔥</span> : null}
+            {formatNum(Math.max(bestScore, game.score), lang)}
+          </span>
+        </div>
         {game.daily ? (
           <span
+            title={L.dailyGoal}
             className={cn(
-              'flex h-11 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold',
+              'flex h-11 items-center gap-1 rounded-xl px-2.5 text-xs font-extrabold',
               game.daily256
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                 : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
             )}
-            title={L.dailyGoal}
           >
-            🎯 256{game.daily256 ? ' ✅' : ''}
+            🎯<span className="tabular-nums">256</span>
+            {game.daily256 ? <span aria-hidden="true">✓</span> : null}
           </span>
         ) : null}
-        <div className="ms-auto flex flex-wrap items-center gap-2">
-          <div className="flex overflow-hidden rounded-full border" role="group" aria-label={t('common.mode')}>
-            {(['classic', 'themed'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                aria-pressed={game.mode === m}
-                onClick={() => {
-                  sfx.play('click', { volume: 0.5 })
-                  setGame((g) => (g ? { ...g, mode: m } : g))
-                }}
-                className={cn(
-                  'h-11 px-3.5 text-sm font-bold transition-colors',
-                  game.mode === m ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {m === 'classic' ? L.classic : L.themed}
-              </button>
-            ))}
-          </div>
+        <div className="ms-auto flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            className="h-11 gap-1.5 rounded-full px-3"
+            onClick={toggleMode}
+            title={mode === 'classic' ? L.toThemed : L.toClassic}
+            aria-label={mode === 'classic' ? L.toThemed : L.toClassic}
+          >
+            {mode === 'themed' ? <Cherry className="h-4 w-4" aria-hidden="true" /> : <Hash className="h-4 w-4" aria-hidden="true" />}
+            <span className="hidden text-xs sm:inline">{mode === 'themed' ? L.themed : L.classic}</span>
+          </Button>
           <Button
             variant="secondary"
-            className="h-11 rounded-full"
+            className="h-11 gap-1 rounded-full px-3"
             onClick={undo}
             disabled={!game.prev || game.undos <= 0}
-            title={L.undo}
+            title={game.undos > 0 ? L.undosLeft.replace('{n}', String(game.undos)) : L.undo}
+            aria-label={L.undo}
           >
             <Undo2 className="h-4 w-4" aria-hidden="true" />
-            {game.undos}
+            <span className="text-xs font-bold tabular-nums">{game.undos}</span>
           </Button>
-          <Button variant="secondary" className="h-11 rounded-full" onClick={() => startNew(game.daily)}>
+          <Button
+            variant="secondary"
+            className="h-11 rounded-full px-3"
+            onClick={() => startNew(game.daily)}
+            title={t('game.newGame')}
+            aria-label={t('game.newGame')}
+          >
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t('game.newGame')}</span>
           </Button>
         </div>
       </div>
 
-      {/* Plateau */}
+      {/* Plateau fluide : carré, borné par la largeur ET la hauteur disponible (aucun scroll requis) */}
       <div
-        role="grid"
+        role="group"
         aria-label={L.board}
-        className="relative mx-auto grid aspect-square w-[min(92vw,420px)] touch-none select-none grid-cols-4 grid-rows-4 gap-2 rounded-2xl border-2 border-amber-200/70 bg-amber-100/50 p-2 dark:border-amber-500/20 dark:bg-secondary/60"
+        className="relative mx-auto grid aspect-square w-full max-w-[calc(100dvh-240px)] touch-none select-none grid-cols-4 grid-rows-4 gap-1.5 rounded-2xl border-2 border-amber-200/70 bg-amber-100/60 p-1.5 [container-type:inline-size] sm:gap-2 sm:p-2 dark:border-amber-500/20 dark:bg-secondary/60"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={() => {
           swipeRef.current = null
         }}
+        onLostPointerCapture={() => {
+          swipeRef.current = null
+        }}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {game.board.map((v, i) => (
-          <div key={i} className="relative">
+          <div key={i} className="relative rounded-lg bg-amber-200/50 dark:bg-background/40">
             {v !== 0 ? (
               <div
                 key={`${i}-${bumps[i]}`}
+                aria-hidden="true"
                 className={cn(
-                  'absolute inset-0 flex flex-col items-center justify-center rounded-xl font-display font-extrabold leading-none shadow-sm',
+                  'absolute inset-0 flex flex-col items-center justify-center rounded-lg font-display font-extrabold leading-none shadow-sm sm:rounded-xl',
                   TILE_STYLE[v] ?? TILE_STYLE_BIG,
                   !reduce && animKind[i] === 'new' && 'anim-pop-in',
                   !reduce && animKind[i] === 'merged' && 'anim-merge-pulse-g',
                 )}
-                aria-label={String(v)}
               >
-                {game.mode === 'themed' ? (
+                {mode === 'themed' ? (
                   <>
-                    <span className="text-3xl sm:text-4xl" aria-hidden="true">{FOOD[v] ?? '🍽️'}</span>
-                    <span className="mt-0.5 text-[11px] font-bold tabular-nums opacity-80">{v}</span>
+                    <span className="text-[clamp(22px,10.5cqw,46px)]" aria-hidden="true">{FOOD[v] ?? '🍽️'}</span>
+                    <span className="mt-0.5 text-[clamp(9px,3.4cqw,14px)] font-bold tabular-nums opacity-80">{v}</span>
                   </>
                 ) : (
                   <>
-                    <span className={cn('tabular-nums', v >= 1024 ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl')}>{v}</span>
-                    <span className="absolute end-1 top-1 text-sm sm:text-base" aria-hidden="true">{FOOD[v] ?? '🍽️'}</span>
+                    <span className={cn('tabular-nums', tileFontClass(v))}>{v}</span>
+                    <span className="absolute end-1 top-1 text-[clamp(11px,3.8cqw,17px)]" aria-hidden="true">{FOOD[v] ?? '🍽️'}</span>
                   </>
                 )}
               </div>
@@ -643,15 +790,15 @@ export default function Game2048() {
 
         {/* Bannière de victoire */}
         {winOverlay ? (
-          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-2xl bg-card/85 p-6 text-center backdrop-blur-sm" role="status">
-            <span className="text-5xl" aria-hidden="true">🍉</span>
-            <p className="font-display text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{L.winTitle}</p>
+          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-card/85 p-5 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
+            <span className="text-4xl sm:text-5xl" aria-hidden="true">🍉</span>
+            <p className="font-display text-xl font-extrabold text-emerald-600 sm:text-2xl dark:text-emerald-400">{L.winTitle}</p>
             <p className="max-w-xs text-sm text-muted-foreground">{L.winSub}</p>
             <div className="mt-1 flex flex-wrap justify-center gap-2.5">
               <Button size="lg" className="rounded-full" onClick={() => { sfx.play('click'); setGame((g) => (g ? { ...g, ack: true } : g)) }}>
                 {t('common.continue')}
               </Button>
-              <Button size="lg" variant="secondary" className="rounded-full" onClick={() => startNew(false)}>
+              <Button size="lg" variant="secondary" className="rounded-full" onClick={() => startNew(game.daily)}>
                 <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
               </Button>
             </div>
@@ -660,17 +807,18 @@ export default function Game2048() {
 
         {/* Écran de fin */}
         {game.over ? (
-          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-2xl bg-card/90 p-6 text-center backdrop-blur-sm" role="status">
-            <span className="text-5xl" aria-hidden="true">🍽️</span>
-            <p className="font-display text-2xl font-extrabold">{L.overTitle}</p>
-            <div className="flex flex-wrap justify-center gap-2.5">
-              <StatPill icon={<Hash className="h-4 w-4" aria-hidden="true" />} label={L.finalScore} value={game.score} />
-              <StatPill icon={<span className="text-sm" aria-hidden="true">🍉</span>} label={L.bestTile} value={maxTile} />
+          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-card/90 p-4 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
+            <span className="text-4xl sm:text-5xl" aria-hidden="true">🍽️</span>
+            <p className="font-display text-xl font-extrabold sm:text-2xl">{L.overTitle}</p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              <StatBox label={L.finalScore} value={formatNum(game.score, lang)} />
+              <StatBox label={L.bestTile} value={String(maxTile)} />
+              <StatBox label={L.moves} value={String(game.moves)} />
             </div>
             <div className="mt-1 flex flex-wrap justify-center gap-2.5">
               {game.prev && game.undos > 0 ? (
                 <Button size="lg" variant="secondary" className="rounded-full" onClick={undo}>
-                  <Undo2 className="h-4 w-4" aria-hidden="true" /> {L.undo} ({game.undos})
+                  <Undo2 className="h-4 w-4" aria-hidden="true" /> {L.undosLeft.replace('{n}', String(game.undos))}
                 </Button>
               ) : null}
               <Button size="lg" className="rounded-full" onClick={() => startNew(game.daily)}>
@@ -684,12 +832,41 @@ export default function Game2048() {
   )
 }
 
-function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+/* ================= Sous-composants ================= */
+
+/** Boîte statistique compacte (libellé au-dessus, valeur en dessous). */
+function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
-      <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
-      <span className="text-muted-foreground">{label}</span>
-      <span className="tabular-nums">{value}</span>
+    <span className="flex h-11 min-w-[72px] flex-col items-center justify-center rounded-xl bg-secondary/70 px-2.5">
+      <span className="text-[10px] font-bold uppercase leading-none tracking-wider text-muted-foreground">{label}</span>
+      <span className="mt-1 text-lg font-extrabold leading-none tabular-nums">{value}</span>
     </span>
+  )
+}
+
+/** Bascule Classique / Thématique compacte. */
+function ModeToggle({ mode, labels, onToggle }: { mode: Mode; labels: (typeof STR)['fr']; onToggle: () => void }) {
+  const options: { id: Mode; label: string; icon: React.ReactNode }[] = [
+    { id: 'classic', label: labels.classic, icon: <Hash className="h-4 w-4" aria-hidden="true" /> },
+    { id: 'themed', label: labels.themed, icon: <Cherry className="h-4 w-4" aria-hidden="true" /> },
+  ]
+  return (
+    <div className="flex overflow-hidden rounded-full border" role="group" aria-label={labels.toThemed}>
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          aria-pressed={mode === o.id}
+          onClick={onToggle}
+          className={cn(
+            'flex h-11 items-center gap-1.5 px-4 text-sm font-bold transition-colors',
+            mode === o.id ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {o.icon}
+          {o.label}
+        </button>
+      ))}
+    </div>
   )
 }

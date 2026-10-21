@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, CalendarCheck, Trophy, Zap, Sparkles, Grid2x2, Flower2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Play, RotateCcw, CalendarCheck, Trophy, Zap, Sparkles, Flame, Grid2x2, Flower2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
@@ -9,6 +9,7 @@ import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { todayKey, seedFromString } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
+import { Confetti } from '@/components/shared/confetti'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 
 export const gameId = 'block-puzzle'
@@ -33,8 +34,8 @@ export const content: GameSEOContent = {
   },
   rules: {
     fr: [
-      "Touchez une pièce dans l'un des trois emplacements sous la grille : elle est sélectionnée (anneau + léger soulèvement).",
-      "Touchez ensuite une case de la grille : la pièce s'y place avec son coin haut-gauche sur la case touchée, si toutes ses cases sont libres et dans la grille.",
+      "Touchez une pièce dans l'un des trois emplacements sous la grille : elle est sélectionnée (anneau et léger soulèvement).",
+      "Posez-la en touchant une case de la grille — elle s'ancre par son coin haut-gauche si toutes ses cases sont libres — ou glissez-la directement depuis son emplacement : la zone visée s'illumine quand le placement est possible.",
       'Si le placement est impossible, les bords de la grille clignotent en rouge : choisissez une autre case ou une autre pièce.',
       'Une ligne ou une colonne entièrement remplie est effacée : +1 point par case posée, +10 points par ligne effacée.',
       'Effacer 2, 3 ou 4 lignes d’un coup déclenche un combo : les points des lignes sont multipliés par ×2, ×3 ou ×4.',
@@ -43,7 +44,7 @@ export const content: GameSEOContent = {
     ],
     en: [
       'Tap a piece in one of the three slots below the grid: it becomes selected (ring and slight lift).',
-      'Then tap a cell on the grid: the piece is placed with its top-left corner on that cell, if all of its cells are free and inside the grid.',
+      'Place it by tapping a cell on the grid — it anchors by its top-left corner as long as all of its cells are free — or drag it straight from its slot: the targeted area lights up whenever the placement is possible.',
       'If the placement is impossible, the grid edges flash red: pick another cell or another piece.',
       'A completely filled row or column is cleared: +1 point per placed cell, +10 points per cleared line.',
       'Clearing 2, 3 or 4 lines at once triggers a combo: line points are multiplied by ×2, ×3 or ×4.',
@@ -53,34 +54,36 @@ export const content: GameSEOContent = {
   },
   controls: {
     fr: [
-      'Mobile : touchez une pièce pour la sélectionner, puis touchez une case de la grille pour la poser.',
-      'Ordinateur : cliquez sur une pièce puis sur une case ; en survolant la grille avec la souris, un aperçu fantôme montre où la pièce se posera.',
-      'Touchez de nouveau la pièce sélectionnée (ou la touche Échap) pour annuler la sélection.',
-      'Aucun glisser-déposer ni chronomètre : le rythme est entièrement libre.',
+      'Mobile : glissez une pièce de son emplacement vers la grille — elle suit votre doigt et se pose dès que la zone visée s’illumine ; ou touchez la pièce, puis la case de destination.',
+      'Ordinateur : cliquez sur une pièce puis sur une case ; un aperçu fantôme suit la souris sur la grille. Le glisser-déposer à la souris fonctionne aussi.',
+      'Touchez de nouveau la pièce sélectionnée (ou appuyez sur Échap) pour annuler la sélection.',
+      'Aucun chronomètre : le rythme est entièrement libre.',
     ],
     en: [
-      'Mobile: tap a piece to select it, then tap a cell on the grid to place it.',
-      'Desktop: click a piece then a cell; hovering the grid with the mouse shows a ghost preview of where the piece will land.',
+      'Mobile: drag a piece from its slot towards the grid — it follows your finger and drops as soon as the targeted area lights up; or tap the piece, then the destination cell.',
+      'Desktop: click a piece then a cell; a ghost preview follows the mouse over the grid. Mouse drag-and-drop works too.',
       'Tap the selected piece again (or press Escape) to cancel the selection.',
-      'No drag-and-drop and no timer: the pace is entirely yours.',
+      'No timer: the pace is entirely yours.',
     ],
   },
   features: {
     fr: [
       'Grille 10×10 et pièces dessinées en mini-grilles, avec un dégradé chaud par famille de formes.',
+      'Glisser-déposer tactile : la pièce suit le doigt et le dépôt s’aimante sur les cases ; pose en deux gestes également possible.',
       'Deux modes : Classique (toutes les pièces, carré 3×3 rare) et Détente (pièces ≤ 4 cases).',
       'Combos ×2/×3/×4 quand plusieurs lignes sont effacées d’un coup, avec animation flottante.',
       'Défi du jour : la séquence de pièces est déterministe, identique pour tous les joueurs.',
       'Sauvegarde automatique de la partie en cours (grille, pièces, score) avec reprise en un geste.',
-      'Record de meilleur score, XP proportionnelle au score et succès à débloquer.',
+      'Record de meilleur score, XP proportionnelle au score, succès à débloquer et légères vibrations tactiles de retour.',
     ],
     en: [
       '10×10 grid with pieces drawn as mini-grids, each shape family in a warm gradient.',
+      'Touch drag-and-drop: the piece follows your finger and the drop snaps to the cells; two-tap placement also works.',
       'Two modes: Classic (all pieces, rare 3×3 square) and Relax (pieces ≤ 4 cells).',
       '×2/×3/×4 combos when several lines are cleared at once, with a floating animation.',
       'Daily challenge: the piece sequence is deterministic and identical for every player.',
       'Automatic save of the game in progress (grid, pieces, score) with one-tap resume.',
-      'Best-score record, XP proportional to the score and achievements to unlock.',
+      'Best-score record, XP proportional to the score, achievements to unlock and light haptic feedback.',
     ],
   },
   tips: {
@@ -215,6 +218,20 @@ function fitsAnywhere(board: number[], s: Shape): boolean {
   return false
 }
 
+/** Indices (0–99) des cases d'une pièce ancrée en (r, c) — seulement celles dans la grille. */
+function shapeCells(s: Shape, r: number, c: number): number[] {
+  const cells: number[] = []
+  for (let i = 0; i < s.h; i++) {
+    for (let j = 0; j < s.w; j++) {
+      if (!s.grid[i][j]) continue
+      const rr = r + i
+      const cc = c + j
+      if (rr >= 0 && rr < 10 && cc >= 0 && cc < 10) cells.push(rr * 10 + cc)
+    }
+  }
+  return cells
+}
+
 interface GameState {
   /** 100 cases : 0 = vide, sinon famille de couleur. */
   board: number[]
@@ -229,39 +246,75 @@ interface GameState {
   over: boolean
 }
 
+/** Aperçu (fantôme souris ou cible de drag) : cases + validité + famille. */
+interface GhostPreview {
+  cells: number[]
+  valid: boolean
+  fam: number
+}
+
+/** Drag en cours (refs — aucune lecture pendant le rendu). */
+interface DragInfo {
+  slot: number
+  sid: number
+  pointerId: number
+  pitch: number
+  originX: number
+  originY: number
+  startX: number
+  startY: number
+  moved: boolean
+  target: { r: number; c: number } | null
+}
+
+/** Rendu de la pièce flottante (état posé UNE fois à l'activation du drag). */
+interface DragUi {
+  slot: number
+  sid: number
+  pitch: number
+  left: number
+  top: number
+}
+
 /* ================= Textes locaux ================= */
 const STR = {
   fr: {
     board: 'Grille 10×10',
     score: 'Score',
     lines: 'Lignes',
+    combo: 'Combo',
     gameOver: 'Partie terminée',
     classic: 'Classique',
     relax: 'Détente',
     classicHint: 'Toutes les pièces · carré 3×3 rare',
     relaxHint: 'Pièces de 4 cases maximum',
     savedGame: 'Partie sauvegardée',
-    selectPiece: 'Touchez une pièce, puis une case de la grille',
     dailyHint: 'Séquence de pièces identique pour tous les joueurs, aujourd’hui',
     points: 'pts',
     slots: 'Pièces à placer',
+    slotAria: 'Pièce',
     empty: 'Vide',
+    hintDrag: 'Touchez une pièce ou glissez-la sur la grille',
+    hintPlace: 'Touchez une case libre pour poser la pièce',
   },
   en: {
     board: '10×10 grid',
     score: 'Score',
     lines: 'Lines',
+    combo: 'Combo',
     gameOver: 'Game over',
     classic: 'Classic',
     relax: 'Relax',
     classicHint: 'All pieces · rare 3×3 square',
     relaxHint: 'Pieces of 4 cells or fewer',
     savedGame: 'Saved game',
-    selectPiece: 'Tap a piece, then a cell on the grid',
     dailyHint: 'Same piece sequence for every player today',
     points: 'pts',
     slots: 'Pieces to place',
+    slotAria: 'Piece',
     empty: 'Empty',
+    hintDrag: 'Tap a piece — or drag it onto the grid',
+    hintPlace: 'Tap a free cell to place the piece',
   },
 }
 
@@ -282,11 +335,31 @@ export default function BlockPuzzleGame() {
   const [game, setGame] = useState<GameState | null>(null)
   const [saved, setSaved] = useState<GameState | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
-  const [ghost, setGhost] = useState<number[] | null>(null)
+  const [ghost, setGhost] = useState<GhostPreview | null>(null)
   const [clearing, setClearing] = useState<Set<number>>(() => new Set())
   const [flash, setFlash] = useState(0)
   const [comboFx, setComboFx] = useState<{ n: number; pts: number; key: number } | null>(null)
+  const [comboBest, setComboBest] = useState(0)
+  const [wasRecord, setWasRecord] = useState(false)
+  const [confettiFire, setConfettiFire] = useState(0)
+  const [dragUi, setDragUi] = useState<DragUi | null>(null)
+
   const lockRef = useRef(false)
+  /** Génération de partie : invalide les timeouts périmés après restart/reprise/démontage. */
+  const genRef = useRef(0)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const layerRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<DragInfo | null>(null)
+  const suppressClickRef = useRef(0)
+  const lastTargetRef = useRef('')
+
+  /** Minuteur lié à la génération courante (jamais exécuté après un restart). */
+  function sched(fn: () => void, ms: number) {
+    const gen = genRef.current
+    window.setTimeout(() => {
+      if (genRef.current === gen) fn()
+    }, ms)
+  }
 
   /* --- Restauration au montage (callback asynchrone, jamais setState synchrone dans l'effet) --- */
   useEffect(() => {
@@ -301,6 +374,8 @@ export default function BlockPuzzleGame() {
         Array.isArray(s.slots) &&
         s.slots.length === 3 &&
         (s.mode === 'classic' || s.mode === 'relax') &&
+        typeof s.score === 'number' &&
+        typeof s.rng === 'number' &&
         !s.over
       ) {
         setSaved(s)
@@ -308,10 +383,11 @@ export default function BlockPuzzleGame() {
     })
     return () => {
       alive = false
+      genRef.current++
     }
   }, [])
 
-  /* --- Sauvegarde automatique à chaque changement --- */
+  /* --- Sauvegarde automatique à chaque changement (état toujours final) --- */
   useEffect(() => {
     if (!game) return
     if (game.over) clearSave(gameId)
@@ -321,22 +397,40 @@ export default function BlockPuzzleGame() {
   /* --- Échap : désélectionner --- */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelected(null)
+      if (e.key === 'Escape') {
+        setSelected(null)
+        setGhost(null)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  /* --- Réf stable de la couche de drag : position initiale posée au montage du nœud,
+         puis updates impératifs dans pointermove (zéro re-render pendant le geste). --- */
+  const setLayerRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      layerRef.current = el
+      if (el && dragUi) {
+        el.style.transform = `translate3d(${Math.round(dragUi.left)}px, ${Math.round(dragUi.top)}px, 0)`
+      }
+    },
+    [dragUi],
+  )
+
   /* --- Fin de partie : XP + records + succès (appelée depuis le handler) --- */
   function finish(finalScore: number, wasDaily: boolean) {
     sfx.play('lose')
-    addXp(Math.floor(finalScore / 100))
-    setBest(gameId, 'best-score', finalScore, false)
+    const rec = finalScore > 0 ? setBest(gameId, 'best-score', finalScore, false) : false
+    setWasRecord(rec)
+    if (rec) setConfettiFire((n) => n + 1)
+    if (finalScore > 0) addXp(Math.floor(finalScore / 100))
     if (finalScore >= 5000) unlockBadge('block-5000')
     if (wasDaily && finalScore > 0) completeDaily(gameId)
   }
 
   function startGame(m: Mode, daily: boolean) {
+    genRef.current++
     const seed = daily
       ? seedFromString(`${gameId}:${todayKey()}`)
       : ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0)
@@ -353,6 +447,8 @@ export default function BlockPuzzleGame() {
     setClearing(new Set())
     setComboFx(null)
     setFlash(0)
+    setComboBest(0)
+    setWasRecord(false)
     lockRef.current = false
     setGame({ board: new Array(100).fill(0), slots, score: 0, lines: 0, rng: rng.state(), mode: m, daily, over: false })
     addPlay(gameId)
@@ -361,20 +457,27 @@ export default function BlockPuzzleGame() {
 
   function resumeGame() {
     if (!saved) return
-    setGame(saved)
+    genRef.current++
+    /* Sécurité : recalcul du game over (sauvegarde très ancienne ou cas limite). */
+    const over = !saved.slots.some((id) => id != null && fitsAnywhere(saved.board, SHAPES[id]))
+    setGame({ ...saved, over })
     setSaved(null)
     setSelected(null)
     setGhost(null)
     setClearing(new Set())
     setComboFx(null)
     setFlash(0)
+    setComboBest(0)
+    setWasRecord(false)
     lockRef.current = false
     addPlay(gameId)
     sfx.play('pop')
+    if (over) finish(saved.score, saved.daily)
   }
 
-  /* --- Aperçu fantôme (souris uniquement) --- */
+  /* --- Aperçu fantôme (souris uniquement, jamais pendant un drag) --- */
   function hoverCell(i: number) {
+    if (dragRef.current) return
     if (!game || selected === null) {
       setGhost(null)
       return
@@ -391,26 +494,24 @@ export default function BlockPuzzleGame() {
       setGhost(null)
       return
     }
-    const cells: number[] = []
-    for (let a = 0; a < s.h; a++) {
-      for (let b = 0; b < s.w; b++) {
-        if (s.grid[a][b]) cells.push((r + a) * 10 + (c + b))
-      }
-    }
-    setGhost(cells)
+    setGhost({ cells: shapeCells(s, r, c), valid: true, fam: s.fam })
   }
 
-  /* --- Placement d'une pièce (tap sur une case) --- */
-  function placeAt(r: number, c: number) {
-    if (!game || game.over || lockRef.current || selected === null) return
-    const sid = game.slots[selected]
+  /* --- Placement d'une pièce (tap sur une case OU dépôt de drag) ---
+     L'état final (plateau nettoyé, score, over) est commis IMMÉDIATEMENT :
+     la sauvegarde est toujours cohérente et aucun timeout ne peut corrompre
+     une nouvelle partie ; le flash des lignes est purement visuel. */
+  function placePiece(slotIdx: number, r: number, c: number) {
+    if (!game || game.over || lockRef.current) return
+    const sid = game.slots[slotIdx]
     if (sid == null) return
     const s = SHAPES[sid]
 
     if (!canPlaceAt(game.board, s, r, c)) {
       sfx.play('wrong', { volume: 0.3 })
+      navigator.vibrate?.(10)
       setFlash((f) => f + 1)
-      window.setTimeout(() => setFlash(0), 430)
+      sched(() => setFlash(0), 430)
       return
     }
 
@@ -459,10 +560,10 @@ export default function BlockPuzzleGame() {
 
     // Consommation de l'emplacement + redistribution si les 3 sont vides
     let slots: (number | null)[] = [...game.slots]
-    slots[selected] = null
+    slots[slotIdx] = null
     const rng = makeRng(game.rng)
-    const pool = poolFor(game.mode)
     if (slots.every((x) => x == null)) {
+      const pool = poolFor(game.mode)
       slots = [drawShape(pool, rng.next), drawShape(pool, rng.next), drawShape(pool, rng.next)]
     }
 
@@ -470,48 +571,148 @@ export default function BlockPuzzleGame() {
     for (const rr of fullRows) for (let cc = 0; cc < 10; cc++) cleared.add(rr * 10 + cc)
     for (const cc of fullCols) for (let rr = 0; rr < 10; rr++) cleared.add(rr * 10 + cc)
     const clearedBoard = cleared.size > 0 ? board.map((v, i) => (cleared.has(i) ? 0 : v)) : board
-
     const over = !slots.some((id) => id != null && fitsAnywhere(clearedBoard, SHAPES[id]))
 
-    sfx.play('pop')
+    // Sons + haptique
+    sfx.play('drop')
+    navigator.vibrate?.(10)
     if (nLines > 0) {
       sfx.play('sweep', { volume: 0.8 })
+      navigator.vibrate?.(nLines >= 2 ? [10, 40, 10] : 15)
       if (nLines >= 2) sfx.play('coin')
     }
     if (nLines >= 4) unlockBadge('block-combo4')
     if (newScore >= 5000 && game.score < 5000) unlockBadge('block-5000')
+    if (nLines >= 2) setComboBest((cur) => Math.max(cur, nLines))
 
-    const wasDaily = game.daily
+    // Commit immédiat de l'état final
+    setGame({
+      ...game,
+      board: clearedBoard,
+      slots,
+      score: newScore,
+      lines: game.lines + nLines,
+      rng: rng.state(),
+      over,
+    })
+
     if (cleared.size > 0) {
-      // Flash des cases effacées, puis effacement réel
-      setGame({ ...game, board, slots, score: newScore, lines: game.lines + nLines, rng: rng.state() })
+      // Flash visuel des cases effacées (l'état est déjà nettoyé)
       setClearing(cleared)
-      if (nLines >= 2) {
-        setComboFx({ n: nLines, pts: 10 * nLines * mult, key: Date.now() })
-        window.setTimeout(() => setComboFx(null), 950)
-      }
-      window.setTimeout(() => {
+      sched(() => {
         setClearing(new Set())
         lockRef.current = false
-        setGame((g) => (g ? { ...g, board: clearedBoard, over } : g))
-        if (over) finish(newScore, wasDaily)
-      }, 300)
+      }, 340)
+      if (nLines >= 2) {
+        setComboFx({ n: nLines, pts: 10 * nLines * mult, key: Date.now() })
+        sched(() => setComboFx(null), 950)
+      }
     } else {
-      setGame({ ...game, board: clearedBoard, slots, score: newScore, lines: game.lines + nLines, rng: rng.state(), over })
       lockRef.current = false
-      if (over) finish(newScore, wasDaily)
+    }
+    if (over) finish(newScore, game.daily)
+  }
+
+  /* ================= Drag & drop (pointer events + capture) ================= */
+
+  function onSlotPointerDown(e: React.PointerEvent<HTMLButtonElement>, i: number, sid: number) {
+    if (!game || game.over || lockRef.current) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    if (dragRef.current) return // une seule pièce à la fois
+    const grid = gridRef.current
+    if (!grid || grid.children.length < 2) return
+    const b0 = (grid.children[0] as HTMLElement).getBoundingClientRect()
+    const b1 = (grid.children[1] as HTMLElement).getBoundingClientRect()
+    const pitch = b1.left - b0.left
+    if (pitch <= 4) return
+    dragRef.current = {
+      slot: i,
+      sid,
+      pointerId: e.pointerId,
+      pitch,
+      originX: b0.left,
+      originY: b0.top,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+      target: null,
+    }
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      /* capture indisponible : le tap-to-place reste utilisable */
     }
   }
 
+  function onSlotPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    const d = dragRef.current
+    if (!d || d.pointerId !== e.pointerId || !game || game.over) return
+    const s = SHAPES[d.sid]
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (!d.moved) {
+      if (Math.hypot(dx, dy) < 10) return
+      d.moved = true
+      setSelected(null)
+      setGhost(null)
+      sfx.play('swish', { volume: 0.35 })
+    }
+    // La pièce suit le pointeur (centrée, légèrement au-dessus du doigt)
+    const left = e.clientX - (s.w * d.pitch) / 2
+    const top = e.clientY - (s.h * d.pitch) / 2 - d.pitch * 0.9
+    const layer = layerRef.current
+    if (layer) layer.style.transform = `translate3d(${Math.round(left)}px, ${Math.round(top)}px, 0)`
+    if (!dragUi) setDragUi({ slot: d.slot, sid: d.sid, pitch: d.pitch, left, top })
+    // Cible magnétisée : arrondi à la case la plus proche
+    const col = Math.round((left - d.originX) / d.pitch)
+    const row = Math.round((top - d.originY) / d.pitch)
+    const valid = canPlaceAt(game.board, s, row, col)
+    d.target = valid ? { r: row, c: col } : null
+    const tkey = `${row}:${col}:${valid ? 1 : 0}`
+    if (tkey !== lastTargetRef.current) {
+      lastTargetRef.current = tkey
+      if (valid) {
+        setGhost({ cells: shapeCells(s, row, col), valid: true, fam: s.fam })
+      } else {
+        const near = row > -s.h && row < 10 && col > -s.w && col < 10
+        setGhost(near ? { cells: shapeCells(s, row, col), valid: false, fam: s.fam } : null)
+      }
+    }
+  }
+
+  function onSlotPointerEnd(e: React.PointerEvent<HTMLButtonElement>) {
+    const d = dragRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    dragRef.current = null
+    lastTargetRef.current = ''
+    setDragUi(null)
+    setGhost(null)
+    if (!d.moved) return // simple tap → le click natif gère la sélection
+    suppressClickRef.current = Date.now()
+    const tgt = d.target
+    if (tgt) placePiece(d.slot, tgt.r, tgt.c)
+    else sfx.play('swish', { volume: 0.2 })
+  }
+
+  function onSlotPointerCancel(e: React.PointerEvent<HTMLButtonElement>) {
+    const d = dragRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    dragRef.current = null
+    lastTargetRef.current = ''
+    setDragUi(null)
+    setGhost(null)
+    if (d.moved) suppressClickRef.current = Date.now()
+  }
+
   const selectedShapeId = game && selected !== null ? (game.slots[selected] ?? null) : null
-  const ghostFam = selectedShapeId != null ? SHAPES[selectedShapeId].fam : 1
   const playing = game !== null && !game.over
+  const xpGain = game ? Math.floor(game.score / 100) : 0
 
   return (
-    <div className="relative select-none">
+    <div className="relative no-select select-none">
       {/* Bandeau de reprise */}
       {saved && !game ? (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-amber-300/60 bg-amber-50 px-4 py-3 dark:border-amber-500/25 dark:bg-amber-500/10">
+        <div className="mb-2.5 flex flex-wrap items-center gap-2.5 rounded-2xl border-2 border-amber-300/60 bg-amber-50 px-3.5 py-2.5 dark:border-amber-500/25 dark:bg-amber-500/10">
           <span className="text-2xl" aria-hidden="true">🧱</span>
           <span className="min-w-0 flex-1 text-sm">
             <span className="block font-bold text-amber-700 dark:text-amber-300">
@@ -521,42 +722,46 @@ export default function BlockPuzzleGame() {
               {saved.mode === 'relax' ? L.relax : L.classic} · {saved.lines} {L.lines.toLowerCase()} · {saved.daily ? t('common.daily') : '—'}
             </span>
           </span>
-          <Button size="lg" className="h-11 rounded-full" onClick={resumeGame}>
+          <Button size="sm" className="h-9 rounded-full px-4" onClick={resumeGame}>
             {t('game.resume')}
           </Button>
-          <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={() => startGame(saved.mode, false)}>
+          <Button size="sm" variant="secondary" className="h-9 rounded-full px-4" onClick={() => startGame(saved.mode, false)}>
             {t('game.newGame')}
           </Button>
         </div>
       ) : null}
 
-      {/* Barre du haut : stats en jeu / configuration sinon */}
+      {/* HUD en jeu (une ligne compacte) / configuration sinon */}
       {playing ? (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.score} value={game.score} />
-          <StatPill icon={<Sparkles className="h-4 w-4" aria-hidden="true" />} label={L.lines} value={game.lines} />
-          <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={t('common.best')} value={bestScore ?? 0} />
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <Pill compact icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.score} value={game.score} />
+          <Pill compact icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
+          <Pill compact icon={<Flame className="h-3.5 w-3.5" aria-hidden="true" />} label={L.combo} value={comboBest >= 2 ? `×${comboBest}` : '—'} />
           {game.daily ? (
-            <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+            <span
+              title={t('common.daily')}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+            >
               <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-              {t('common.daily')}
             </span>
           ) : null}
           <Button
             variant="secondary"
-            size="lg"
-            className="ms-auto h-11 rounded-full"
+            size="sm"
+            className="ms-auto h-9 gap-1.5 rounded-full px-3"
+            title={t('common.restart')}
+            aria-label={t('common.restart')}
             onClick={() => {
               sfx.play('click')
               startGame(game.mode, game.daily)
             }}
           >
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            {t('common.restart')}
+            <span className="hidden sm:inline">{t('common.restart')}</span>
           </Button>
         </div>
       ) : (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
           <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.mode')}>
             <button
               type="button"
@@ -566,13 +771,13 @@ export default function BlockPuzzleGame() {
                 setMode('classic')
               }}
               className={cn(
-                'flex h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-all',
+                'flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:text-sm',
                 mode === 'classic'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
               )}
             >
-              <Grid2x2 className="h-4 w-4" aria-hidden="true" />
+              <Grid2x2 className="h-3.5 w-3.5" aria-hidden="true" />
               {L.classic}
             </button>
             <button
@@ -583,13 +788,13 @@ export default function BlockPuzzleGame() {
                 setMode('relax')
               }}
               className={cn(
-                'flex h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-all',
+                'flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:text-sm',
                 mode === 'relax'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
               )}
             >
-              <Flower2 className="h-4 w-4" aria-hidden="true" />
+              <Flower2 className="h-3.5 w-3.5" aria-hidden="true" />
               {L.relax}
             </button>
           </div>
@@ -601,8 +806,8 @@ export default function BlockPuzzleGame() {
           {!dailyDone ? (
             <Button
               variant="outline"
-              size="lg"
-              className="h-11 rounded-full"
+              size="sm"
+              className="h-9 gap-1.5 rounded-full px-3"
               title={L.dailyHint}
               onClick={() => startGame('classic', true)}
             >
@@ -610,43 +815,50 @@ export default function BlockPuzzleGame() {
               {t('common.daily')}
             </Button>
           ) : null}
-          <Button size="lg" className="ms-auto h-11 rounded-full anim-glow" onClick={() => startGame(mode, false)}>
+          <Button size="lg" className="ms-auto h-10 gap-1.5 rounded-full px-5 anim-glow" onClick={() => startGame(mode, false)}>
             <Play className="h-4 w-4" aria-hidden="true" />
             {t('common.playNow')}
           </Button>
         </div>
       )}
 
-      {/* Plateau */}
+      {/* Plateau + pièces : tient dans le budget vertical mobile (100dvh - ~220px de chrome) */}
       {game ? (
-        <div className="relative mx-auto w-[min(92vw,420px)]">
+        <div className="relative mx-auto w-[min(92vw,420px)]" style={{ maxWidth: 'max(200px, calc(100dvh - 352px))' }}>
           <div
+            ref={gridRef}
             role="grid"
             aria-label={L.board}
-            onPointerLeave={() => setGhost(null)}
+            onPointerLeave={() => {
+              if (!dragRef.current) setGhost(null)
+            }}
             className={cn(
               'grid aspect-square grid-cols-10 gap-[2px] rounded-xl border-2 bg-card p-[3px] shadow-inner',
               flash > 0 ? 'anim-shake border-red-400 ring-2 ring-red-400/60' : 'border-border/70',
             )}
           >
             {game.board.map((v, i) => {
-              const isGhostCell = ghost != null && ghost.includes(i)
+              const g = ghost && ghost.cells.includes(i) ? ghost : null
               return (
                 <div
                   key={i}
                   onPointerEnter={(e) => {
                     if (e.pointerType === 'mouse') hoverCell(i)
                   }}
-                  onClick={() => placeAt(Math.floor(i / 10), i % 10)}
+                  onClick={() => {
+                    if (selected == null || Date.now() - suppressClickRef.current < 350) return
+                    placePiece(selected, Math.floor(i / 10), i % 10)
+                  }}
                   className={cn(
                     'relative aspect-square rounded-[3px] transition-colors duration-75',
                     v > 0 ? cn('bg-gradient-to-br shadow-sm', FAM_GRAD[v] ?? FAM_GRAD[1]) : 'bg-foreground/[0.06]',
-                    isGhostCell && cn('bg-gradient-to-br opacity-50', FAM_GRAD[ghostFam]),
-                    selectedShapeId != null && 'cursor-pointer',
+                    g && g.valid ? cn('bg-gradient-to-br opacity-60', FAM_GRAD[g.fam]) : null,
+                    g && !g.valid ? 'bg-red-400/30' : null,
+                    selectedShapeId != null && 'cursor-pointer hover:brightness-110',
                   )}
                 >
                   {clearing.has(i) ? (
-                    <span className="anim-pop-in absolute inset-0 rounded-[3px] bg-white/80" aria-hidden="true" />
+                    <span className="anim-pop-in absolute inset-0 rounded-[3px] bg-white/85" aria-hidden="true" />
                   ) : null}
                 </div>
               )
@@ -657,41 +869,20 @@ export default function BlockPuzzleGame() {
           {comboFx ? (
             <div
               key={comboFx.key}
-              className="anim-score pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-amber-500/95 px-4 py-2 font-display text-lg font-extrabold text-white shadow-lg"
+              className="anim-score pointer-events-none absolute left-1/2 top-[38%] z-20 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-amber-500/95 px-4 py-2 font-display text-lg font-extrabold text-white shadow-lg"
               aria-hidden="true"
             >
               COMBO ×{comboFx.n} +{comboFx.pts}
             </div>
           ) : null}
 
-          {/* Écran de fin de partie */}
-          {game.over ? (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-card/95 p-4 text-center shadow-lg backdrop-blur-sm" role="status">
-              <span className="text-4xl" aria-hidden="true">🧱</span>
-              <p className="font-display text-xl font-extrabold">{L.gameOver}</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.score} value={game.score} />
-                <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={t('common.best')} value={Math.max(bestScore ?? 0, game.score)} />
-              </div>
-              {(bestScore ?? 0) > 0 && game.score >= (bestScore ?? 0) ? (
-                <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                  <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
-                </span>
-              ) : null}
-              <Button size="lg" className="rounded-full" onClick={() => startGame(game.mode, false)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                {t('common.playAgain')}
-              </Button>
-            </div>
-          ) : null}
-
-          {/* Emplacements de pièces */}
-          <div className="mt-3 grid grid-cols-3 gap-2" role="group" aria-label={L.slots}>
+          {/* Emplacements de pièces (drag & drop + tap-to-place) */}
+          <div className="mt-2 grid grid-cols-3 gap-1.5" role="group" aria-label={L.slots}>
             {game.slots.map((sid, i) =>
               sid == null ? (
                 <div
                   key={i}
-                  className="flex min-h-[76px] items-center justify-center rounded-xl border-2 border-dashed border-border/60 bg-secondary/30 text-xs text-muted-foreground"
+                  className="flex min-h-[64px] items-center justify-center rounded-xl border-2 border-dashed border-border/60 bg-secondary/30 text-[11px] text-muted-foreground"
                 >
                   {L.empty}
                 </div>
@@ -700,48 +891,111 @@ export default function BlockPuzzleGame() {
                   key={i}
                   type="button"
                   aria-pressed={selected === i}
-                  aria-label={`${L.slots} ${i + 1}`}
+                  aria-label={`${L.slotAria} ${i + 1}`}
+                  className={cn(
+                    'touch-none flex min-h-[64px] items-center justify-center rounded-xl border-2 bg-card transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    dragUi?.slot === i
+                      ? 'border-dashed border-border/60 bg-secondary/30'
+                      : selected === i
+                        ? '-translate-y-0.5 border-primary shadow-md ring-2 ring-primary/40'
+                        : 'border-border hover:border-primary/40 active:scale-[0.97]',
+                  )}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => onSlotPointerDown(e, i, sid)}
+                  onPointerMove={onSlotPointerMove}
+                  onPointerUp={onSlotPointerEnd}
+                  onPointerCancel={onSlotPointerCancel}
                   onClick={() => {
+                    if (Date.now() - suppressClickRef.current < 350) return
                     sfx.play('click', { volume: 0.5 })
                     setGhost(null)
                     setSelected((cur) => (cur === i ? null : i))
                   }}
-                  className={cn(
-                    'flex min-h-[76px] items-center justify-center rounded-xl border-2 bg-card transition-all',
-                    selected === i
-                      ? '-translate-y-1 border-primary shadow-md ring-2 ring-primary/40'
-                      : 'border-border hover:border-primary/40',
-                  )}
                 >
-                  <MiniPiece shape={SHAPES[sid]} />
+                  <MiniPiece key={sid} shape={SHAPES[sid]} className={dragUi?.slot === i ? 'opacity-25' : undefined} />
                 </button>
               ),
             )}
           </div>
-          {selectedShapeId == null && !game.over ? (
-            <p className="mt-2 text-center text-xs text-muted-foreground">{L.selectPiece}</p>
+
+          {/* Aide contextuelle (sous le plateau, jamais au-dessus) */}
+          <p className="mt-1.5 min-h-[16px] text-center text-[11px] leading-tight text-muted-foreground">
+            {game.over ? '' : selectedShapeId != null ? L.hintPlace : L.hintDrag}
+          </p>
+
+          {/* Écran de fin de partie : récap + Rejouer immédiat */}
+          {game.over ? (
+            <div
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-xl bg-card/95 p-4 text-center shadow-lg backdrop-blur-sm"
+              role="status"
+            >
+              <span className="text-4xl" aria-hidden="true">🧱</span>
+              <p className="font-display text-xl font-extrabold">{L.gameOver}</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                <Pill icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.score} value={game.score} />
+                <Pill icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
+                {comboBest >= 2 ? (
+                  <Pill icon={<Flame className="h-3.5 w-3.5" aria-hidden="true" />} label={L.combo} value={`×${comboBest}`} />
+                ) : null}
+                <Pill icon={<Trophy className="h-3.5 w-3.5" aria-hidden="true" />} label={t('common.best')} value={Math.max(bestScore ?? 0, game.score)} />
+              </div>
+              {wasRecord ? (
+                <span className="flex h-8 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                  <Trophy className="h-3.5 w-3.5" aria-hidden="true" /> {t('common.newRecord')}
+                </span>
+              ) : null}
+              {xpGain > 0 ? (
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">+{xpGain} XP</p>
+              ) : null}
+              <Button size="lg" className="h-10 gap-1.5 rounded-full" onClick={() => startGame(game.mode, false)}>
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                {t('common.playAgain')}
+              </Button>
+            </div>
           ) : null}
+
+          {/* Confettis (uniquement en cas de record ; respecte useReducedMotion en interne) */}
+          <Confetti fire={confettiFire} />
         </div>
       ) : (
-        <div className="checkerboard flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
-          <div className="flex items-end gap-4" aria-hidden="true">
-            <MiniPiece shape={SHAPES[1]} />
-            <MiniPiece shape={SHAPES[6]} />
-            <MiniPiece shape={SHAPES[10]} />
+        <div className="checkerboard flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center sm:min-h-[300px]">
+          <div className="flex items-end gap-4 sm:gap-6" aria-hidden="true">
+            <MiniPiece shape={SHAPES[1]} cell="min(5vw, 18px)" />
+            <MiniPiece shape={SHAPES[6]} cell="min(5vw, 18px)" />
+            <MiniPiece shape={SHAPES[10]} cell="min(5vw, 18px)" />
           </div>
-          <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
+          <p className="max-w-md text-xs text-muted-foreground sm:text-sm">{content.tagline[lang]}</p>
         </div>
       )}
+
+      {/* Couche de drag : la pièce flottante à l'échelle de la grille.
+          Position initiale posée via la réf stable, puis updates impératifs
+          dans pointermove — la couche ne re-rend jamais pendant le geste. */}
+      {dragUi ? (
+        <div ref={setLayerRef} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-50 touch-none drop-shadow-xl">
+          <div
+            className="grid"
+            style={{ gridTemplateColumns: `repeat(${SHAPES[dragUi.sid].w}, ${Math.max(6, dragUi.pitch - 2)}px)`, gap: '2px' }}
+          >
+            {SHAPES[dragUi.sid].grid.flat().map((on, i) => (
+              <div
+                key={i}
+                className={cn('aspect-square rounded-[3px]', on ? `bg-gradient-to-br ${FAM_GRAD[SHAPES[dragUi.sid].fam]}` : 'bg-transparent')}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
 
 /* ================= Sous-composants ================= */
-function MiniPiece({ shape }: { shape: Shape }) {
+function MiniPiece({ shape, cell = 'min(3.6vw, 13px)', className }: { shape: Shape; cell?: string; className?: string }) {
   return (
     <div
-      className="grid"
-      style={{ gridTemplateColumns: `repeat(${shape.w}, min(4vw, 15px))`, gap: '2px' }}
+      className={cn('anim-pop-in grid', className)}
+      style={{ gridTemplateColumns: `repeat(${shape.w}, ${cell})`, gap: '2px' }}
       aria-hidden="true"
     >
       {shape.grid.flat().map((on, i) => (
@@ -754,11 +1008,14 @@ function MiniPiece({ shape }: { shape: Shape }) {
   )
 }
 
-function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function Pill({ icon, label, value, compact }: { icon: React.ReactNode; label: string; value: React.ReactNode; compact?: boolean }) {
   return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+    <span
+      title={label}
+      className={cn('flex h-8 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-semibold', compact && 'px-2')}
+    >
       <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
-      <span className="text-muted-foreground">{label}</span>
+      <span className={cn('text-muted-foreground', compact && 'hidden sm:inline')}>{label}</span>
       <span className="tabular-nums">{value}</span>
     </span>
   )

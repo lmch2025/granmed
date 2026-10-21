@@ -9,6 +9,7 @@ import { useProfileStore } from '@/lib/progress/store'
 import { useReducedMotion } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
+import { Confetti } from '@/components/shared/confetti'
 
 export const gameId = 'sequence-memory'
 
@@ -133,6 +134,17 @@ const PADS: PadDef[] = [
 type Mode = 'classic' | 'fast'
 type Phase = 'idle' | 'showing' | 'input' | 'over'
 
+interface OverInfo {
+  score: number
+  isRecord: boolean
+  /** Position où le joueur s'est trompé. */
+  failedAt: number
+  /** Pastille jouée à tort. */
+  played: number
+  /** Snapshot de la séquence attendue (recopiée pour le rendu). */
+  seq: number[]
+}
+
 /* ================= Composant principal ================= */
 export default function SequenceMemoryGame() {
   const t = useT()
@@ -148,12 +160,15 @@ export default function SequenceMemoryGame() {
 
   const [mode, setMode] = useState<Mode>('classic')
   const [phase, setPhase] = useState<Phase>('idle')
-  const [level, setLevel] = useState(0)
+  const [level, setLevel] = useState(1)
   const [inputIdx, setInputIdx] = useState(0)
   const [lit, setLit] = useState<number | null>(null)
   const [tapFlash, setTapFlash] = useState<number | null>(null)
   const [shakeIdx, setShakeIdx] = useState<number | null>(null)
-  const [over, setOver] = useState<{ score: number; isRecord: boolean } | null>(null)
+  const [over, setOver] = useState<OverInfo | null>(null)
+  const [showOver, setShowOver] = useState(false)
+  const [turnFlash, setTurnFlash] = useState(false)
+  const [confetti, setConfetti] = useState(0)
 
   const seqRef = useRef<number[]>([])
   const timersRef = useRef<number[]>([])
@@ -161,42 +176,45 @@ export default function SequenceMemoryGame() {
   const phaseRef = useRef<Phase>('idle')
   const modeRef = useRef<Mode>('classic')
   const pausedRef = useRef(false)
+  const lastStartRef = useRef(0)
 
   const L = {
     fr: {
+      board: 'Plateau de séquences',
       watchTitle: 'Observez la séquence…',
-      yourTurn: 'À vous de jouer !',
-      how: 'Le plateau va s’allumer : regardez et écoutez, puis reproduisez la séquence dans le même ordre.',
+      yourTurn: 'À vous !',
       watch: 'Regardez',
       repeat: 'Reproduisez',
-      progress: 'Progression',
       levelWord: 'Niveau',
-      bestClassic: 'Record Classique',
-      bestFast: 'Record Rapide',
-      reached: 'Séquence reproduite',
+      bestClassic: 'Record — Classique',
+      bestFast: 'Record — Rapide',
+      reached: 'séquence reproduite',
       classicMode: 'Classique',
       fastMode: 'Rapide',
       speedConst: 'vitesse constante',
       speedAcc: 'accélère tous les 5 niveaux',
-      ready: 'Prêt ?',
+      sequence: 'La séquence attendue',
+      expected: 'Attendu',
+      played: 'Joué',
       startHint: 'Quatre pastilles, quatre notes : mémorisez l’ordre et reproduisez-le.',
     },
     en: {
+      board: 'Sequence board',
       watchTitle: 'Watch the sequence…',
       yourTurn: 'Your turn!',
-      how: 'The board will light up: watch and listen, then repeat the sequence in the same order.',
       watch: 'Watch',
       repeat: 'Repeat',
-      progress: 'Progress',
       levelWord: 'Level',
-      bestClassic: 'Classic best',
-      bestFast: 'Fast best',
-      reached: 'Sequence reproduced',
+      bestClassic: 'Best — Classic',
+      bestFast: 'Best — Fast',
+      reached: 'sequence reproduced',
       classicMode: 'Classic',
       fastMode: 'Fast',
       speedConst: 'constant speed',
       speedAcc: 'speeds up every 5 levels',
-      ready: 'Ready?',
+      sequence: 'The expected sequence',
+      expected: 'Expected',
+      played: 'Played',
       startHint: 'Four pads, four tones: memorize the order and repeat it.',
     },
   }[lang]
@@ -217,34 +235,46 @@ export default function SequenceMemoryGame() {
     return { lit, gap: Math.round(lit / 2) }
   }
 
-  /** Rejoue la séquence complète depuis le début (lit chaque pastille + ton). */
+  /** Rejoue la séquence complète depuis le début (allume chaque pastille + ton).
+   *  Tous les minuteurs passent par timersRef (jamais d'effet qui fuit). */
   function playSequence() {
     clearTimers()
     setLit(null)
+    setTurnFlash(false)
     goPhase('showing')
     inputIdxRef.current = 0
     setInputIdx(0)
     const seq = seqRef.current
     const { lit: litMs, gap } = speedFor(seq.length, modeRef.current)
-    let t = 400
-    seq.forEach((pad, i) => {
+    // Ton légèrement raccourci quand le mode Rapide accélère, pour éviter le brouillage.
+    const toneDur = Math.max(0.12, Math.min(0.3, litMs / 1000 - 0.04))
+    let at = 380
+    for (const pad of seq) {
       timersRef.current.push(
         window.setTimeout(() => {
           setLit(pad)
-          sfx.tone(PADS[pad].tone, 0.32)
-        }, t),
+          sfx.tone(PADS[pad].tone, toneDur)
+        }, at),
       )
-      timersRef.current.push(window.setTimeout(() => setLit(null), t + litMs))
-      t += litMs + gap
-    })
+      timersRef.current.push(window.setTimeout(() => setLit(null), at + litMs))
+      at += litMs + gap
+    }
     timersRef.current.push(
       window.setTimeout(() => {
         goPhase('input')
-      }, t + 80),
+        // Signal « À vous ! » les premiers niveaux, le temps de prendre le rythme.
+        if (seqRef.current.length <= 3) {
+          setTurnFlash(true)
+          timersRef.current.push(window.setTimeout(() => setTurnFlash(false), 1000))
+        }
+      }, at + 90),
     )
   }
 
   function start(m: Mode) {
+    const now = Date.now()
+    if (now - lastStartRef.current < 350) return // anti double-tap (double addPlay)
+    lastStartRef.current = now
     clearTimers()
     pausedRef.current = false
     modeRef.current = m
@@ -252,48 +282,68 @@ export default function SequenceMemoryGame() {
     seqRef.current = [Math.floor(Math.random() * 4)]
     setLevel(1)
     setOver(null)
+    setShowOver(false)
     setShakeIdx(null)
     setTapFlash(null)
+    setTurnFlash(false)
     addPlay(gameId)
+    sfx.play('sweep', { volume: 0.5 })
     playSequence()
   }
 
-  function finishRun() {
-    const score = Math.max(0, seqRef.current.length - 1)
+  /** Fin de partie : records, succès, écran de fin. Appelée depuis le handler
+   *  de saisie (jamais depuis un effet — convention React 19 du portail). */
+  function failRun(failedAt: number, played: number) {
+    const seq = seqRef.current
+    const score = Math.max(0, seq.length - 1)
     const metric = modeRef.current === 'classic' ? 'best-sequence-classic' : 'best-sequence-fast'
     const isRecord = score > 0 ? setBest(gameId, metric, score) : false
     if (score >= 10) unlockBadge('simon-10')
     if (score >= 20) unlockBadge('simon-20')
-    if (isRecord) addWin(gameId)
+    if (score >= 5) addWin(gameId)
     goPhase('over')
-    setOver({ score, isRecord })
-    timersRef.current.push(window.setTimeout(() => setShakeIdx(null), 600))
+    setOver({ score, isRecord, failedAt, played, seq: [...seq] })
+    setShowOver(false)
+    // Laisse d'abord voir la pastille ratée (secousse rouge) avant l'écran de fin.
+    timersRef.current.push(window.setTimeout(() => sfx.play('lose', { volume: 0.55 }), 450))
+    timersRef.current.push(
+      window.setTimeout(() => {
+        setShowOver(true)
+        setShakeIdx(null)
+      }, 900),
+    )
   }
 
   function onPad(i: number) {
     if (phaseRef.current !== 'input') return
     sfx.tone(PADS[i].tone, 0.32)
     setTapFlash(i)
-    timersRef.current.push(window.setTimeout(() => setTapFlash(null), 240))
+    timersRef.current.push(window.setTimeout(() => setTapFlash(null), 220))
     const seq = seqRef.current
     const idx = inputIdxRef.current
     if (seq[idx] === i) {
+      navigator.vibrate?.(10)
       if (idx + 1 >= seq.length) {
         // Séquence complète : niveau suivant, la séquence s'allonge d'une couleur.
         sfx.play('coin', { volume: 0.6 })
         addXp(5)
+        if (seq.length % 5 === 0) {
+          sfx.play('levelup', { volume: 0.7 })
+          setConfetti((c) => c + 1)
+        }
         seqRef.current = [...seq, Math.floor(Math.random() * 4)]
         setLevel(seqRef.current.length)
         goPhase('showing')
-        timersRef.current.push(window.setTimeout(() => playSequence(), 700))
+        timersRef.current.push(window.setTimeout(() => playSequence(), 650))
       } else {
         inputIdxRef.current = idx + 1
         setInputIdx(idx + 1)
       }
     } else {
       sfx.play('wrong', { volume: 0.5 })
+      navigator.vibrate?.(10)
       setShakeIdx(i)
-      finishRun()
+      failRun(idx, i)
     }
   }
 
@@ -313,15 +363,15 @@ export default function SequenceMemoryGame() {
     }
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
-     
   }, [])
 
   /* Nettoyage de tous les minuteurs au démontage. */
   useEffect(() => () => clearTimers(), [])
 
-  /* Clavier : touches 1-4 pendant la phase de saisie. */
+  /* Clavier : touches 1-4 pendant la phase de saisie (appui maintenu ignoré). */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return
       const i = ['1', '2', '3', '4'].indexOf(e.key)
       if (i >= 0 && phaseRef.current === 'input') {
         e.preventDefault()
@@ -330,17 +380,14 @@ export default function SequenceMemoryGame() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-     
   }, [])
 
-  const bestValue = (m: Mode) => records[m === 'classic' ? 'best-sequence-classic' : 'best-sequence-fast']?.value
-  const best = bestValue(mode)
-  const speed = speedFor(Math.max(1, level), mode)
+  const best = records[mode === 'classic' ? 'best-sequence-classic' : 'best-sequence-fast']?.value
 
   return (
     <div className="relative select-none">
-      {/* Barre supérieure : mode + statut */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      {/* ---- HUD : une seule ligne compacte, au-dessus des pads ---- */}
+      <div className="mb-2.5 flex min-h-10 flex-wrap items-center gap-1.5">
         {phase === 'idle' || phase === 'over' ? (
           <>
             <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.mode')}>
@@ -355,7 +402,7 @@ export default function SequenceMemoryGame() {
                     setMode(m)
                   }}
                   className={cn(
-                    'h-11 rounded-full border px-4 text-sm font-bold transition-all',
+                    'h-9 rounded-full border px-3.5 text-xs font-bold transition-colors',
                     mode === m
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
@@ -365,152 +412,191 @@ export default function SequenceMemoryGame() {
                 </button>
               ))}
             </div>
+            {best != null ? (
+              <span
+                title={mode === 'classic' ? L.bestClassic : L.bestFast}
+                className="flex h-9 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-xs font-bold"
+              >
+                <Trophy className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+                <span className="tabular-nums">{best}</span>
+              </span>
+            ) : null}
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {mode === 'classic' ? L.speedConst : L.speedAcc}
             </span>
-            <Button size="lg" className="ms-auto h-11 rounded-full px-5 anim-glow" onClick={() => start(mode)}>
+            <Button size="sm" className="anim-glow ms-auto h-9 gap-1.5 rounded-full px-4" onClick={() => start(mode)}>
               <Play className="h-4 w-4" aria-hidden="true" />
               {phase === 'over' ? t('common.playAgain') : t('common.start')}
             </Button>
           </>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.levelWord} value={level} />
-              {phase === 'input' ? (
-                <StatPill
-                  icon={<Pointer className="h-4 w-4" aria-hidden="true" />}
-                  label={L.progress}
-                  value={`${inputIdx}/${Math.max(1, level)}`}
-                />
-              ) : (
-                <StatPill icon={<Eye className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={`${speed.lit} ms`} />
+            <span
+              key={level}
+              className={cn(
+                'flex h-8 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-bold',
+                !reduce && 'anim-pop-in',
               )}
+            >
+              <Zap className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+              <span className="text-muted-foreground">{L.levelWord}</span>
+              <span className="tabular-nums">{level}</span>
+            </span>
+            {phase === 'showing' ? (
               <span
-                className={cn(
-                  'flex h-11 items-center gap-2 rounded-full px-4 text-sm font-bold',
-                  phase === 'showing'
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-                )}
                 role="status"
+                className="flex h-8 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
               >
-                {phase === 'showing' ? (
-                  <>
-                    <Eye className="h-4 w-4" aria-hidden="true" /> {L.watchTitle}
-                  </>
-                ) : (
-                  <>
-                    <Pointer className="h-4 w-4" aria-hidden="true" /> {L.yourTurn}
-                  </>
-                )}
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                {L.watchTitle}
               </span>
-            </div>
+            ) : (
+              <span
+                role="status"
+                className="flex h-8 items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+              >
+                <Pointer className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="tabular-nums">
+                  {inputIdx}/{Math.max(1, level)}
+                </span>
+              </span>
+            )}
             <Button
               variant="secondary"
-              size="lg"
-              className="ms-auto h-11 rounded-full"
+              size="sm"
+              className="ms-auto h-8 w-8 rounded-full p-0"
+              aria-label={t('common.restart')}
               onClick={() => {
                 sfx.play('click')
                 start(mode)
               }}
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {t('common.restart')}
             </Button>
           </>
         )}
       </div>
 
-      {/* Consigne première partie */}
-      {phase === 'idle' ? (
-        <div className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/5 p-4" role="note">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl" aria-hidden="true">
-            👀
-          </span>
-          <div className="min-w-0">
-            <p className="font-display text-sm font-bold">
-              1. {L.watch} · 2. {L.repeat}
-            </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{L.how}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{L.startHint}</p>
-          </div>
-        </div>
-      ) : null}
+      {/* ---- Plateau 2×2 : carré, pleine largeur disponible, borné au budget
+              vertical mobile (100dvh − chrome/HUD) — jamais de scroll horizontal ---- */}
+      <div className="mx-auto w-full max-w-[min(calc(100dvh_-_250px),28rem)]">
+        <div className="relative grid aspect-square grid-cols-2 grid-rows-2 gap-2.5 sm:gap-3" role="group" aria-label={L.board}>
+          {PADS.map((pad, i) => {
+            const active = lit === i || tapFlash === i
+            const isShake = shakeIdx === i
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={phase !== 'input'}
+                aria-label={`${pad.name[lang]} (${i + 1})`}
+                onClick={() => onPad(i)}
+                className={cn(
+                  'no-select touch-manipulation relative flex min-h-[60px] items-center justify-center rounded-2xl border-b-4 border-black/10 bg-gradient-to-br text-4xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:rounded-3xl sm:text-5xl',
+                  pad.grad,
+                  active ? 'saturate-150 brightness-125 ring-4 ring-white/70' : 'saturate-[.55] brightness-[.74]',
+                  !reduce && 'transition-all duration-100',
+                  active && !reduce && 'scale-[1.03]',
+                  phase === 'input' && !active && 'hover:brightness-90',
+                  phase === 'input' && !active && !reduce && 'active:scale-[0.97]',
+                  phase === 'showing' && 'cursor-wait',
+                  isShake && 'anim-shake ring-4 ring-red-400 brightness-110',
+                )}
+              >
+                <span
+                  className={cn('drop-shadow-md', !reduce && 'transition-transform duration-100', active && !reduce && 'scale-110')}
+                  aria-hidden="true"
+                >
+                  {pad.emoji}
+                </span>
+              </button>
+            )
+          })}
 
-      {/* Plateau 2×2 */}
-      <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-3" role="group" aria-label={content.tagline[lang]}>
-        {PADS.map((pad, i) => {
-          const isLit = lit === i
-          const isTap = tapFlash === i
-          const isShake = shakeIdx === i
-          const active = isLit || isTap
-          return (
-            <button
-              key={i}
-              type="button"
-              disabled={phase !== 'input'}
-              aria-label={`${pad.name[lang]} (${i + 1})`}
-              onClick={() => onPad(i)}
-              className={cn(
-                'relative flex min-h-[120px] items-center justify-center rounded-3xl border-b-4 border-black/10 bg-gradient-to-br text-5xl no-select transition-all duration-150 focus-visible:outline-2 focus-visible:outline-ring sm:min-h-[150px] sm:text-6xl',
-                pad.grad,
-                active ? 'scale-[1.04] saturate-150 brightness-125 ring-4 ring-white/70' : 'saturate-[.55] brightness-[.72]',
-                phase === 'input' && !active && 'hover:brightness-95 active:scale-[0.98]',
-                phase === 'showing' && 'cursor-wait',
-                isShake && 'anim-shake ring-4 ring-red-400 brightness-110',
-                !reduce && phase !== 'showing' && 'hover:brightness-90',
-              )}
-            >
-              <span className={cn('drop-shadow-md transition-transform', active && 'scale-110')} aria-hidden="true">
-                {pad.emoji}
+          {/* Signal « À vous ! » — les premiers niveaux seulement */}
+          {turnFlash && !reduce ? (
+            <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2" aria-hidden="true">
+              <span className="anim-pop-in flex items-center gap-1.5 rounded-full bg-emerald-500 px-3.5 py-1.5 text-sm font-bold text-white shadow-lg">
+                <Pointer className="h-4 w-4" aria-hidden="true" />
+                {L.yourTurn}
               </span>
-            </button>
-          )
-        })}
+            </div>
+          ) : null}
+
+          {/* Écran de fin : la séquence ratée est montrée, rejouer immédiat.
+              Superposé au plateau pour rester à l'écran sans le moindre scroll. */}
+          {phase === 'over' && over && showOver ? (
+            <div className="absolute inset-0 z-20 flex items-center justify-center p-2" role="status">
+              <div className="anim-pop-in nice-scroll flex max-h-full w-full max-w-[19rem] flex-col items-center gap-2 overflow-y-auto rounded-2xl border-2 border-amber-300/70 bg-card/95 p-4 text-center shadow-xl backdrop-blur-sm">
+                <p className="font-display text-lg font-extrabold text-amber-700 dark:text-amber-300">🔔 {t('common.defeat')}</p>
+                <p className="text-4xl font-extrabold leading-none tabular-nums">{over.score}</p>
+                <p className="-mt-1 text-xs text-muted-foreground">{L.reached}</p>
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  <span className="flex h-8 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-bold">
+                    <Trophy className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+                    <span className="text-muted-foreground">{t('common.best')}</span>
+                    <span className="tabular-nums">{best ?? '—'}</span>
+                  </span>
+                  {over.isRecord ? (
+                    <span className="flex h-8 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                      <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+                      {t('common.newRecord')}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="w-full rounded-xl bg-secondary/50 px-2.5 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{L.sequence}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1">
+                    {over.seq.map((p, k) => (
+                      <span
+                        key={k}
+                        title={PADS[p].name[lang]}
+                        className={cn(
+                          'rounded-full bg-gradient-to-br',
+                          PADS[p].grad,
+                          k === over.failedAt ? 'h-4 w-4 ring-2 ring-red-500 ring-offset-1 ring-offset-card' : 'h-3 w-3',
+                          k > over.failedAt && 'opacity-25',
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    {L.expected} <span aria-hidden="true">{PADS[over.seq[over.failedAt]].emoji}</span>
+                    <span className="mx-1.5" aria-hidden="true">
+                      ·
+                    </span>
+                    {L.played} <span aria-hidden="true">{PADS[over.played].emoji}</span>
+                  </p>
+                </div>
+                <div className="mt-1 flex flex-wrap justify-center gap-2">
+                  <Button size="sm" className="h-9 rounded-full px-4" onClick={() => start(mode)}>
+                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                    {t('common.playAgain')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-9 rounded-full px-4"
+                    onClick={() => start(mode === 'classic' ? 'fast' : 'classic')}
+                  >
+                    <Play className="h-4 w-4" aria-hidden="true" />
+                    {mode === 'classic' ? L.fastMode : L.classicMode}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <Confetti fire={confetti} count={reduce ? 0 : 90} />
+        </div>
       </div>
 
-      {/* Écran de fin */}
-      {phase === 'over' && over ? (
-        <div className="anim-rise mt-5 rounded-2xl border-2 border-amber-300/60 bg-amber-50/60 p-5 text-center dark:border-amber-500/30 dark:bg-amber-500/10" role="status">
-          <p className="font-display text-2xl font-extrabold text-amber-700 dark:text-amber-300">🔔 {t('common.defeat')}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
-            <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.reached} value={over.score} />
-            <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={t('common.best')} value={best ?? '—'} />
-            {over.isRecord ? (
-              <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
-              </span>
-            ) : null}
-          </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => start(mode)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="rounded-full"
-              onClick={() => start(mode === 'classic' ? 'fast' : 'classic')}
-            >
-              <Play className="h-4 w-4" aria-hidden="true" />
-              {mode === 'classic' ? L.fastMode : L.classicMode}
-            </Button>
-          </div>
-        </div>
+      {/* Aide minimale, SOUS le plateau (jamais au-dessus des pads) */}
+      {phase === 'idle' ? (
+        <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
+          <span className="font-semibold">1. {L.watch}</span> · <span className="font-semibold">2. {L.repeat}</span> — {L.startHint}
+        </p>
       ) : null}
     </div>
-  )
-}
-
-function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
-  return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
-      <span className="text-muted-foreground" aria-hidden="true">
-        {icon}
-      </span>
-      <span className="text-muted-foreground">{label}</span>
-      <span className="tabular-nums">{value}</span>
-    </span>
   )
 }

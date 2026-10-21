@@ -1,0 +1,758 @@
+     1→/**
+     2→ * Données du jeu « Vrai ou Faux — Santé » (health-true-false).
+     3→ * 48 affirmations bilingues (FR/EN), 24 vraies / 24 fausses.
+     4→ *
+     5→ * POLITIQUE ÉDITORIALE (cahier des charges) :
+     6→ * - Chaque affirmation est fondée sur les repères du consensus de santé publique
+     7→ *   (OMS, NHS, Inserm, Harvard Health, ANSES, EFSA, FDA, Santé publique France).
+     8→ * - Aucun remède traditionnel présenté comme traitement prouvé ; aucun ton alarmiste.
+     9→ * - Formulations prudentes (« en général », « les données montrent ») pour les sujets
+    10→ *   où les preuves sont observationnelles ou nuancées.
+    11→ * - `source` = l'institution dont les repères appuient l'affirmation (texte, sans URL).
+    12→ * - FR et EN sont de vraies adaptations (pas des traductions mot à mot).
+    13→ */
+    14→
+    15→export interface QuizStatement {
+    16→  id: string
+    17→  statement: { fr: string; en: string }
+    18→  answer: 'true' | 'false'
+    19→  explanation: { fr: string; en: string } // 2-3 phrases, à visée éducative
+    20→  source: string // ex. 'OMS', 'NHS', 'Inserm', 'Harvard Health', 'ANSES'
+    21→  difficulty: 1 | 2 | 3
+    22→  category: 'nutrition' | 'sommeil' | 'hydratation' | 'activité' | 'hygiène' | 'idées-reçues'
+    23→}
+    24→
+    25→export const QUIZ_STATEMENTS: QuizStatement[] = [
+    26→  /* ==================== Nutrition ==================== */
+    27→  {
+    28→    id: 'nt-400g-fruits-legumes',
+    29→    statement: {
+    30→      fr: 'Il est recommandé de manger au moins 400 g de fruits et légumes par jour, soit environ cinq portions.',
+    31→      en: 'Adults are generally advised to eat at least 400 g of fruit and vegetables a day — roughly five portions.',
+    32→    },
+    33→    answer: 'true',
+    34→    explanation: {
+    35→      fr: 'L’Organisation mondiale de la santé recommande au minimum 400 g de fruits et légumes par jour, pommes de terre exclues. Les campagnes « 5 par jour » reprennent ce repère, car ces aliments apportent fibres, vitamines et minéraux. En pratique, une portion correspond à peu près à un fruit de la taille de la main ou à une poignée de légumes.',
+    36→      en: 'The World Health Organization recommends at least 400 g of fruit and vegetables per day, excluding potatoes. National “5 a day” campaigns build on this benchmark, because these foods provide fibre, vitamins and minerals. In practice, one portion is roughly a palm-sized fruit or a handful of vegetables.',
+    37→    },
+    38→    source: 'OMS',
+    39→    difficulty: 1,
+    40→    category: 'nutrition',
+    41→  },
+    42→  {
+    43→    id: 'nt-jus-fruit',
+    44→    statement: {
+    45→      fr: 'Un verre de jus de fruits vaut nutritionnellement un fruit entier.',
+    46→      en: 'A glass of fruit juice is nutritionally equivalent to a whole fruit.',
+    47→    },
+    48→    answer: 'false',
+    49→    explanation: {
+    50→      fr: 'Faux : le jus garde les sucres du fruit mais perd une grande partie des fibres, et ses sucres libres passent plus vite dans le sang. L’OMS compte d’ailleurs les sucres des jus parmi les sucres libres à limiter. Manger le fruit entier rassasie mieux et reste le meilleur choix au quotidien.',
+    51→      en: 'False: juice keeps the fruit’s sugars but loses most of its fibre, and its free sugars reach the bloodstream faster. The WHO counts the sugars in juice among the free sugars to limit. Eating whole fruit is more filling and remains the better everyday choice.',
+    52→    },
+    53→    source: 'OMS',
+    54→    difficulty: 2,
+    55→    category: 'nutrition',
+    56→  },
+    57→  {
+    58→    id: 'nt-petit-dejeuner-metabo',
+    59→    statement: {
+    60→      fr: 'Sauter le petit-déjeuner ralentit automatiquement le métabolisme et fait grossir.',
+    61→      en: 'Skipping breakfast automatically slows your metabolism and makes you gain weight.',
+    62→    },
+    63→    answer: 'false',
+    64→    explanation: {
+    65→      fr: 'Les données montrent qu’omettre un repas n’entraîne pas, en soi, de ralentissement métabolique : ce qui compte est l’apport calorique global de la journée. Les études sur le petit-déjeuner donnent des résultats contrastés selon les habitudes de chacun. Le meilleur rythme reste celui que l’on tient durablement, sans grignotage compensatoire.',
+    66→      en: 'Data show that missing a meal does not, by itself, slow your metabolism: total daily intake is what matters most. Breakfast studies give mixed results depending on personal habits. The best routine is simply one you can keep up long-term without compensating with snacks.',
+    67→    },
+    68→    source: 'Harvard Health',
+    69→    difficulty: 2,
+    70→    category: 'nutrition',
+    71→  },
+    72→  {
+    73→    id: 'nt-fibres-transit',
+    74→    statement: {
+    75→      fr: 'Les fibres alimentaires facilitent le transit intestinal et nourrissent le microbiote.',
+    76→      en: 'Dietary fibre helps keep digestion regular and feeds the gut microbiome.',
+    77→    },
+    78→    answer: 'true',
+    79→    explanation: {
+    80→      fr: 'Les fibres, présentes dans les céréales complètes, les légumineuses, les fruits et les légumes, augmentent le volume des selles et accélèrent le transit. Elles servent aussi de nourriture aux bactéries intestinales bénéfiques. La plupart des adultes restent en dessous des apports recommandés, autour de 25 à 30 g par jour.',
+    81→      en: 'Fibre — found in whole grains, pulses, fruit and vegetables — increases stool bulk and speeds up transit. It also feeds beneficial gut bacteria. Most adults fall short of recommended intakes, around 25 to 30 g per day.',
+    82→    },
+    83→    source: 'ANSES',
+    84→    difficulty: 1,
+    85→    category: 'nutrition',
+    86→  },
+    87→  {
+    88→    id: 'nt-complements-vitamines',
+    89→    statement: {
+    90→      fr: 'En cas d’alimentation déjà équilibrée, les compléments de vitamines améliorent encore la santé.',
+    91→      en: 'If you already eat a balanced diet, vitamin supplements further improve your health.',
+    92→    },
+    93→    answer: 'false',
+    94→    explanation: {
+    95→      fr: 'Chez une personne bien nourrie, les données ne montrent pas de bénéfice global des multivitamines sur la santé. Certains compléments sont utiles dans des situations précises — grossesse, carence démontrée, manque de soleil en hiver — sur avis médical. Mieux vaut viser une assiette variée qu’une étagère de vitamines.',
+    96→      en: 'In well-nourished people, data show no overall health benefit from multivitamins. Some supplements are useful in specific situations — pregnancy, a proven deficiency, little winter sunlight — on medical advice. A varied plate beats a shelf full of vitamins.',
+    97→    },
+    98→    source: 'Inserm',
+    99→    difficulty: 2,
+   100→    category: 'nutrition',
+   101→  },
+   102→  {
+   103→    id: 'nt-sucres-libres',
+   104→    statement: {
+   105→      fr: 'L’OMS conseille de rester en dessous de 10 % de l’apport énergétique quotidien en sucres libres.',
+   106→      en: 'The WHO advises keeping free sugars below 10% of your daily energy intake.',
+   107→    },
+   108→    answer: 'true',
+   109→    explanation: {
+   110→      fr: 'Selon l’Organisation mondiale de la santé, les sucres libres — ajoutés par le fabricant ou le cuisinier, plus ceux du miel, des sirops et des jus — devraient représenter moins de 10 % de l’énergie quotidienne, idéalement moins de 5 %. Pour un adulte moyen, cela correspond à environ 50 g, au mieux 25 g. Les sucres « cachés » des plats préparés et des boissons comptent aussi.',
+   111→      en: 'According to the World Health Organization, free sugars — those added by manufacturers or cooks, plus those in honey, syrups and juice — should stay below 10% of daily energy, and ideally below 5%. For an average adult that is about 50 g, and at best 25 g. The “hidden” sugars in processed foods and drinks count too.',
+   112→    },
+   113→    source: 'OMS',
+   114→    difficulty: 2,
+   115→    category: 'nutrition',
+   116→  },
+   117→  {
+   118→    id: 'nt-graisses-mauvaises',
+   119→    statement: {
+   120→      fr: 'Toutes les matières grasses sont mauvaises pour la santé.',
+   121→      en: 'All dietary fat is bad for your health.',
+   122→    },
+   123→    answer: 'false',
+   124→    explanation: {
+   125→      fr: 'Faux : la qualité des graisses importe davantage que leur quantité absolue. Les graisses insaturées de l’huile d’olive, des oléagineux ou des poissons font partie d’une alimentation favorable à la santé cardiovasculaire. En revanche, l’OMS recommande de limiter les graisses saturées et surtout les graisses trans industrielles.',
+   126→      en: 'False: the quality of fat matters more than its total amount. Unsaturated fats from olive oil, nuts or fish are part of a diet that supports cardiovascular health. The WHO does, however, recommend limiting saturated fats and especially industrial trans fats.',
+   127→    },
+   128→    source: 'OMS',
+   129→    difficulty: 1,
+   130→    category: 'nutrition',
+   131→  },
+   132→  {
+   133→    id: 'nt-legumineuses-proteines',
+   134→    statement: {
+   135→      fr: 'Les légumineuses comme les lentilles ou les pois chiches sont d’excellentes sources de protéines végétales.',
+   136→      en: 'Pulses such as lentils and chickpeas are excellent sources of plant protein.',
+   137→    },
+   138→    answer: 'true',
+   139→    explanation: {
+   140→      fr: 'Les légumineuses apportent des protéines, des fibres, du fer et des glucides complexes, pour un coût faible. L’OMS et plusieurs repères nutritionnels nationaux les classent parmi les aliments à privilégier, aussi pour leur intérêt environnemental. Associées à des céréales, elles couvrent bien les besoins en acides aminés.',
+   141→      en: 'Pulses provide protein, fibre, iron and complex carbohydrates at low cost. The WHO and several national dietary guidelines list them among the foods to favour, including for environmental reasons. Combined with grains, they cover amino-acid needs well.',
+   142→    },
+   143→    source: 'OMS',
+   144→    difficulty: 2,
+   145→    category: 'nutrition',
+   146→  },
+   147→  {
+   148→    id: 'nt-oeufs-cholesterol',
+   149→    statement: {
+   150→      fr: 'Manger des œufs fait grimper fortement le cholestérol sanguin chez la plupart des gens.',
+   151→      en: 'Eating eggs sharply raises blood cholesterol in most people.',
+   152→    },
+   153→    answer: 'false',
+   154→    explanation: {
+   155→      fr: 'Pour la majorité des personnes, le cholestérol alimentaire n’influe que modérément sur le cholestérol sanguin : c’est le foie qui régule l’essentiel. Les données actuelles n’incriminent pas la consommation modérée d’œufs — environ un par jour — dans les maladies cardiovasculaires. Les personnes diabétiques ou ayant un taux élevé suivent simplement un avis médical personnalisé.',
+   156→      en: 'For most people, dietary cholesterol has only a modest effect on blood cholesterol: the liver regulates most of it. Current data do not link moderate egg consumption — about one a day — to cardiovascular disease. People with diabetes or high cholesterol simply follow personalised medical advice.',
+   157→    },
+   158→    source: 'Harvard Health',
+   159→    difficulty: 3,
+   160→    category: 'nutrition',
+   161→  },
+   162→  {
+   163→    id: 'nt-sel-tension',
+   164→    statement: {
+   165→      fr: 'Une consommation excessive de sel augmente la tension artérielle.',
+   166→      en: 'Eating too much salt raises blood pressure.',
+   167→    },
+   168→    answer: 'true',
+   169→    explanation: {
+   170→      fr: 'Un apport élevé en sodium est un facteur bien établi d’hypertension artérielle, elle-même risque cardiovasculaire majeur. L’OMS recommande de ne pas dépasser 5 g de sel par jour, alors que la plupart des régimes occidentaux en apportent davantage. L’essentiel du sel consommé est « caché » dans le pain, les fromages et les plats préparés.',
+   171→      en: 'A high sodium intake is a well-established contributor to high blood pressure, itself a major cardiovascular risk. The WHO recommends no more than 5 g of salt per day, while most Western diets exceed that. Most of the salt we eat is “hidden” in bread, cheese and ready meals.',
+   172→    },
+   173→    source: 'OMS',
+   174→    difficulty: 1,
+   175→    category: 'nutrition',
+   176→  },
+   177→  {
+   178→    id: 'nt-ultra-transformes',
+   179→    statement: {
+   180→      fr: 'Les grandes études d’observation associent les aliments ultra-transformés à un risque accru de maladies chroniques.',
+   181→      en: 'Large observational studies link ultra-processed foods to a higher risk of chronic diseases.',
+   182→    },
+   183→    answer: 'true',
+   184→    explanation: {
+   185→      fr: 'De grandes cohortes, dont NutriNet-Santé suivie avec l’Inserm, associent une part élevée d’aliments ultra-transformés à davantage de maladies cardiovasculaires, de diabète et de certains cancers. Ces travaux restent observationnels et les mécanismes précis sont encore étudiés. En attendant, les repères officiels conseillent de privilégier les aliments peu transformés et faits maison.',
+   186→      en: 'Large cohorts, including the Inserm-backed NutriNet-Santé study, associate a high share of ultra-processed foods with more cardiovascular disease, diabetes and certain cancers. This evidence is observational, and precise mechanisms are still being studied. In the meantime, official guidelines favour minimally processed and home-cooked foods.',
+   187→    },
+   188→    source: 'Inserm',
+   189→    difficulty: 3,
+   190→    category: 'nutrition',
+   191→  },
+   192→
+   193→  /* ==================== Hydratation ==================== */
+   194→  {
+   195→    id: 'hy-8-verres',
+   196→    statement: {
+   197→      fr: 'Il faut impérativement boire huit verres d’eau par jour, pas un de plus ni de moins.',
+   198→      en: 'Everyone must drink exactly eight glasses of water a day — no more, no less.',
+   199→    },
+   200→    answer: 'false',
+   201→    explanation: {
+   202→      fr: 'Le fameux « 8 verres » n’est pas une recommandation officielle : les besoins varient selon le corps, le climat et l’activité. Les apports venant des aliments comptent aussi — ils fournissent environ un cinquième de l’eau. Chez l’adulte en bonne santé, la soif reste un guide fiable.',
+   203→      en: 'The famous “eight glasses” is not an official recommendation: needs vary with body size, climate and activity. Water from food counts too — it supplies about a fifth of our intake. For a healthy adult, thirst remains a reliable guide.',
+   204→    },
+   205→    source: 'Harvard Health',
+   206→    difficulty: 1,
+   207→    category: 'hydratation',
+   208→  },
+   209→  {
+   210→    id: 'hy-cafe-hydratation',
+   211→    statement: {
+   212→      fr: 'Le café, bu avec modération, contribue à l’hydratation quotidienne.',
+   213→      en: 'Coffee, in moderation, contributes to your daily fluid intake.',
+   214→    },
+   215→    answer: 'true',
+   216→    explanation: {
+   217→      fr: 'La caféine a un léger effet diurétique, mais aux doses habituelles — jusqu’à trois ou quatre tasses par jour — le bilan hydrique reste positif. Les boissons comme le café ou le thé comptent donc dans les apports hydriques de la journée. Elles ne remplacent pas l’eau, mais ne déshydratent pas non plus.',
+   218→      en: 'Caffeine has a mild diuretic effect, but at usual intakes — up to three or four cups a day — the fluid balance stays positive. Drinks like coffee or tea therefore count towards the day’s fluids. They don’t replace water, but they don’t dehydrate you either.',
+   219→    },
+   220→    source: 'NHS',
+   221→    difficulty: 2,
+   222→    category: 'hydratation',
+   223→  },
+   224→  {
+   225→    id: 'hy-soif-indicateur',
+   226→    statement: {
+   227→      fr: 'Chez l’adulte en bonne santé, la sensation de soif est un bon indicateur des besoins en eau.',
+   228→      en: 'In a healthy adult, the feeling of thirst is a good indicator of water needs.',
+   229→    },
+   230→    answer: 'true',
+   231→    explanation: {
+   232→      fr: 'Chez la plupart des adultes, boire quand on a soif suffit à maintenir l’équilibre hydrique. La couleur des urines — jaune paille clair — offre un second repère simple. Cette règle vaut moins bien pour les personnes âgées, dont la soif s’émousse avec l’âge, ou lors d’efforts intenses.',
+   233→      en: 'For most adults, drinking when thirsty is enough to maintain fluid balance. Urine colour — pale straw — offers a second simple check. The rule holds less well for older adults, whose thirst sensation dulls with age, or during intense exercise.',
+   234→    },
+   235→    source: 'Harvard Health',
+   236→    difficulty: 3,
+   237→    category: 'hydratation',
+   238→  },
+   239→  {
+   240→    id: 'hy-eau-toxines',
+   241→    statement: {
+   242→      fr: 'Boire beaucoup plus que ses besoins accélère l’élimination des « toxines ».',
+   243→      en: 'Drinking far more than you need speeds up the removal of “toxins”.',
+   244→    },
+   245→    answer: 'false',
+   246→    explanation: {
+   247→      fr: 'Les reins filtrent le sang en continu, à un rythme qu’ils régulent eux-mêmes : boire davantage augmente surtout le volume des urines. Sauf situation médicale particulière, aucun « rinçage » accéléré n’a été démontré. En très grande quantité, l’excès d’eau peut même provoquer une dilution dangereuse du sodium sanguin.',
+   248→      en: 'The kidneys filter blood continuously at a rate they regulate themselves: drinking more mostly increases urine volume. Aside from specific medical situations, no accelerated “flushing” has been shown. In very large amounts, excess water can even dangerously dilute blood sodium.',
+   249→    },
+   250→    source: 'Inserm',
+   251→    difficulty: 2,
+   252→    category: 'hydratation',
+   253→  },
+   254→  {
+   255→    id: 'hy-eau-gazeuse',
+   256→    statement: {
+   257→      fr: 'L’eau gazeuse hydrate aussi bien que l’eau plate.',
+   258→      en: 'Sparkling water hydrates just as well as still water.',
+   259→    },
+   260→    answer: 'true',
+   261→    explanation: {
+   262→      fr: 'Les bulles de dioxyde de carbone ne changent rien à la teneur en eau de la boisson. L’eau pétillante hydrate donc aussi efficacement que l’eau plate. Seules différences : elle peut donner une impression de ballonnement aux estomacs sensibles, et certaines eaux gazeuses sont plus salées.',
+   263→      en: 'Carbon-dioxide bubbles change nothing about the drink’s water content. Sparkling water therefore hydrates just as effectively as still water. The only differences: it can feel bloating for sensitive stomachs, and some sparkling waters are saltier.',
+   264→    },
+   265→    source: 'NHS',
+   266→    difficulty: 2,
+   267→    category: 'hydratation',
+   268→  },
+   269→  {
+   270→    id: 'hy-aliments-eau',
+   271→    statement: {
+   272→      fr: 'Les aliments solides apportent environ un cinquième de l’eau que nous consommons chaque jour.',
+   273→      en: 'Solid foods provide roughly a fifth of the water we take in each day.',
+   274→    },
+   275→    answer: 'true',
+   276→    explanation: {
+   277→      fr: 'Selon les repères européens, environ 20 % des apports en eau viennent des aliments — soupes, fruits, légumes, yaourts. Un concombre ou une pastèque est gorgé d’eau à plus de 90 %. C’est pourquoi « boire 1,5 litre » ne raconte qu’une partie de l’histoire.',
+   278→      en: 'According to European dietary reference values, about 20% of water intake comes from food — soups, fruit, vegetables, yoghurts. Cucumber or watermelon is more than 90% water. That’s why “drink 1.5 litres” only tells part of the story.',
+   279→    },
+   280→    source: 'EFSA',
+   281→    difficulty: 3,
+   282→    category: 'hydratation',
+   283→  },
+   284→  {
+   285→    id: 'hy-seniors-soif',
+   286→    statement: {
+   287→      fr: 'Avec l’âge, la sensation de soif diminue : les personnes âgées doivent veiller à boire régulièrement.',
+   288→      en: 'Thirst fades with age, so older adults should take care to drink regularly.',
+   289→    },
+   290→    answer: 'true',
+   291→    explanation: {
+   292→      fr: 'Le mécanisme de la soif s’émousse au fil des années, surtout après 65 ans. Une personne âgée peut être déshydratée sans ressentir la soif attendue. Les recommandations officielles invitent donc à boire par habitude, à heures régulières, sans attendre la sensation de soif.',
+   293→      en: 'The thirst mechanism dulls over the years, especially after 65. An older person can be dehydrated without feeling the expected thirst. Official guidance therefore suggests drinking by routine, at regular times, without waiting to feel thirsty.',
+   294→    },
+   295→    source: 'OMS',
+   296→    difficulty: 2,
+   297→    category: 'hydratation',
+   298→  },
+   299→
+   300→  /* ==================== Sommeil ==================== */
+   301→  {
+   302→    id: 'sl-7-9-heures',
+   303→    statement: {
+   304→      fr: 'La plupart des adultes ont besoin de sept à neuf heures de sommeil par nuit.',
+   305→      en: 'Most adults need seven to nine hours of sleep per night.',
+   306→    },
+   307→    answer: 'true',
+   308→    explanation: {
+   309→      fr: 'Les repères de santé publique situent entre 7 et 9 heures le besoin de la grande majorité des adultes. Le meilleur indicateur reste un réveil en forme et une vigilance stable dans la journée. Les adolescents, eux, ont besoin de 8 à 10 heures.',
+   310→      en: 'Public-health benchmarks put the needs of the vast majority of adults between 7 and 9 hours. The best indicator remains waking up refreshed and staying alert through the day. Teenagers need 8 to 10 hours.',
+   311→    },
+   312→    source: 'Santé publique France',
+   313→    difficulty: 1,
+   314→    category: 'sommeil',
+   315→  },
+   316→  {
+   317→    id: 'sl-cerveau-repos',
+   318→    statement: {
+   319→      fr: 'Pendant le sommeil, le cerveau se met totalement au repos.',
+   320→      en: 'During sleep, the brain switches off completely.',
+   321→    },
+   322→    answer: 'false',
+   323→    explanation: {
+   324→      fr: 'Le cerveau reste très actif pendant la nuit : il consolide les mémoires, régule les émotions et évacue ses déchets métaboliques. Certaines zones sont même plus actives qu’à l’éveil, notamment en sommeil paradoxal. Dormir est un travail, pas une simple mise en veille.',
+   325→      en: 'The brain stays highly active at night: it consolidates memories, regulates emotions and clears metabolic waste. Some regions are even more active than during wakefulness, especially in REM sleep. Sleeping is work, not simply switching off.',
+   326→    },
+   327→    source: 'Inserm',
+   328→    difficulty: 2,
+   329→    category: 'sommeil',
+   330→  },
+   331→  {
+   332→    id: 'sl-sieste-courte',
+   333→    statement: {
+   334→      fr: 'Une sieste courte, autour de 20 à 30 minutes, améliore la vigilance.',
+   335→      en: 'A short nap of around 20 to 30 minutes improves alertness.',
+   336→    },
+   337→    answer: 'true',
+   338→    explanation: {
+   339→      fr: 'Les études sur la sieste montrent qu’une pause de 10 à 30 minutes restaure la vigilance sans abîmer le sommeil nocturne. Au-delà d’une trentaine de minutes, on risque de se réveiller en pleine phase de sommeil profond, avec une sensation de coup de pompe. Les siestes longues sont plutôt à réserver aux vrais manques de sommeil.',
+   340→      en: 'Nap studies show that a 10-to-30-minute break restores alertness without harming night sleep. Beyond about thirty minutes, you risk waking from deep sleep with that groggy, sluggish feeling. Long naps are best kept for genuine sleep debt.',
+   341→    },
+   342→    source: 'NHS',
+   343→    difficulty: 2,
+   344→    category: 'sommeil',
+   345→  },
+   346→  {
+   347→    id: 'sl-dormir-moins',
+   348→    statement: {
+   349→      fr: 'On peut s’entraîner à dormir moins : le corps finit par s’habituer.',
+   350→      en: 'You can train yourself to sleep less — your body eventually adapts.',
+   351→    },
+   352→    answer: 'false',
+   353→    explanation: {
+   354→      fr: 'Les expériences de restriction de sommeil montrent que la vigilance continue de baisser même quand on « s’habitue » subjectivement. On sous-estime ainsi sa propre somnolence. Seule une petite minorité, porteuse d’un profil génétique particulier, vit vraiment bien avec peu de sommeil.',
+   355→      en: 'Sleep-restriction experiments show alertness keeps declining even when people subjectively “get used to it”. We tend to underestimate our own sleepiness. Only a small minority, with a specific genetic profile, truly thrives on little sleep.',
+   356→    },
+   357→    source: 'Inserm',
+   358→    difficulty: 2,
+   359→    category: 'sommeil',
+   360→  },
+   361→  {
+   362→    id: 'sl-ecrans-soir',
+   363→    statement: {
+   364→      fr: 'La lumière vive des écrans le soir peut retarder l’endormissement.',
+   365→      en: 'Bright screen light in the evening can delay falling asleep.',
+   366→    },
+   367→    answer: 'true',
+   368→    explanation: {
+   369→      fr: 'La lumière vive, surtout en fin de journée, retarde la sécrétion de mélatonine et décale l’horloge biologique. Les recommandations officielles conseillent d’arrêter les écrans environ une heure avant le coucher, ou d’en baisser la luminosité. Le contenu stimulant des écrans joue aussi un rôle.',
+   370→      en: 'Bright light, especially late in the day, delays melatonin secretion and shifts the body clock. Official advice suggests stopping screens about an hour before bed, or at least dimming them. Stimulating content on those screens plays a role too.',
+   371→    },
+   372→    source: 'Santé publique France',
+   373→    difficulty: 1,
+   374→    category: 'sommeil',
+   375→  },
+   376→  {
+   377→    id: 'sl-alcool-sommeil',
+   378→    statement: {
+   379→      fr: 'Un verre d’alcool le soir améliore la qualité du sommeil.',
+   380→      en: 'A glass of alcohol in the evening improves sleep quality.',
+   381→    },
+   382→    answer: 'false',
+   383→    explanation: {
+   384→      fr: 'L’alcool raccourcit certes le délai d’endormissement, mais il fragmente la seconde moitié de la nuit et réduit le sommeil paradoxal. Le sommeil obtenu est moins réparateur. À dose plus élevée, il aggrave même les apnées du sommeil.',
+   385→      en: 'Alcohol does shorten the time it takes to fall asleep, but it fragments the second half of the night and reduces REM sleep. The sleep you get is less restorative. At higher doses it can even worsen sleep apnoea.',
+   386→    },
+   387→    source: 'Inserm',
+   388→    difficulty: 2,
+   389→    category: 'sommeil',
+   390→  },
+   391→  {
+   392→    id: 'sl-dette-une-nuit',
+   393→    statement: {
+   394→      fr: 'Une seule bonne nuit permet de rattraper toute une semaine de sommeil écourté.',
+   395→      en: 'A single good night’s sleep can make up for a whole short-slept week.',
+   396→    },
+   397→    answer: 'false',
+   398→    explanation: {
+   399→      fr: 'La dette de sommeil se rembourse lentement : une nuit de récupération améliore la vigilance mais n’efface pas tous les effets. Les données suggèrent que certains marqueurs ne reviennent à la normale qu’après plusieurs nuits allongées. Le plus efficace reste un rythme régulier tout au long de la semaine.',
+   400→      en: 'Sleep debt repays slowly: one recovery night improves alertness but doesn’t erase every effect. Data suggest some markers only return to normal after several extended nights. A consistent rhythm throughout the week works best.',
+   401→    },
+   402→    source: 'Inserm',
+   403→    difficulty: 3,
+   404→    category: 'sommeil',
+   405→  },
+   406→  {
+   407→    id: 'sl-manque-accidents',
+   408→    statement: {
+   409→      fr: 'Le manque chronique de sommeil augmente le risque d’accidents et d’erreurs d’attention.',
+   410→      en: 'Chronic sleep loss raises the risk of accidents and attention lapses.',
+   411→    },
+   412→    answer: 'true',
+   413→    explanation: {
+   414→      fr: 'La somnolence diurne est un facteur reconnu d’accidents de la route et du travail. Après des nuits trop courtes répétées, la vigilance et le temps de réaction se dégradent durablement. C’est l’un des arguments clés des campagnes de santé publique sur le sommeil.',
+   415→      en: 'Daytime sleepiness is a recognised factor in road and workplace accidents. After repeated short nights, alertness and reaction times stay degraded for a long time. It’s one of the key arguments in public-health campaigns about sleep.',
+   416→    },
+   417→    source: 'Inserm',
+   418→    difficulty: 2,
+   419→    category: 'sommeil',
+   420→  },
+   421→
+   422→  /* ==================== Activité physique ==================== */
+   423→  {
+   424→    id: 'ac-150-minutes',
+   425→    statement: {
+   426→      fr: 'L’OMS recommande au moins 150 minutes d’activité physique modérée par semaine chez l’adulte.',
+   427→      en: 'The WHO recommends at least 150 minutes of moderate physical activity per week for adults.',
+   428→    },
+   429→    answer: 'true',
+   430→    explanation: {
+   431→      fr: 'La recommandation mondiale est de 150 minutes d’endurance d’intensité modérée par semaine, ou 75 minutes d’intensité soutenue, en plus des activités quotidiennes. L’équivalent : 30 minutes de marche rapide cinq jours sur sept. Chaque mouvement compte, même fractionné dans la journée.',
+   432→      en: 'The global recommendation is 150 minutes of moderate endurance activity per week, or 75 minutes at vigorous intensity, on top of daily routines. That equals 30 minutes of brisk walking five days out of seven. Every bit of movement counts, even split across the day.',
+   433→    },
+   434→    source: 'OMS',
+   435→    difficulty: 2,
+   436→    category: 'activité',
+   437→  },
+   438→  {
+   439→    id: 'ac-etirements-courbatures',
+   440→    statement: {
+   441→      fr: 'S’étirer longuement avant l’effort prévient les courbatures.',
+   442→      en: 'Long static stretching before exercise prevents muscle soreness.',
+   443→    },
+   444→    answer: 'false',
+   445→    explanation: {
+   446→      fr: 'Les essais contrôlés montrent que les étirements statiques prolongés avant l’effort ne préviennent pas les courbatures, et peuvent même réduire légèrement la force musculaire sur l’instant. Un échauffement progressif et dynamique reste la bonne approche. Les étirements gardent tout leur intérêt pour la souplesse, en dehors de l’effort.',
+   447→      en: 'Controlled trials show that prolonged static stretching before exercise does not prevent soreness, and may even slightly reduce strength in the moment. A progressive, dynamic warm-up remains the right approach. Stretching is still valuable for flexibility — just not as a pre-workout shield.',
+   448→    },
+   449→    source: 'Harvard Health',
+   450→    difficulty: 2,
+   451→    category: 'activité',
+   452→  },
+   453→  {
+   454→    id: 'ac-marche-rapide',
+   455→    statement: {
+   456→      fr: 'Marcher d’un pas rapide compte comme une activité physique modérée.',
+   457→      en: 'Brisk walking counts as moderate physical activity.',
+   458→    },
+   459→    answer: 'true',
+   460→    explanation: {
+   461→      fr: 'La marche rapide — environ 5 à 6 km/h, un rythme où l’on peut parler mais pas chanter — est l’exemple type d’activité modérée selon l’OMS. Elle sollicite le cœur et la circulation sans choc articulaire majeur. C’est l’activité la plus accessible pour atteindre les 150 minutes hebdomadaires.',
+   462→      en: 'Brisk walking — roughly 5 to 6 km/h, a pace where you can talk but not sing — is the textbook example of moderate activity according to the WHO. It works the heart and circulation without major joint impact. It’s the most accessible way to reach the weekly 150 minutes.',
+   463→    },
+   464→    source: 'OMS',
+   465→    difficulty: 2,
+   466→    category: 'activité',
+   467→  },
+   468→  {
+   469→    id: 'ac-seances-10-min',
+   470→    statement: {
+   471→      fr: 'Pour que cela compte, l’activité physique doit se faire par séances d’au moins 10 minutes.',
+   472→      en: 'For it to count, physical activity has to come in bouts of at least 10 minutes.',
+   473→    },
+   474→    answer: 'false',
+   475→    explanation: {
+   476→      fr: 'Les recommandations mondiales de 2020 ont supprimé la durée minimale de séance : tout mouvement compte désormais, quelle que soit sa longueur. Grimper des escaliers ou marcher cinq minutes s’additionne sur la journée. L’essentiel est le volume total et la régularité.',
+   477→      en: 'The 2020 global guidelines dropped the minimum session length: every movement now counts, however short. Taking the stairs or walking five minutes adds up across the day. What matters is total volume and regularity.',
+   478→    },
+   479→    source: 'OMS',
+   480→    difficulty: 3,
+   481→    category: 'activité',
+   482→  },
+   483→  {
+   484→    id: 'ac-renforcement-2j',
+   485→    statement: {
+   486→      fr: 'Il est recommandé de renforcer ses muscles au moins deux jours par semaine.',
+   487→      en: 'It’s recommended to strengthen your muscles at least two days a week.',
+   488→    },
+   489→    answer: 'true',
+   490→    explanation: {
+   491→      fr: 'En plus de l’endurance, l’OMS recommande des exercices de renforcement musculaire des grands groupes deux jours par semaine ou plus. Utile à tout âge, cette pratique protège la masse musculaire et l’autonomie. Haltères, élastiques ou exercices au poids du corps conviennent.',
+   492→      en: 'On top of endurance work, the WHO recommends muscle-strengthening of the large muscle groups on two or more days a week. Valuable at any age, it protects muscle mass and independence. Weights, resistance bands or bodyweight exercises all work.',
+   493→    },
+   494→    source: 'OMS',
+   495→    difficulty: 2,
+   496→    category: 'activité',
+   497→  },
+   498→  {
+   499→    id: 'ac-transpiration-graisses',
+   500→    statement: {
+   501→      fr: 'Plus on transpire, plus on brûle de graisses.',
+   502→      en: 'The more you sweat, the more fat you burn.',
+   503→    },
+   504→    answer: 'false',
+   505→    explanation: {
+   506→      fr: 'La transpiration est un mécanisme de refroidissement, pas un compteur de calories : elle dépend de la chaleur, de l’effort et de la physiologie de chacun. Transpirer beaucoup fait perdre de l’eau, reprise dès qu’on boit. La dépense se juge à l’intensité et à la durée de l’effort, pas aux vêtements mouillés.',
+   507→      en: 'Sweating is a cooling mechanism, not a calorie counter: it depends on heat, exertion and individual physiology. Heavy sweating loses water, which you regain as soon as you drink. Expenditure is judged by exercise intensity and duration, not by soaked clothes.',
+   508→    },
+   509→    source: 'Harvard Health',
+   510→    difficulty: 1,
+   511→    category: 'activité',
+   512→  },
+   513→  {
+   514→    id: 'ac-actif-65-ans',
+   515→    statement: {
+   516→      fr: 'Rester actif après 65 ans reste bénéfique pour la santé.',
+   517→      en: 'Staying active after 65 still benefits your health.',
+   518→    },
+   519→    answer: 'true',
+   520→    explanation: {
+   521→      fr: 'L’activité physique adaptée réduit le risque de chutes, protège le cœur et entretient l’équilibre et la mémoire à tout âge. Les recommandations de l’OMS pour les personnes âgées restent proches de celles des adultes. Même commencer tard apporte des bénéfices.',
+   522→      en: 'Adapted physical activity reduces fall risk, protects the heart, and maintains balance and memory at any age. WHO recommendations for older adults remain close to those for younger adults. Even a late start brings benefits.',
+   523→    },
+   524→    source: 'OMS',
+   525→    difficulty: 1,
+   526→    category: 'activité',
+   527→  },
+   528→  {
+   529→    id: 'ac-escaliers',
+   530→    statement: {
+   531→      fr: 'Prendre les escaliers au quotidien compte comme activité physique.',
+   532→      en: 'Taking the stairs in everyday life counts as physical activity.',
+   533→    },
+   534→    answer: 'true',
+   535→    explanation: {
+   536→      fr: 'Les recommandations actuelles valorisent tous les mouvements du quotidien, y compris brefs. Monter les escaliers élève rapidement l’intensité et se cumule sur la journée. Remplacer l’ascenseur quand c’est possible est un geste simple et efficace.',
+   537→      en: 'Current guidelines value all everyday movement, however brief. Climbing stairs quickly raises intensity and adds up over the day. Skipping the lift when possible is one simple, effective habit.',
+   538→    },
+   539→    source: 'OMS',
+   540→    difficulty: 1,
+   541→    category: 'activité',
+   542→  },
+   543→
+   544→  /* ==================== Hygiène ==================== */
+   545→  {
+   546→    id: 'hg-lavage-20s',
+   547→    statement: {
+   548→      fr: 'Se laver les mains pendant une vingtaine de secondes réduit efficacement les germes.',
+   549→      en: 'Washing your hands for about twenty seconds effectively reduces germs.',
+   550→    },
+   551→    answer: 'true',
+   552→    explanation: {
+   553→      fr: 'La technique recommandée par l’OMS — savon, eau et 20 secondes en frottant toutes les surfaces — élimine une grande partie des microbes des mains. C’est l’un des gestes les plus efficaces contre les infections digestives et respiratoires. Le gel hydroalcoolique est une alternative quand l’eau manque.',
+   554→      en: 'The WHO-recommended technique — soap, water and 20 seconds rubbing all surfaces — removes a large share of the germs on hands. It’s one of the most effective defences against digestive and respiratory infections. Hand sanitiser is an alternative when water isn’t available.',
+   555→    },
+   556→    source: 'OMS',
+   557→    difficulty: 1,
+   558→    category: 'hygiène',
+   559→  },
+   560→  {
+   561→    id: 'hg-savons-antibacteriens',
+   562→    statement: {
+   563→      fr: 'À la maison, les savons antibactériens sont bien plus efficaces que le savon ordinaire.',
+   564→      en: 'At home, antibacterial soaps are far more effective than plain soap.',
+   565→    },
+   566→    answer: 'false',
+   567→    explanation: {
+   568→      fr: 'Les données examinées par la FDA n’ont pas montré de supériorité des savons antibactériens grand public face au savon classique pour prévenir les infections. Un lavage soigneux et assez long avec un savon ordinaire suffit au quotidien. Certains agents antibactériens posent même des questions environnementales.',
+   569→      en: 'Data reviewed by the FDA showed no superiority of consumer antibacterial soaps over plain soap for preventing infections. Careful, long-enough washing with ordinary soap does the daily job. Some antibacterial agents even raise environmental questions.',
+   570→    },
+   571→    source: 'FDA',
+   572→    difficulty: 2,
+   573→    category: 'hygiène',
+   574→  },
+   575→  {
+   576→    id: 'hg-toux-coude',
+   577→    statement: {
+   578→      fr: 'Tousser ou éternuer dans son coude limite la propagation des germes.',
+   579→      en: 'Coughing or sneezing into your elbow limits the spread of germs.',
+   580→    },
+   581→    answer: 'true',
+   582→    explanation: {
+   583→      fr: 'Les gouttelettes émises en toussant peuvent projeter des microbes à plusieurs mètres. Le coude les retient mieux que la main, qui touche ensuite objets et proches. C’est un geste barrière recommandé dans le monde entier.',
+   584→      en: 'Droplets released by a cough can carry germs several metres. The elbow traps them better than a hand, which then touches objects and people. It’s a barrier gesture recommended worldwide.',
+   585→    },
+   586→    source: 'OMS',
+   587→    difficulty: 1,
+   588→    category: 'hygiène',
+   589→  },
+   590→  {
+   591→    id: 'hg-vinaigre-microbes',
+   592→    statement: {
+   593→      fr: 'Le vinaigre blanc tue tous les microbes de la maison.',
+   594→      en: 'White vinegar kills every germ in the home.',
+   595→    },
+   596→    answer: 'false',
+   597→    explanation: {
+   598→      fr: 'Le vinaigre a une action limitée sur certaines bactéries, mais il n’est pas un désinfectant au sens propre : il est peu efficace contre la plupart des virus. Pour les surfaces à risque, l’ANSES rappelle l’usage de désinfectants adaptés ou d’eau de javel diluée. Le vinaigre reste très bon pour dégraisser et détartrer.',
+   599→      en: 'Vinegar has limited action on some bacteria, but it is not a true disinfectant: it is largely ineffective against most viruses. For risky surfaces, ANSES points to proper disinfectants or diluted bleach. Vinegar remains great for degreasing and descaling.',
+   600→    },
+   601→    source: 'ANSES',
+   602→    difficulty: 2,
+   603→    category: 'hygiène',
+   604→  },
+   605→  {
+   606→    id: 'hg-brosse-dents',
+   607→    statement: {
+   608→      fr: 'Il est conseillé de changer de brosse à dents environ tous les trois mois.',
+   609→      en: 'You’re advised to replace your toothbrush about every three months.',
+   610→    },
+   611→    answer: 'true',
+   612→    explanation: {
+   613→      fr: 'Les poils usés nettoient moins bien et peuvent irriter les gencives ; une brosse s’use en quelques mois d’usage normal. Les recommandations dentaires parlent d’un remplacement tous les trois à quatre mois, et après une infection de la bouche ou de la gorge. Des poils écartés sont un signal clair.',
+   614→      en: 'Worn bristles clean less well and can irritate the gums; a brush wears out within a few months of normal use. Dental advice suggests replacing it every three to four months, and after a mouth or throat infection. Splayed bristles are a clear sign.',
+   615→    },
+   616→    source: 'NHS',
+   617→    difficulty: 2,
+   618→    category: 'hygiène',
+   619→  },
+   620→  {
+   621→    id: 'hg-eau-froide',
+   622→    statement: {
+   623→      fr: 'Se laver les mains à l’eau froide est moins efficace qu’à l’eau chaude.',
+   624→      en: 'Washing your hands with cold water is less effective than with hot water.',
+   625→    },
+   626→    answer: 'false',
+   627→    explanation: {
+   628→      fr: 'Des études comparatives montrent que la température de l’eau — froide ou tiède — compte bien moins que le savon et la durée du lavage. Une eau trop chaude peut même irriter la peau et faire bâcler le geste. Vingt secondes de frottage soigneux restent la clé.',
+   629→      en: 'Comparative studies show that water temperature — cold or warm — matters far less than soap and washing time. Very hot water can even irritate the skin and rush the gesture. Twenty seconds of careful rubbing remains the key.',
+   630→    },
+   631→    source: 'Harvard Health',
+   632→    difficulty: 3,
+   633→    category: 'hygiène',
+   634→  },
+   635→
+   636→  /* ==================== Idées reçues ==================== */
+   637→  {
+   638→    id: 'my-detox',
+   639→    statement: {
+   640→      fr: 'Les cures de « détox » éliminent les toxines accumulées dans l’organisme.',
+   641→      en: 'Detox cures flush out the toxins that have built up in your body.',
+   642→    },
+   643→    answer: 'false',
+   644→    explanation: {
+   645→      fr: 'Aucune « cure détox » n’a démontré d’élimination accélérée de toxines : ce rôle revient au foie et aux reins, qui fonctionnent en continu. Les jus, sirops et cures diverses ne remplacent pas ces organes. L’idée même de « toxines » à drainer ne correspond à aucune définition médicale précise.',
+   646→      en: 'No “detox” cure has been shown to speed up toxin removal: that job belongs to the liver and kidneys, which work around the clock. Juices, syrups and assorted cures don’t stand in for those organs. The very idea of “toxins” to drain has no precise medical definition.',
+   647→    },
+   648→    source: 'NHS',
+   649→    difficulty: 1,
+   650→    category: 'idées-reçues',
+   651→  },
+   652→  {
+   653→    id: 'my-rhume-fievre',
+   654→    statement: {
+   655→      fr: 'Quand on est malade, il faut « nourrir un rhume et jeûner une fièvre ».',
+   656→      en: 'When you’re ill, you should “feed a cold and starve a fever”.',
+   657→    },
+   658→    answer: 'false',
+   659→    explanation: {
+   660→      fr: 'Ce vieil adage ne repose sur aucune donnée : rhume ou fièvre, le corps a besoin d’énergie et surtout d’eau pour se défendre. Manger selon son appétit et bien s’hydrater reste la règle. Se forcer à jeûner comme à manger n’accélère pas le rétablissement.',
+   661→      en: 'This old saying has no evidence behind it: with a cold or a fever, the body needs energy and above all fluids to fight back. Eating to your appetite and staying well hydrated remains the rule. Forcing yourself to fast — or to eat — doesn’t speed recovery.',
+   662→    },
+   663→    source: 'Harvard Health',
+   664→    difficulty: 2,
+   665→    category: 'idées-reçues',
+   666→  },
+   667→  {
+   668→    id: 'my-carottes-vision',
+   669→    statement: {
+   670→      fr: 'Manger beaucoup de carottes donne une vision nocturne surpuissante.',
+   671→      en: 'Eating lots of carrots gives you superpowered night vision.',
+   672→    },
+   673→    answer: 'false',
+   674→    explanation: {
+   675→      fr: 'Les carottes fournissent du bêta-carotène, converti en vitamine A, nécessaire à une bonne vision — mais sans bonus une fois les besoins couverts. La rumeur d’une « vision nocturne supérieure » vient d’une propagande britannique de la Seconde Guerre mondiale masquant l’usage des radars. Une carence en vitamine A abîme, elle, réellement la vision de nuit.',
+   676→      en: 'Carrots provide beta-carotene, converted into vitamin A, which eyes need — but there’s no bonus once your needs are met. The “superior night vision” rumour comes from British WWII propaganda concealing the use of radar. A vitamin A deficiency, on the other hand, genuinely harms night vision.',
+   677→    },
+   678→    source: 'Harvard Health',
+   679→    difficulty: 2,
+   680→    category: 'idées-reçues',
+   681→  },
+   682→  {
+   683→    id: 'my-craquer-doigts',
+   684→    statement: {
+   685→      fr: 'Se craquer les doigts provoque de l’arthrose.',
+   686→      en: 'Cracking your knuckles causes arthritis.',
+   687→    },
+   688→    answer: 'false',
+   689→    explanation: {
+   690→      fr: 'Les études de suivi n’ont pas trouvé de lien entre le craquement des doigts et l’arthrose. Le bruit vient d’un phénomène de bulles dans le liquide articulaire, sans dégât connu du cartilage. Le craquement peut tout au plus agacer l’entourage ; s’il devient douloureux, un avis médical s’impose.',
+   691→      en: 'Long-term studies have found no link between knuckle cracking and arthritis. The pop comes from bubbles forming in the joint fluid, with no known cartilage damage. At worst it annoys the people around you; if it ever hurts, do get it checked.',
+   692→    },
+   693→    source: 'Harvard Health',
+   694→    difficulty: 2,
+   695→    category: 'idées-reçues',
+   696→  },
+   697→  {
+   698→    id: 'my-lire-penombre',
+   699→    statement: {
+   700→      fr: 'Lire dans la pénombre abîme durablement les yeux.',
+   701→      en: 'Reading in dim light permanently damages your eyes.',
+   702→    },
+   703→    answer: 'false',
+   704→    explanation: {
+   705→      fr: 'Lire avec peu de lumière fatigue passagèrement les yeux — tension, sécheresse, maux de tête — mais ne les abîme pas durablement. La vision floue d’effort redevient normale au repos. Un bon éclairage reste conseillé pour le confort.',
+   706→      en: 'Reading in poor light temporarily strains the eyes — tightness, dryness, headaches — but doesn’t damage them lastingly. Effort-related blurry vision returns to normal with rest. Good lighting is still recommended for comfort.',
+   707→    },
+   708→    source: 'Harvard Health',
+   709→    difficulty: 1,
+   710→    category: 'idées-reçues',
+   711→  },
+   712→  {
+   713→    id: 'my-10-cerveau',
+   714→    statement: {
+   715→      fr: 'Nous n’utilisons que 10 % de notre cerveau.',
+   716→      en: 'We only use 10% of our brain.',
+   717→    },
+   718→    answer: 'false',
+   719→    explanation: {
+   720→      fr: 'L’imagerie cérébrale montre une activité répartie dans l’ensemble du cerveau, y compris pendant le sommeil. Aucune zone ne resterait inutilisée à 90 %. Ce mythe tient sans doute à de vieilles interprétations mal datées, popularisées ensuite par la publicité et le cinéma.',
+   721→      en: 'Brain imaging shows activity spread across the whole brain, including during sleep. No region sits 90% unused. The myth probably stems from old, misdated interpretations, later popularised by advertising and movies.',
+   722→    },
+   723→    source: 'Inserm',
+   724→    difficulty: 1,
+   725→    category: 'idées-reçues',
+   726→  },
+   727→  {
+   728→    id: 'my-stress-immunite',
+   729→    statement: {
+   730→      fr: 'Un stress chronique peut affaiblir les défenses immunitaires.',
+   731→      en: 'Chronic stress can weaken immune defences.',
+   732→    },
+   733→    answer: 'true',
+   734→    explanation: {
+   735→      fr: 'Les travaux en psycho-neuro-immunologie montrent qu’un stress prolongé module la réponse immunitaire et augmente la sensibilité aux infections, rhumes en tête. Le stress ponctuel, lui, prépare brièvement le corps à l’action. Ce sont la durée et l’absence de répit qui pèsent.',
+   736→      en: 'Work in psychoneuroimmunology shows that prolonged stress modulates the immune response and raises susceptibility to infections, colds in particular. Short bursts of stress, by contrast, briefly prime the body for action. It’s the duration and the lack of relief that take their toll.',
+   737→    },
+   738→    source: 'Inserm',
+   739→    difficulty: 2,
+   740→    category: 'idées-reçues',
+   741→  },
+   742→  {
+   743→    id: 'my-antibiotiques-grippe',
+   744→    statement: {
+   745→      fr: 'Les antibiotiques soignent la grippe et le rhume.',
+   746→      en: 'Antibiotics cure flu and colds.',
+   747→    },
+   748→    answer: 'false',
+   749→    explanation: {
+   750→      fr: 'Les antibiotiques n’agissent que sur les bactéries : grippe et rhume sont des infections virales contre lesquelles ils sont sans effet. Les prendre « pour rien » favorise la résistance aux antibiotiques, un enjeu majeur de santé publique selon l’OMS. Les viroses se soignent surtout par le repos, les boissons et le traitement des symptômes.',
+   751→      en: 'Antibiotics only work on bacteria: flu and colds are viral infections on which they have no effect. Taking them “just in case” fuels antibiotic resistance, a major public-health concern flagged by the WHO. Viral illnesses are mostly managed with rest, fluids and symptom relief.',
+   752→    },
+   753→    source: 'OMS',
+   754→    difficulty: 1,
+   755→    category: 'idées-reçues',
+   756→  },
+   757→]
+   758→

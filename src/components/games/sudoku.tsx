@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Play, RotateCcw, CalendarCheck, Timer, Lightbulb, SearchCheck, Pause, Pencil, Eraser } from 'lucide-react'
+import { Play, RotateCcw, CalendarCheck, Timer, Lightbulb, SearchCheck, Pause, Pencil, Eraser, BadgeCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
@@ -10,8 +10,6 @@ import { loadSave, saveSave, clearSave } from '@/lib/save'
 import { todayKey, mulberry32, seedFromString, shuffle, clamp, formatMs, useReducedMotion } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Confetti } from '@/components/shared/confetti'
 import { toast } from 'sonner'
 
@@ -27,12 +25,12 @@ export const content: GameSEOContent = {
     fr: [
       'Sudoku Zen est un jeu de sudoku gratuit en ligne dans lequel vous complétez une grille 9×9 avec les chiffres 1 à 9, sans jamais répéter un chiffre dans une ligne, une colonne ou un bloc de 3×3.',
       'Chaque grille est générée sur mesure et vérifie une propriété essentielle : elle admet exactement une seule solution. Quatre niveaux de difficulté — de 40 indices en Facile à 24 en Expert — s’adaptent aux débutants comme aux vétérans, et un défi du jour identique pour tous renouvelle l’intérêt chaque matin.',
-      'Notes au crayon, contrôle automatique des erreurs, trois indices par grille et chronomètre avec pause : tout est pensé pour une partie calme et rigoureuse, sauvegardée automatiquement pour être reprise à tout moment.',
+      'Notes au crayon nettoyées automatiquement, contrôle des erreurs, compteur de fautes, trois indices par grille et chronomètre avec pause : tout est pensé pour une partie calme et rigoureuse, sauvegardée automatiquement pour être reprise à tout moment.',
     ],
     en: [
       'Sudoku Zen is a free online sudoku game in which you complete a 9×9 grid with the digits 1 to 9, never repeating a digit within a row, a column or a 3×3 box.',
       'Every grid is generated on the fly and verified for one essential property: it admits exactly one solution. Four difficulty levels — from 40 givens in Easy down to 24 in Expert — suit beginners and veterans alike, and a daily challenge, identical for everyone, renews the fun every morning.',
-      'Pencil notes, automatic error checking, three hints per grid and a pausable timer: everything is designed for a calm, rigorous game, saved automatically so you can resume at any time.',
+      'Self-cleaning pencil notes, error checking, a mistake counter, three hints per grid and a pausable timer: everything is designed for a calm, rigorous game, saved automatically so you can resume at any time.',
     ],
   },
   rules: {
@@ -54,12 +52,12 @@ export const content: GameSEOContent = {
   controls: {
     fr: [
       'Mobile et tablette : touchez une case puis un chiffre du pavé numérique.',
-      'Ordinateur : cliquez une case ; tapez 1–9, effacez avec Retour/Suppr, déplacez-vous avec les flèches, N bascule le mode notes.',
+      'Ordinateur : cliquez une case ; tapez 1–9, effacez avec Retour/Suppr, déplacez-vous avec les flèches, N bascule les notes, H demande un indice, P met en pause.',
       'Bouton pause : fige le chronomètre et masque la grille.',
     ],
     en: [
       'Mobile & tablet: tap a cell, then a digit on the number pad.',
-      'Desktop: click a cell; type 1–9, erase with Backspace/Delete, move with arrow keys, N toggles notes mode.',
+      'Desktop: click a cell; type 1–9, erase with Backspace/Delete, move with arrow keys, N toggles notes, H asks for a hint, P pauses.',
       'Pause button: freezes the timer and hides the grid.',
     ],
   },
@@ -68,7 +66,8 @@ export const content: GameSEOContent = {
       'Générateur à solution unique vérifiée pour chaque grille',
       '4 difficultés : Facile (40 indices), Moyen (34), Difficile (28), Expert (24)',
       'Notes crayon 3×3 et surbrillance ligne/colonne/bloc',
-      'Contrôle des erreurs + 3 indices par partie',
+      'Contrôle automatique des erreurs, compteur de fautes et 3 indices par partie',
+      'Les notes des cases voisines s’effacent dès qu’un chiffre est posé',
       'Chronomètre avec pause (y compris automatique en arrière-plan)',
       'Records de temps par difficulté et défi du jour quotidien',
     ],
@@ -76,7 +75,8 @@ export const content: GameSEOContent = {
       'Generator with a verified unique solution for every grid',
       '4 difficulties: Easy (40 givens), Medium (34), Hard (28), Expert (24)',
       '3×3 pencil notes and row/column/box highlighting',
-      'Error checking + 3 hints per game',
+      'Automatic error checking, mistake counter and 3 hints per game',
+      'Neighbouring pencil notes are cleared as soon as a digit is placed',
       'Timer with pause (including automatic pause in background)',
       'Best times per difficulty and a daily challenge',
     ],
@@ -100,14 +100,14 @@ export const content: GameSEOContent = {
       { q: 'Les grilles ont-elles vraiment une solution unique ?', a: 'Oui. À chaque tentative de retrait d’un chiffre pendant la génération, un solveur compte les solutions de la grille (arrêt dès la deuxième) : si l’unicité était perdue, le chiffre est remis en place.' },
       { q: 'Le chronomètre compte-t-il quand je change d’onglet ?', a: 'Non : le chrono se met en pause automatiquement quand la page devient invisible, et vous pouvez le mettre en pause manuellement à tout moment.' },
       { q: 'À quoi servent les indices ?', a: 'Un indice remplit correctement la case sélectionnée (ou une case utile choisie au hasard). Vous en avez 3 par grille ; chaque indice utilisé réduit l’expérience gagnée.' },
-      { q: 'Puis-je reprendre une grille en cours ?', a: 'Oui : la grille, les notes, le chrono et les indices restants sont sauvegardés automatiquement ; la page vous proposera de reprendre au retour.' },
+      { q: 'Puis-je reprendre une grille en cours ?', a: 'Oui : la grille, les notes, le chrono, les erreurs et les indices restants sont sauvegardés automatiquement ; la page vous proposera de reprendre au retour.' },
       { q: 'Quelle est la différence entre les difficultés ?', a: 'Le nombre de chiffres donnés au départ : 40 en Facile, 34 en Moyen, 28 en Difficile, 24 en Expert. Moins d’indices signifie des déductions plus longues.' },
     ],
     en: [
       { q: 'Do the grids really have a unique solution?', a: 'Yes. Every time the generator attempts to remove a digit, a solver counts the grid’s solutions (stopping at the second): if uniqueness would be lost, the digit is put back.' },
       { q: 'Does the timer run when I switch tabs?', a: 'No: the timer pauses automatically when the page becomes hidden, and you can pause it manually at any time.' },
       { q: 'What are hints for?', a: 'A hint fills the selected cell (or a useful random cell) correctly. You get 3 per grid; each hint used reduces the experience earned.' },
-      { q: 'Can I resume a grid in progress?', a: 'Yes: the grid, notes, timer and remaining hints are saved automatically; the page will offer to resume when you come back.' },
+      { q: 'Can I resume a grid in progress?', a: 'Yes: the grid, notes, timer, mistakes and remaining hints are saved automatically; the page will offer to resume when you come back.' },
       { q: 'What is the difference between difficulties?', a: 'The number of starting givens: 40 in Easy, 34 in Medium, 28 in Hard, 24 in Expert. Fewer givens mean longer deductions.' },
     ],
   },
@@ -299,9 +299,11 @@ function findConflicts(grid: number[]): Set<number> {
   return out
 }
 
-function conflictsWith(grid: number[], i: number, v: number): boolean {
-  for (const j of PEERS[i]) if (grid[j] === v) return true
-  return false
+/** Haptique légère (no-op sur les navigateurs sans Vibration API). */
+function buzz(ms: number) {
+  try {
+    navigator.vibrate?.(ms)
+  } catch {}
 }
 
 /* ================= Textes locaux ================= */
@@ -312,11 +314,12 @@ const STR = {
     generatingSub: 'Vérification de la solution unique en cours',
     notes: 'Notes',
     erase: 'Effacer',
-    autoCheck: 'Contrôle auto',
+    autoCheck: 'Contrôle auto des erreurs',
     verify: 'Vérifier',
-    confirm: 'Confirmer ?',
+    confirm: 'Confirmer le recommencement ?',
     noErrors: 'Aucune erreur — parfait !',
     errors: (n: number) => `${n} case${n > 1 ? 's' : ''} incorrecte${n > 1 ? 's' : ''}`,
+    errorsLabel: 'Erreurs',
     cell: 'Case',
     given: 'donné',
     board: 'Grille de sudoku',
@@ -332,11 +335,12 @@ const STR = {
     generatingSub: 'Verifying the unique solution',
     notes: 'Notes',
     erase: 'Erase',
-    autoCheck: 'Auto check',
+    autoCheck: 'Auto error check',
     verify: 'Check',
-    confirm: 'Confirm?',
+    confirm: 'Confirm restart?',
     noErrors: 'No errors — perfect!',
     errors: (n: number) => `${n} wrong cell${n > 1 ? 's' : ''}`,
+    errorsLabel: 'Errors',
     cell: 'Cell',
     given: 'given',
     board: 'Sudoku grid',
@@ -351,6 +355,8 @@ const STR = {
 interface SudokuSave {
   diff: Diff
   daily: boolean
+  /** Date à laquelle le défi du jour a été lancé (clé du crédit quotidien). */
+  dailyDate?: string
   givens: number[]
   solution: number[]
   grid: number[]
@@ -358,7 +364,11 @@ interface SudokuSave {
   elapsed: number
   hintsUsed: number
   hinted: number[]
+  mistakes?: number
 }
+
+/** Largeur maximale du plateau : limitée par la hauteur pour rester à l'écran sans scroll. */
+const BOARD_MAX = 'max-w-[min(440px,calc(100dvh_-_400px))]'
 
 /* ================= Composant principal ================= */
 export default function SudokuGame() {
@@ -377,6 +387,7 @@ export default function SudokuGame() {
   const [phase, setPhase] = useState<'menu' | 'generating' | 'playing' | 'won'>('menu')
   const [diff, setDiff] = useState<Diff>('easy')
   const [daily, setDaily] = useState(false)
+  const [dailyDate, setDailyDate] = useState<string | null>(null)
   const [givens, setGivens] = useState<number[]>(() => new Array(81).fill(0))
   const [solution, setSolution] = useState<number[]>(() => new Array(81).fill(0))
   const [grid, setGrid] = useState<number[]>(() => new Array(81).fill(0))
@@ -386,18 +397,22 @@ export default function SudokuGame() {
   const [autoCheck, setAutoCheck] = useState(true)
   const [hintsUsed, setHintsUsed] = useState(0)
   const [hinted, setHinted] = useState<number[]>([])
+  const [mistakes, setMistakes] = useState(0)
   const [elapsed, setElapsed] = useState(0)
   const [running, setRunning] = useState(false)
   const [sessKey, setSessKey] = useState(0)
   const [restored, setRestored] = useState<SudokuSave | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
-  const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number } | null>(null)
+  const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number; isRecord: boolean } | null>(null)
   const [confirmRestart, setConfirmRestart] = useState(false)
 
   const baseRef = useRef(0)
   const segStartRef = useRef(0)
   const pauseRef = useRef<() => void>(() => {})
   const keyRef = useRef<(e: KeyboardEvent) => void>(() => {})
+  const genTimerRef = useRef<number | null>(null)
+
+  const canAct = phase === 'playing' && running
 
   /* --- Chronomètre : segment courant + base accumulée --- */
   useEffect(() => {
@@ -433,7 +448,13 @@ export default function SudokuGame() {
     Promise.resolve().then(() => {
       if (!alive) return
       const s = loadSave<SudokuSave>(gameId)
-      if (s && Array.isArray(s.grid) && s.grid.length === 81 && Array.isArray(s.givens) && s.givens.length === 81 && Array.isArray(s.solution)) {
+      if (
+        s &&
+        Array.isArray(s.grid) && s.grid.length === 81 &&
+        Array.isArray(s.givens) && s.givens.length === 81 &&
+        Array.isArray(s.solution) && s.solution.length === 81 &&
+        (s.diff === 'easy' || s.diff === 'medium' || s.diff === 'hard' || s.diff === 'expert')
+      ) {
         setRestored(s)
       }
     })
@@ -442,12 +463,32 @@ export default function SudokuGame() {
     }
   }, [])
 
+  /* --- Nettoyage du minuteur de génération au démontage --- */
+  useEffect(
+    () => () => {
+      if (genTimerRef.current !== null) window.clearTimeout(genTimerRef.current)
+    },
+    [],
+  )
+
   /* --- Sauvegarde automatique à chaque modification --- */
   useEffect(() => {
     if (phase !== 'playing') return
-    const data: SudokuSave = { diff, daily, givens, solution, grid, notes, elapsed: currentElapsed(), hintsUsed, hinted }
+    const data: SudokuSave = {
+      diff,
+      daily,
+      dailyDate: dailyDate ?? undefined,
+      givens,
+      solution,
+      grid,
+      notes,
+      elapsed: currentElapsed(),
+      hintsUsed,
+      hinted,
+      mistakes,
+    }
     saveSave(gameId, data)
-  }, [phase, diff, daily, givens, solution, grid, notes, hintsUsed, hinted])
+  }, [phase, diff, daily, dailyDate, givens, solution, grid, notes, hintsUsed, hinted, mistakes, running])
 
   /* --- Actions --- */
   function pause() {
@@ -468,8 +509,11 @@ export default function SudokuGame() {
     sfx.play('click')
     setDiff(d)
     setDaily(isDaily)
+    setDailyDate(isDaily ? todayKey() : null)
     setPhase('generating')
-    window.setTimeout(() => {
+    if (genTimerRef.current !== null) window.clearTimeout(genTimerRef.current)
+    genTimerRef.current = window.setTimeout(() => {
+      genTimerRef.current = null
       let gz: number[]
       let sol: number[]
       if (isDaily) {
@@ -494,6 +538,7 @@ export default function SudokuGame() {
       setNotesMode(false)
       setHintsUsed(0)
       setHinted([])
+      setMistakes(0)
       setWonInfo(null)
       setConfirmRestart(false)
       baseRef.current = 0
@@ -511,6 +556,7 @@ export default function SudokuGame() {
     if (!s) return
     setDiff(s.diff)
     setDaily(s.daily)
+    setDailyDate(s.daily ? s.dailyDate ?? null : null)
     setGivens(s.givens)
     setSolution(s.solution)
     setGrid(s.grid)
@@ -519,6 +565,7 @@ export default function SudokuGame() {
     setNotesMode(false)
     setHintsUsed(typeof s.hintsUsed === 'number' ? s.hintsUsed : 0)
     setHinted(Array.isArray(s.hinted) ? s.hinted : [])
+    setMistakes(typeof s.mistakes === 'number' ? s.mistakes : 0)
     setWonInfo(null)
     baseRef.current = s.elapsed
     setElapsed(s.elapsed)
@@ -536,6 +583,7 @@ export default function SudokuGame() {
     setSel(-1)
     setHintsUsed(0)
     setHinted([])
+    setMistakes(0)
     baseRef.current = 0
     setElapsed(0)
     setSessKey((k) => k + 1)
@@ -560,10 +608,17 @@ export default function SudokuGame() {
     setNotesMode((v) => !v)
   }
 
+  /** Nettoie les notes d'une case et de ses voisines quand le chiffre d y est posé. */
+  function cleanNotes(nn: number[], i: number, d: number) {
+    nn[i] = 0
+    for (const j of PEERS[i]) nn[j] &= ~(1 << d)
+  }
+
   function inputDigit(d: number) {
     if (phase !== 'playing' || !running || sel < 0) return
     if (givens[sel] !== 0 || hinted.includes(sel)) {
       sfx.play('wrong', { volume: 0.25 })
+      buzz(10)
       return
     }
     if (notesMode) {
@@ -575,17 +630,26 @@ export default function SudokuGame() {
       nn[sel] ^= 1 << d
       setNotes(nn)
       sfx.play('click', { volume: 0.4 })
+      buzz(10)
       return
     }
     const ng = [...grid]
     ng[sel] = ng[sel] === d ? 0 : d
     const nn = [...notes]
-    nn[sel] = 0
+    const placed = ng[sel]
+    if (placed !== 0) cleanNotes(nn, sel, placed)
+    else nn[sel] = 0
     setGrid(ng)
     setNotes(nn)
-    if (ng[sel] === 0) sfx.play('click', { volume: 0.4 })
-    else sfx.play('pop', { volume: 0.6 })
-    if (ng[sel] !== 0 && autoCheck && conflictsWith(ng, sel, ng[sel])) sfx.play('wrong', { volume: 0.3 })
+    buzz(10)
+    if (placed === 0) {
+      sfx.play('click', { volume: 0.4 })
+    } else if (placed !== solution[sel]) {
+      setMistakes((m) => m + 1)
+      sfx.play('wrong', { volume: 0.35 })
+    } else {
+      sfx.play('pop', { volume: 0.6 })
+    }
     checkWin(ng)
   }
 
@@ -615,7 +679,7 @@ export default function SudokuGame() {
     const ng = [...grid]
     ng[target] = solution[target]
     const nn = [...notes]
-    nn[target] = 0
+    cleanNotes(nn, target, solution[target])
     setGrid(ng)
     setNotes(nn)
     setHinted([...hinted, target])
@@ -648,25 +712,38 @@ export default function SudokuGame() {
     const ms = currentElapsed()
     const hu = hintsOverride ?? hintsUsed
     const xp = Math.max(0, (DIFFS.find((x) => x.id === diff)?.xp ?? 30) - 10 * hu)
+    const isRecord = setBest(gameId, `best-time-${diff}`, Math.round(ms / 100) / 10, true)
     setRunning(false)
     setElapsed(ms)
     setPhase('won')
-    setWonInfo({ ms, xp })
+    setWonInfo({ ms, xp, isRecord })
     setConfettiKey((k) => k + 1)
     sfx.play('win')
     addWin(gameId)
-    setBest(gameId, `best-time-${diff}`, Math.round(ms / 100) / 10, true)
     addXp(xp)
     if (diff === 'hard') unlockBadge('sudoku-hard')
     if (diff === 'expert' && hu === 0) unlockBadge('sudoku-expert-nohints')
-    if (daily) completeDaily(gameId)
+    // Crédit du défi du jour uniquement si la grille a bien été lancée aujourd'hui
+    if (daily && dailyDate === todayKey()) completeDaily(gameId)
     clearSave(gameId)
   }
 
   function handleKey(e: KeyboardEvent) {
-    if (phase !== 'playing' || !running) return
+    if (phase !== 'playing') return
     if (e.metaKey || e.ctrlKey || e.altKey) return
     const k = e.key
+    if (k === 'Escape') {
+      e.preventDefault()
+      setSel(-1)
+      return
+    }
+    if (k === 'p' || k === 'P') {
+      e.preventDefault()
+      if (running) pause()
+      else resumeTimer()
+      return
+    }
+    if (!running) return
     if (k >= '1' && k <= '9') {
       e.preventDefault()
       inputDigit(Number(k))
@@ -680,6 +757,11 @@ export default function SudokuGame() {
     if (k === 'n' || k === 'N') {
       e.preventDefault()
       toggleNotesMode()
+      return
+    }
+    if (k === 'h' || k === 'H') {
+      e.preventDefault()
+      giveHint()
       return
     }
     const dirs: Record<string, [number, number]> = {
@@ -717,39 +799,39 @@ export default function SudokuGame() {
   }, [grid])
   const selVal = sel >= 0 ? grid[sel] : 0
 
-  /* --- Rendu --- */
+  /* --- Rendu : écran de choix (compact, boutons visibles immédiatement) --- */
   if (phase === 'menu') {
     return (
-      <div className="checkerboard flex min-h-[380px] select-none flex-col items-center justify-center gap-4 rounded-2xl border p-5 text-center sm:p-6">
+      <div className="checkerboard flex min-h-[300px] select-none flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center sm:p-6">
         <div className="flex gap-2" aria-hidden="true">
           {['🔢', '✏️', '🧘'].map((e, i) => (
-            <span key={i} className={cn('text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
+            <span key={i} className={cn('text-3xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
               {e}
             </span>
           ))}
         </div>
-        <p className="max-w-md text-sm text-muted-foreground">{content.tagline[lang]}</p>
+        <p className="max-w-md text-xs text-muted-foreground sm:text-sm">{content.tagline[lang]}</p>
         {restored ? (
           <Button size="lg" className="anim-glow rounded-full px-6" onClick={resumeGame}>
             <Play className="h-4 w-4" aria-hidden="true" />
             {t('game.resume')}
           </Button>
         ) : null}
-        <div className="grid w-full max-w-xl grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <div className="grid w-full max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
           {DIFFS.map((d) => (
             <button
               key={d.id}
               type="button"
               onClick={() => newGame(d.id)}
-              className="flex min-h-[96px] flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+              className="flex min-h-[72px] touch-manipulation select-none flex-col items-center justify-center gap-1 rounded-2xl border-2 border-border bg-card p-2.5 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.98] sm:min-h-[88px]"
             >
-              <span className="font-display text-base font-extrabold">{t(`common.${d.id}`)}</span>
+              <span className="font-display text-sm font-extrabold sm:text-base">{t(`common.${d.id}`)}</span>
               <span className="flex items-center gap-1" aria-hidden="true">
                 {[1, 2, 3, 4].map((i) => (
                   <span key={i} className={cn('h-1.5 w-1.5 rounded-full', i <= d.dots ? 'bg-foreground/60' : 'bg-foreground/15')} />
                 ))}
               </span>
-              <span className="text-xs tabular-nums text-muted-foreground">
+              <span className="text-[10px] tabular-nums text-muted-foreground">
                 {d.givens} {L.givens}
               </span>
             </button>
@@ -757,11 +839,12 @@ export default function SudokuGame() {
         </div>
         <Button variant="outline" size="lg" className="rounded-full" onClick={() => newGame('medium', true)} disabled={dailyDone}>
           <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-          {dailyDone ? `${t('game.startDaily')} ✓` : t('game.startDaily')}
+          {dailyDone ? t('common.dailyDone') : t('game.startDaily')}
         </Button>
         {restored ? (
-          <p className="text-xs text-muted-foreground">
-            {L.savedGame} — {t(`common.${restored.diff}`)} · {formatMs(restored.elapsed)}
+          <p className="text-[11px] text-muted-foreground">
+            {L.savedGame} — {t(`common.${restored.diff}`)}
+            {restored.daily ? ' 📅' : ''} · {formatMs(restored.elapsed)}
           </p>
         ) : null}
       </div>
@@ -770,9 +853,9 @@ export default function SudokuGame() {
 
   if (phase === 'generating') {
     return (
-      <div className="flex min-h-[380px] select-none flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" role="status" aria-label={L.generating} />
-        <p className="font-display text-lg font-bold">{L.generating}</p>
+      <div className="flex min-h-[300px] select-none flex-col items-center justify-center gap-3 rounded-2xl border p-6 text-center" aria-busy="true">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" role="status" aria-label={L.generating} />
+        <p className="font-display text-base font-bold">{L.generating}</p>
         <p className="max-w-xs text-xs text-muted-foreground">{L.generatingSub}</p>
       </div>
     )
@@ -782,48 +865,60 @@ export default function SudokuGame() {
     <div className="relative select-none">
       <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
 
-      {/* Barre d'état */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(elapsed)} />
-        <span className="flex h-11 items-center gap-1.5 rounded-full bg-secondary/70 px-3.5 text-sm font-bold">
-          {t(`common.${diff}`)}
-          {daily ? <span className="text-amber-500" title={t('common.daily')}>📅</span> : null}
+      {/* HUD compact une ligne : temps, erreurs, difficulté + pause/recommencer */}
+      <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+        <span className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-bold tabular-nums">
+          <Timer className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          {formatMs(elapsed)}
         </span>
-        <div className="ms-auto flex flex-wrap items-center gap-2">
+        <span
+          className={cn(
+            'flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-bold tabular-nums',
+            mistakes > 0 ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' : 'bg-secondary/70 text-muted-foreground',
+          )}
+          aria-label={L.errorsLabel}
+          title={L.errorsLabel}
+        >
+          <span aria-hidden="true">✕</span>
+          {mistakes}
+        </span>
+        <span className="flex h-9 shrink-0 items-center gap-1 rounded-full bg-secondary/70 px-3 text-xs font-bold">
+          {t(`common.${diff}`)}
+          {daily ? (
+            <span className="text-amber-500" title={t('common.daily')} aria-hidden="true">
+              📅
+            </span>
+          ) : null}
+        </span>
+        <div className="ms-auto flex shrink-0 items-center gap-1.5">
           {phase === 'playing' ? (
             <Button
               variant="secondary"
-              className="h-11 rounded-full"
-              onClick={running ? pause : resumeTimer}
-              disabled={phase !== 'playing'}
+              className="h-9 w-9 rounded-full p-0"
+              onClick={() => (running ? pause() : resumeTimer())}
+              aria-label={running ? t('common.pause') : t('common.resume')}
+              title={running ? t('common.pause') : t('common.resume')}
             >
               {running ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
-              <span className="hidden sm:inline">{running ? t('common.pause') : t('common.resume')}</span>
             </Button>
           ) : null}
-          <Button variant="secondary" className="h-11 rounded-full" onClick={giveHint} disabled={hintsUsed >= 3 || phase !== 'playing'}>
-            <Lightbulb className="h-4 w-4" aria-hidden="true" />
-            {t('common.hint')} {3 - hintsUsed}
-          </Button>
-          <Button variant="secondary" className="h-11 rounded-full" onClick={verify} disabled={phase !== 'playing'}>
-            <SearchCheck className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{L.verify}</span>
-          </Button>
-          <Button
-            variant={confirmRestart ? 'destructive' : 'ghost'}
-            className="h-11 rounded-full"
-            onClick={onRestartClick}
-            disabled={phase !== 'playing'}
-          >
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{confirmRestart ? L.confirm : t('common.restart')}</span>
-          </Button>
+          {phase === 'playing' ? (
+            <Button
+              variant={confirmRestart ? 'destructive' : 'ghost'}
+              className="h-9 w-9 rounded-full p-0"
+              onClick={onRestartClick}
+              aria-label={confirmRestart ? L.confirm : t('common.restart')}
+              title={confirmRestart ? L.confirm : t('common.restart')}
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          ) : null}
         </div>
       </div>
 
-      {/* Grille */}
+      {/* Grille — largeur/plafonnée pour tenir à l'écran sans scroll */}
       <div
-        className="relative mx-auto w-[min(94vw,440px)] rounded-xl border-2 border-foreground/70 bg-card shadow-inner"
+        className={cn('relative mx-auto w-full overflow-hidden rounded-xl border-2 border-foreground/70 bg-card shadow-inner [container-type:inline-size]', BOARD_MAX)}
         role="grid"
         aria-label={L.board}
       >
@@ -849,7 +944,7 @@ export default function SudokuGame() {
                   sfx.play('click', { volume: 0.3 })
                 }}
                 className={cn(
-                  'relative flex aspect-square items-center justify-center text-lg transition-colors sm:text-xl',
+                  'relative flex aspect-square touch-manipulation select-none items-center justify-center text-[clamp(15px,5.2cqw,26px)] leading-none transition-colors duration-100 focus-visible:z-20 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
                   c < 8 && (c % 3 === 2 ? 'border-r-2 border-r-foreground/50' : 'border-r border-border'),
                   r < 8 && (r % 3 === 2 ? 'border-b-2 border-b-foreground/50' : 'border-b border-border'),
                   isSel
@@ -865,14 +960,25 @@ export default function SudokuGame() {
                             : given
                               ? 'bg-muted/50'
                               : 'bg-card',
-                  conflict ? 'text-red-600 dark:text-red-400' : given ? 'font-display text-foreground' : hint ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary',
+                  conflict
+                    ? 'text-red-600 dark:text-red-400'
+                    : given
+                      ? 'font-display text-foreground'
+                      : hint
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-primary',
                   given || hint ? 'font-extrabold' : 'font-bold',
                 )}
               >
                 {v !== 0 ? (
-                  v
+                  <span key={`${given ? 'g' : hint ? 'h' : 'u'}-${v}`} className={cn(!reduce && 'anim-pop-in')}>
+                    {v}
+                  </span>
                 ) : notes[i] !== 0 ? (
-                  <span className="grid h-full w-full grid-cols-3 grid-rows-3 p-0.5 text-[9px] font-semibold leading-none text-muted-foreground sm:text-[10px]" aria-hidden="true">
+                  <span
+                    className="grid h-full w-full grid-cols-3 grid-rows-3 p-0.5 text-[clamp(8px,2.6cqw,11px)] font-semibold leading-none text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     {Array.from({ length: 9 }, (_, k) => (
                       <span key={k} className="flex items-center justify-center">
                         {notes[i] & (1 << (k + 1)) ? k + 1 : ''}
@@ -885,93 +991,143 @@ export default function SudokuGame() {
           })}
         </div>
 
-        {/* Voile de pause */}
+        {/* Voile de pause : fige le chrono et masque la grille */}
         {phase === 'playing' && !running ? (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-card/85 backdrop-blur-md">
-            <p className="font-display text-2xl font-extrabold">{t('common.pause')}</p>
-            <Button size="lg" className="rounded-full" onClick={resumeTimer}>
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-card/95 p-4 backdrop-blur-md">
+            <Pause className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+            <p className="font-display text-xl font-extrabold">{t('common.pause')}</p>
+            <Button size="lg" className="rounded-full" onClick={resumeTimer} autoFocus>
               <Play className="h-4 w-4" aria-hidden="true" /> {t('common.resume')}
             </Button>
           </div>
         ) : null}
+
+        {/* Victoire : overlay immédiat avec Rejouer */}
+        {phase === 'won' && wonInfo ? (
+          <div
+            className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 bg-card/95 p-4 text-center backdrop-blur-md"
+            role="status"
+          >
+            <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
+            {wonInfo.isRecord ? <p className="text-sm font-bold text-amber-600 dark:text-amber-400">🏆 {t('common.newRecord')}</p> : null}
+            {daily && dailyDate === todayKey() ? (
+              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">📅 {t('common.dailyDone')}</p>
+            ) : null}
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(wonInfo.ms)} />
+              <StatPill icon={<span className="text-xs" aria-hidden="true">🎚️</span>} label={t('common.difficulty')} value={t(`common.${diff}`)} />
+              <StatPill icon={<Lightbulb className="h-4 w-4" aria-hidden="true" />} label={L.hintsUsed} value={hintsUsed} />
+              {mistakes > 0 ? <StatPill icon={<span className="text-xs" aria-hidden="true">✕</span>} label={L.errorsLabel} value={mistakes} /> : null}
+              <StatPill icon={<span className="text-xs" aria-hidden="true">⭐</span>} label={L.xpEarned} value={`+${wonInfo.xp}`} />
+            </div>
+            <div className="mt-1 flex flex-wrap justify-center gap-2">
+              <Button size="lg" className="rounded-full" onClick={() => newGame(diff)}>
+                <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.replay}
+              </Button>
+              <Button
+                size="lg"
+                variant="secondary"
+                className="rounded-full"
+                onClick={() => {
+                  sfx.play('click')
+                  setPhase('menu')
+                }}
+              >
+                <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      {/* Pavé numérique */}
-      <div className="mx-auto mt-3 grid w-[min(94vw,440px)] grid-cols-5 gap-1.5 sm:grid-cols-9" role="group" aria-label={L.pad}>
+      {/* Pavé numérique compact : 2 lignes de 5 (chiffres + gomme), cibles ≥ 44 px */}
+      <div className={cn('mx-auto mt-2 grid w-full grid-cols-5 gap-1.5', BOARD_MAX)} role="group" aria-label={L.pad}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
           <button
             key={d}
             type="button"
+            disabled={!canAct}
             onClick={() => inputDigit(d)}
             className={cn(
-              'flex h-12 flex-col items-center justify-center rounded-xl border-2 font-display text-xl font-extrabold leading-none transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-ring',
+              'flex h-11 touch-manipulation select-none flex-col items-center justify-center rounded-xl border-2 font-display text-lg font-extrabold leading-none transition-all active:scale-95 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-50',
               remaining[d - 1] === 0
                 ? 'border-border/60 bg-card text-muted-foreground/40'
                 : 'border-amber-200/70 bg-amber-50 hover:border-primary/50 dark:border-amber-500/25 dark:bg-amber-500/10',
             )}
           >
             <span>{d}</span>
-            <span className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">{remaining[d - 1]}</span>
+            <span className="mt-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-hidden="true">
+              {remaining[d - 1]}
+            </span>
           </button>
         ))}
+        <button
+          type="button"
+          disabled={!canAct}
+          onClick={eraseCell}
+          aria-label={L.erase}
+          title={L.erase}
+          className="flex h-11 touch-manipulation select-none items-center justify-center rounded-xl border-2 border-border/60 bg-card text-muted-foreground transition-all hover:border-primary/50 hover:text-foreground active:scale-95 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+        >
+          <Eraser className="h-5 w-5" aria-hidden="true" />
+        </button>
       </div>
 
-      {/* Actions */}
-      <div className="mx-auto mt-2.5 flex w-[min(94vw,440px)] flex-wrap items-center justify-center gap-2">
+      {/* Outils compacts : notes, indice, vérification, contrôle auto */}
+      <div className={cn('mx-auto mt-1.5 flex w-full flex-wrap items-center justify-center gap-1.5', BOARD_MAX)}>
         <Button
           variant={notesMode ? 'default' : 'secondary'}
-          className="h-11 rounded-full"
+          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
           onClick={toggleNotesMode}
+          disabled={!canAct}
           aria-pressed={notesMode}
+          aria-label={L.notes}
+          title={L.notes}
         >
-          <Pencil className="h-4 w-4" aria-hidden="true" /> {L.notes}
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+          {L.notes}
         </Button>
-        <Button variant="secondary" className="h-11 rounded-full" onClick={eraseCell}>
-          <Eraser className="h-4 w-4" aria-hidden="true" /> {L.erase}
+        <Button
+          variant="secondary"
+          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
+          onClick={giveHint}
+          disabled={!canAct || hintsUsed >= 3}
+          aria-label={t('common.hint')}
+          title={t('common.hint')}
+        >
+          <Lightbulb className="h-4 w-4 text-amber-500" aria-hidden="true" />
+          <span className="tabular-nums">{3 - hintsUsed}</span>
         </Button>
-        <div className="flex h-11 items-center gap-2 rounded-full border bg-card px-3.5">
-          <Switch
-            id="sudoku-auto-check"
-            checked={autoCheck}
-            onCheckedChange={(v) => {
-              sfx.play('click', { volume: 0.4 })
-              setAutoCheck(v)
-            }}
-            aria-label={L.autoCheck}
-          />
-          <Label htmlFor="sudoku-auto-check" className="cursor-pointer text-xs text-muted-foreground">
-            {L.autoCheck}
-          </Label>
-        </div>
+        <Button
+          variant="secondary"
+          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
+          onClick={verify}
+          disabled={!canAct}
+        >
+          <SearchCheck className="h-4 w-4" aria-hidden="true" />
+          {L.verify}
+        </Button>
+        <Button
+          variant={autoCheck ? 'default' : 'secondary'}
+          className="h-10 w-10 touch-manipulation select-none rounded-full p-0"
+          onClick={() => {
+            sfx.play('click', { volume: 0.4 })
+            setAutoCheck((v) => !v)
+          }}
+          aria-pressed={autoCheck}
+          aria-label={L.autoCheck}
+          title={L.autoCheck}
+        >
+          <BadgeCheck className={cn('h-4 w-4', autoCheck && 'text-primary-foreground')} aria-hidden="true" />
+        </Button>
       </div>
-
-      {/* Victoire */}
-      {phase === 'won' && wonInfo ? (
-        <div className="anim-rise mt-4 rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10" role="status">
-          <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2.5">
-            <StatPill icon={<Timer className="h-4 w-4" aria-hidden="true" />} label={t('common.time')} value={formatMs(wonInfo.ms)} />
-            <StatPill icon={<span className="text-sm" aria-hidden="true">🎚️</span>} label={t('common.difficulty')} value={t(`common.${diff}`)} />
-            <StatPill icon={<Lightbulb className="h-4 w-4" aria-hidden="true" />} label={L.hintsUsed} value={hintsUsed} />
-            <StatPill icon={<span className="text-sm" aria-hidden="true">⭐</span>} label={L.xpEarned} value={`+${wonInfo.xp}`} />
-          </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => newGame(diff)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.replay}
-            </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={() => setPhase('menu')}>
-              <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }
 
 function StatPill({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <span className="flex h-11 items-center gap-2 rounded-full bg-secondary/70 px-3.5 text-sm font-semibold">
+    <span className="flex h-9 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-xs font-semibold">
       <span className="text-muted-foreground" aria-hidden="true">{icon}</span>
       <span className="text-muted-foreground">{label}</span>
       <span className="tabular-nums">{value}</span>
