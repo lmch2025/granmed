@@ -1,0 +1,127 @@
+'use client'
+
+import { ChevronRight, ChevronLeft, Clock, CalendarDays } from 'lucide-react'
+import { sfx } from '@/lib/sound'
+import { useT, useLang } from '@/lib/i18n'
+import { useAppStore } from '@/lib/app-store'
+import { GUIDES, GUIDES_BY_SLUG } from '@/lib/content/guides'
+import { SectionHeader } from '@/components/shared/ui-bits'
+import { Separator } from '@/components/ui/separator'
+
+export function GuidesView() {
+  const t = useT()
+  const lang = useLang()
+  const navigate = useAppStore((s) => s.navigate)
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-6 sm:px-6">
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
+        <ol className="flex items-center gap-1">
+          <li>
+            <button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>
+              {t('nav.home')}
+            </button>
+          </li>
+          <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
+          <li aria-current="page" className="font-medium text-foreground">{t('nav.guides')}</li>
+        </ol>
+      </nav>
+
+      <SectionHeader as="h1" icon="📚" title={t('nav.guides')} sub={t('home.guidesSub')} />
+
+      <div className="space-y-4">
+        {GUIDES.map((g) => (
+          <button
+            key={g.slug}
+            type="button"
+            onClick={() => { sfx.play('click'); navigate({ type: 'guide', slug: g.slug }) }}
+            className="group flex w-full items-start gap-4 rounded-2xl border bg-card p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <span className="text-4xl transition-transform group-hover:scale-110" aria-hidden="true">{g.icon}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-lg font-bold leading-snug">{g.title[lang]}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{g.description[lang]}</span>
+              <span className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden="true" /> {g.readMinutes} min</span>
+                <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" /> {g.date}</span>
+              </span>
+            </span>
+            <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function GuideView({ slug }: { slug: string }) {
+  const t = useT()
+  const lang = useLang()
+  const navigate = useAppStore((s) => s.navigate)
+  const guide = GUIDES_BY_SLUG[slug]
+
+  if (!guide) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <p className="font-display text-2xl font-bold">{t('misc.notFound')}</p>
+        <p className="mt-2 text-muted-foreground">{t('misc.notFoundSub')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <article className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 sm:px-6">
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-1">
+          <li><button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>{t('nav.home')}</button></li>
+          <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
+          <li><button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'guides' }) }}>{t('nav.guides')}</button></li>
+          <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
+          <li aria-current="page" className="max-w-[14rem] truncate font-medium text-foreground">{guide.title[lang]}</li>
+        </ol>
+      </nav>
+
+      <header className="mb-6">
+        <div className="flex items-center gap-4">
+          <span className="text-5xl" aria-hidden="true">{guide.icon}</span>
+          <div>
+            <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{guide.title[lang]}</h1>
+            <p className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden="true" /> {guide.readMinutes} min</span>
+              <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" /> {guide.date}</span>
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{guide.description[lang]}</p>
+      </header>
+
+      <Separator className="mb-8" />
+
+      <div className="space-y-8">
+        {guide.sections[lang].map((s, i) => (
+          <section key={i} aria-labelledby={`gs-${i}`}>
+            <h2 id={`gs-${i}`} className="mb-3 font-display text-xl font-bold">
+              {i + 1}. {s.h}
+            </h2>
+            <div className="space-y-3 text-sm leading-relaxed text-foreground/90 sm:text-base">
+              {s.p.map((p, j) => (
+                <p key={j}>{p}</p>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <div className="mt-10 rounded-2xl border bg-secondary/40 p-5 text-center">
+        <button
+          type="button"
+          onClick={() => { sfx.play('click'); navigate({ type: 'guides' }) }}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          {t('nav.guides')}
+        </button>
+      </div>
+    </article>
+  )
+}

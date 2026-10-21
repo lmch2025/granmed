@@ -1,0 +1,64 @@
+# Granmed — Portail de jeux gratuits en ligne / Free online games portal
+
+> Granmed (granmed.store) est un portail international de 20 jeux gratuits sur navigateur, bilingue français/anglais, dédié au divertissement, à l'entraînement cérébral et à la détente. Tous les jeux sont jouables immédiatement, sans inscription ni téléchargement, sur mobile comme sur ordinateur. La progression (records, succès, défis quotidiens) est sauvegardée localement sur l'appareil du joueur.
+
+Granmed is an international portal of 20 free browser games, bilingual French/English, devoted to entertainment, brain training and relaxation. All games are instantly playable, with no sign-up or download, on mobile and desktop. Progress (records, achievements, daily challenges) is saved locally on the player's device.
+
+## Identité / Identity
+
+- Éditeur / Publisher : Granmed (granmed.store)
+- Slogan : Play · Challenge · Relax
+- Langues / Languages : français, anglais (contenus et dictionnaires propres à chaque langue)
+- Modèle / Model : 100 % gratuit, sans compte obligatoire, sans collecte de données personnelles
+- Santé / Health : les contenus santé sont informatifs, sourcés sur des institutions publiques (OMS…) et ne remplacent pas un avis médical.
+
+## Les 20 jeux / The 20 games
+
+Chaque jeu possède sa page dédiée, ses règles, sa FAQ et ses records. Navigation par hash : `https://granmed.store/#/fr/<chemin>` (français) ou `https://granmed.store/#/en/<path>` (anglais).
+
+### Mémoire et entraînement cérébral / Memory & brain training
+
+- Memory Match — jeu de mémoire par paires de cartes (5 thèmes, 4 tailles de grille, défi quotidien). FR : #/fr/jeu-memory · EN : #/en/memory-match
+- Gran' Mémoire (Sequence Memory) — reproduction de séquences lumineuses et sonores qui s'allongent à chaque tour, modes classique et rapide. FR : #/fr/memoire-sequences · EN : #/en/sequence-memory
+- Vision Active (Schulte Table) — retrouver les nombres dans l'ordre le plus vite possible, grilles 3×3 à 7×7, modes clair/sombre/contraste élevé. FR : #/fr/table-schulte · EN : #/en/schulte-table
+- Calcul Éclair (Speed Math) — calcul mental en sprint de 60 secondes, difficulté adaptative, bonus de série. FR : #/fr/calcul-mental-rapide · EN : #/en/speed-math
+- Culture Gran (Mini Crossword) — mots croisés express construits à la main (nature, expressions, culture générale), indices et validation. FR : #/fr/mots-croises · EN : #/en/mini-crossword
+- Vrai ou Faux Santé (Health True/False) — affirmations santé et bien-être avec explications sourcées après chaque réponse. FR : #/fr/quiz-sante · EN : #/en/health-true-false
+
+### Puzzles et logique / Puzzles & logic
+
+- Jardin de Gran (Merge Garden) — fusionner graines et plantes pour découvrir 16 espèces, collection et objectifs. FR : #/fr/jardin-merge · EN : #/en/merge-garden
+- 2048 Nutrition — le 2048 classique habillé alimentairement, annulations limitées, sauvegarde de partie. FR : #/fr/2048-nutrition · EN : #/en/2048-nutrition
+- Sudoku Zen — grilles à solution unique garantie, notes, vérification d'erreurs, indices, 4 niveaux. FR : #/fr/sudoku · EN : #/en/sudoku
+- Mot du Jour Santé (Daily Word Game) — deviner le mot mystère en 6 tentatives, un mot par jour, dictionnaires FR et EN distincts, partage sans révéler la solution. FR : #/fr/mot-du-jour · EN : #/en/daily-word-game
+- Démineur Santé (Minesweeper) — démineur classique : 3 tailles, 3 difficultés, marquage des mines, chronomètre. FR : #/fr/demineur · EN : #/en/minesweeper
+- Block Puzzle Équilibre — placer des pièces pour compléter lignes et colonnes, combos et records. FR : #/fr/block-puzzle · EN : #/en/block-puzzle
+- Souvenirs de Famille (Jigsaw Puzzle) — reconstituer des illustrations originales (12/24/48 pièces), magnétisme des pièces, galerie. FR : #/fr/puzzle-images · EN : #/en/jigsaw-puzzle
+
+### Adresse et réflexes / Skill & reflexes
+
+- Pill Toss — lancer de pilules fictives vers des fioles mobiles, physique réaliste, combos. FR : #/fr/lancer-de-pilules · EN : #/en/pill-toss
+- Le Pompier de Gran (Fire Escape) — guider un pompier à travers les flammes d'un seul geste, score de distance. FR : #/fr/pompier-de-gran · EN : #/en/fire-escape
+- Pêche Miraculeuse (Zen Fishing) — pêche détendante : descendre l'hameçon, remonter les poissons, compléter la collection d'espèces. FR : #/fr/peche-zen · EN : #/en/zen-fishing
+- Le Verger de Gran (Fruit Slice) — trancher les fruits au doigt, éviter les objets interdits, combos. FR : #/fr/decoupe-de-fruits · EN : #/en/fruit-slice
+
+### Mots et culture / Words & culture
+
+- Devine l'Expression (Guess the Idiom) — retrouver des expressions populaires à partir de définitions et d'indices progressifs, avec origines. FR : #/fr/devine-expression · EN : #/en/guess-the-idiom
+- Le Mot le Plus Long (Longest Word Game) — former un maximum de mots avec 9 lettres, compte à rebours, dictionnaires par langue. FR : #/fr/mot-le-plus-long · EN : #/en/longest-word-game
+- Histoire Interactive — récits à embranchements : vos choix modifient l'histoire, plusieurs fins à découvrir. FR : #/fr/histoire-interactive · EN : #/en/interactive-story
+
+## Gamification
+
+XP et niveaux, 47 succès (badges), défis quotidiens deterministes par date, séries de jours consécutifs, records personnels par jeu et par métrique, favoris, partage de résultats. Statistiques présentées comme ludiques — elles ne mesurent pas les capacités cognitives réelles.
+
+## Guides
+
+- Comment améliorer sa mémoire avec des jeux (#/fr/guides/ameliorer-sa-memoire)
+- Les règles du sudoku expliquées aux débutants (#/fr/guides/regles-sudoku-debutants)
+- Gagner au 2048 : 5 stratégies (#/fr/guides/gagner-au-2048)
+- Jeux de mots : enrichir son vocabulaire (#/fr/guides/jeux-de-mots-vocabulaire)
+
+## Contact & mentions
+
+Site : https://granmed.store · Confidentialité : #/fr/confidentialite · Mentions légales : #/fr/mentions-legales · À propos : #/fr/a-propos

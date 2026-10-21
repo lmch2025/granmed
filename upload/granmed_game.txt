@@ -1,0 +1,908 @@
+Le projet **granmed.store** est un véritable portail international de jeux gratuits sur navigateur, bilingue français/anglais, combinant divertissement, entraînement cérébral, puzzles et jeux de réflexion.
+Concevoir une plateforme dont chaque jeu possède sa propre identité, sa propre expérience utilisateur et une véritable stratégie d'acquisition de trafic organique.
+
+L'objectif est de construire un produit qui puisse attirer des joueurs depuis Google, Bing et les moteurs de recherche alimentés par l'IA, les inciter à revenir et générer des revenus sans dégrader leur expérience.
+
+Voici comment le projet sera structure
+
+# 1. Le concept général de GRANMED.STORE
+
+**Positionnement : un portail international de jeux gratuits pour stimuler son esprit et se divertir.**
+
+La marque doit être suffisamment large pour accueillir les 20 jeux, sans enfermer le site dans la seule thématique médicale.
+
+Je privilégierais trois promesses :
+- **Play:** des jeux amusants, immédiatement accessibles, sans téléchargement.
+- **Challenge:** des défis quotidiens, des records personnels et des niveaux progressifs.
+- **Relax:** des expériences agréables, avec des animations fluides, des sons immersifs et des interfaces adaptées à tous les âges.
+
+Le site serait disponible en français et en anglais, avec une adaptation automatique de la langue.
+
+### Architecture de la page d'accueil
+
+La page d'accueil ne doit pas être une simple liste de 20 liens. Elle doit donner envie de lancer une partie immédiatement.
+
+Je recommande cette structure :
+
+1. En-tête avec logo, sélecteur de langue et accès aux favoris.
+2. Zone principale avec un message accrocheur et un bouton « Jouer maintenant ».
+3. Sélection des jeux populaires.
+4. Section « Votre défi du jour ».
+5. Catégorie « Mémoire et entraînement cérébral ».
+6. Catégorie « Puzzles et logique ».
+7. Catégorie « Adresse et réflexes ».
+8. Catégorie « Mots et culture ».
+9. Section consacrée aux jeux récemment ajoutés.
+10. Présentation des records personnels et des défis disponibles.
+11. Guides et articles consacrés aux jeux, aux règles et aux stratégies.
+12. Pied de page avec les informations légales, les paramètres de confidentialité et les pages d'aide.
+
+Sur mobile, les jeux doivent être accessibles en quelques secondes, sans inscription obligatoire.
+
+---
+
+# 2. Les 20 jeux : architecture et fonctionnalités
+
+Chaque jeu doit être développé avec une attention particulière portée à sa mécanique, à son ergonomie, à sa difficulté et à sa capacité à donner envie de rejouer.
+
+Voici la manière dont je les organiserais.
+
+## Catégorie A — Mémoire et entraînement cérébral
+
+
+
+### 1. Memory Match — Mémoire et souvenirs
+
+**Objectif :** retrouver les paires de cartes identiques.
+
+Fonctionnalités :
+- Plusieurs thèmes : fruits, nature, nutrition, animaux et souvenirs rétro.
+- Grilles de difficulté croissante.
+- Chronomètre facultatif.
+- Compteur de mouvements.
+- Animations fluides lorsque les paires sont découvertes.
+- Records personnels et statistiques de progression.
+- Mode quotidien avec une grille spéciale.
+
+Le jeu doit permettre de commencer immédiatement, sans tutoriel obligatoire.
+
+### 2. Gran' Mémoire — Séquences lumineuses
+
+**Objectif :** reproduire une séquence de couleurs et de sons.
+
+Fonctionnalités :
+- Séquences qui s'allongent progressivement.
+- Sons distinctifs pour chaque couleur.
+- Animation claire de la séquence à reproduire.
+- Mode classique et mode rapide.
+- Meilleur score sauvegardé.
+- Possibilité de désactiver le son.
+
+Le joueur doit comprendre immédiatement ce qu'il doit faire et pouvoir recommencer en un clic.
+
+### 3. Vision Active — Table de Schulte
+
+**Objectif :** retrouver les nombres dans l'ordre le plus rapidement possible.
+
+Fonctionnalités :
+- Grilles de 3 × 3 à 7 × 7.
+- Nombres mélangés à chaque nouvelle partie.
+- Chronomètre et comparaison avec les records précédents.
+- Mode clair, sombre et mode à contraste élevé.
+- Statistiques de progression.
+
+Les grilles doivent être générées correctement, sans nombres manquants ou dupliqués.
+
+### 4. Calcul Éclair — Speed Math
+
+**Objectif :** résoudre des opérations mathématiques dans un temps limité.
+
+Fonctionnalités :
+- Addition, soustraction, multiplication et division.
+- Mode Sprint de 60 secondes.
+- Difficulté adaptative.
+- Séries de bonnes réponses.
+- Bonus de score pour la régularité.
+- Historique des meilleurs résultats.
+
+Il faut privilégier une interface très réactive, avec des réponses accessibles par de grands boutons sur mobile.
+
+### 5. Culture Gran — Mots croisés express
+
+**Objectif :** compléter des mini-grilles grâce à des définitions.
+
+Fonctionnalités :
+- Grilles courtes et accessibles.
+- Thèmes : nature, expressions françaises, histoire et culture générale.
+- Indices progressifs.
+- Validation des réponses.
+- Sauvegarde de la progression.
+- Défis quotidiens.
+
+Les grilles doivent être réellement construites et vérifiées, et non simplement générées aléatoirement à chaque visite.
+
+### 6. Vrai ou Faux — Santé et connaissances
+
+**Objectif :** répondre à des affirmations sur la santé, l'alimentation et le bien-être.
+
+Fonctionnalités :
+- Séries de 10 à 20 questions.
+- Explication après chaque réponse.
+- Difficulté progressive.
+- Score final partageable.
+- Questions renouvelées régulièrement.
+- Références fiables pour les affirmations médicales.
+
+**Précaution importante :** les contenus médicaux doivent être vérifiés par des sources fiables. Le jeu ne doit pas présenter les remèdes traditionnels comme des traitements dont l'efficacité serait démontrée sans preuves suffisantes.
+
+---
+
+## Catégorie B — Puzzles et logique
+
+
+
+### 7. Jardin de Gran — Merge Game
+
+**Objectif :** fusionner des objets identiques pour découvrir de nouvelles plantes et améliorer son jardin.
+
+Fonctionnalités :
+- Plateau interactif.
+- Fusion de graines, de plantes et d'objets.
+- Collection de découvertes.
+- Déblocage de nouvelles espèces.
+- Objectifs de progression.
+- Sauvegarde automatique.
+
+Il faudra concevoir une véritable boucle de jeu, avec des ressources équilibrées et une progression satisfaisante.
+
+### 8. 2048 Nutrition
+
+**Objectif :** fusionner les tuiles identiques pour atteindre des valeurs de plus en plus élevées.
+
+Fonctionnalités :
+- Commandes tactiles et clavier.
+- Annulation limitée de mouvements.
+- Meilleur score.
+- Animation de fusion.
+- Mode classique et mode thématique.
+- Sauvegarde de la partie en cours.
+
+Les valeurs doivent rester mathématiquement cohérentes. Les illustrations alimentaires constituent un habillage visuel, sans modifier arbitrairement les règles du jeu.
+
+### 9. Sudoku Zen
+
+**Objectif :** compléter une grille de sudoku.
+
+Fonctionnalités :
+- Niveaux facile, moyen, difficile et expert.
+- Notes provisoires.
+- Vérification des erreurs.
+- Indices facultatifs.
+- Chronomètre.
+- Sauvegarde de la grille.
+- Génération ou sélection de grilles dont l'unicité de la solution est vérifiée.
+
+La qualité du générateur de grilles est particulièrement importante : une grille impossible à résoudre ruinerait la confiance des joueurs.
+
+### 10. Mot du Jour Santé
+
+**Objectif :** deviner un mot caché en six tentatives.
+
+Fonctionnalités :
+- Un mot quotidien.
+- Indications visuelles après chaque tentative.
+- Clavier virtuel.
+- Statistiques de réussite.
+- Partage du résultat sans révéler la solution.
+- Archives des défis, selon les règles retenues.
+
+Les versions française et anglaise doivent avoir leurs propres dictionnaires, mots du jour et règles de validation.
+
+### 11. Démineur Santé
+
+**Objectif :** découvrir toutes les cases sûres sans déclencher de mine.
+
+Fonctionnalités :
+- Plusieurs tailles de grille.
+- Trois niveaux de difficulté.
+- Marquage des mines présumées.
+- Chronomètre.
+- Indicateur des cases restantes.
+- Possibilité de recommencer immédiatement.
+
+Les conseils santé ne doivent apparaître que comme des éléments informatifs facultatifs, sans interrompre la logique du démineur.
+
+### 12. Block Puzzle Équilibre
+
+**Objectif :** placer des formes pour compléter des lignes et éviter que le plateau ne se remplisse.
+
+Fonctionnalités :
+- Déplacement tactile des pièces.
+- Aperçu des emplacements possibles.
+- Effets visuels lors de la suppression des lignes.
+- Combos.
+- Records personnels.
+- Modes de difficulté.
+- Commandes accessibles.
+
+Le jeu doit rester agréable même sur des téléphones peu puissants.
+
+### 13. Souvenirs de Famille — Jigsaw Puzzle
+
+**Objectif :** reconstituer des images découpées en pièces.
+
+Fonctionnalités :
+- Paysages, jardins, animaux et illustrations rétro.
+- Plusieurs nombres de pièces.
+- Aperçu de l'image finale.
+- Magnétisme des pièces proches de leur position correcte.
+- Sauvegarde automatique.
+- Galerie des puzzles terminés.
+
+Les images devront être originales, sous licence appropriée ou issues de banques autorisant explicitement leur réutilisation.
+
+---
+
+## Catégorie C — Adresse et réflexes
+
+
+
+### 14. Pill Toss — Lancer de pilules
+
+**Objectif :** lancer des objets vers des cibles et améliorer sa précision.
+
+Fonctionnalités :
+- Contrôle tactile simple.
+- Physique de lancer cohérente.
+- Cibles mobiles.
+- Difficulté progressive.
+- Score et records.
+- Effets sonores de collision.
+
+Il faudra présenter les pilules comme des éléments fictifs de jeu, et non comme des médicaments à utiliser.
+
+### 15. Le Pompier de Gran — Fire Escape
+
+**Objectif :** guider un personnage à travers un parcours semé d'obstacles.
+
+Fonctionnalités :
+- Commande à un seul geste.
+- Obstacles prévisibles mais progressivement plus complexes.
+- Animations du personnage.
+- Score de distance.
+- Recommencement instantané.
+- Modes adaptés aux écrans tactiles.
+
+L'intérêt vient de la précision des commandes et de la possibilité de progresser, pas d'une frustration artificiellement imposée.
+
+### 16. Pêche Miraculeuse — Zen Fishing
+
+**Objectif :** attraper des poissons en maîtrisant le moment du lancer et de la récupération.
+
+Fonctionnalités :
+- Commandes simples.
+- Différentes espèces de poissons.
+- Collection personnelle.
+- Environnements variés.
+- Sons d'eau et d'ambiance.
+- Défis de pêche.
+- Progression et équipement déblocables.
+
+La collection doit être accessible sans paiement obligatoire.
+
+### 17. Le Verger de Gran — Fruit Slice
+
+**Objectif :** découper des fruits qui apparaissent à l'écran tout en évitant les objets interdits.
+
+Fonctionnalités :
+- Gestes tactiles fluides.
+- Combos.
+- Effets de découpe.
+- Particules et animations.
+- Difficulté progressive.
+- Records personnels.
+- Option de réduction des animations.
+
+Les interactions doivent être optimisées pour les écrans tactiles, sans exiger une précision excessive.
+
+---
+
+## Catégorie D — Mots et culture
+
+
+
+### 18. Devine l'Expression
+
+**Objectif :** retrouver une expression française ou anglaise à partir d'une illustration, d'une définition ou d'une situation.
+
+Fonctionnalités :
+- Expressions populaires.
+- Indices progressifs.
+- Explication de l'origine des expressions lorsque celle-ci est connue.
+- Catégories thématiques.
+- Défi quotidien.
+- Partage des résultats.
+
+Il faut adapter les expressions à chaque langue : une traduction littérale ne suffit pas toujours à préserver le sens culturel.
+
+### 19. Le Mot le Plus Long
+
+**Objectif :** former le plus de mots possible à partir de lettres proposées.
+
+Fonctionnalités :
+- Tirages aléatoires.
+- Compte à rebours.
+- Dictionnaire de validation.
+- Score selon la longueur des mots.
+- Meilleurs résultats.
+- Modes français et anglais.
+- Défis quotidiens.
+
+Les dictionnaires et les règles de validation doivent être adaptés à chaque langue. Les mots acceptés doivent être vérifiables et les variantes orthographiques correctement traitées.
+
+### 20. Histoire Interactive
+
+**Objectif :** vivre une histoire dans laquelle les décisions du joueur modifient la suite des événements.
+
+Fonctionnalités :
+- Personnages attachants.
+- Choix ayant des conséquences.
+- Plusieurs fins possibles.
+- Historique des décisions.
+- Chapitres courts.
+- Possibilité de rejouer l'histoire pour explorer d'autres chemins.
+
+Les scénarios peuvent traiter de la famille, du jardin, des relations humaines ou de situations quotidiennes. Les épisodes portant sur la santé devront rester informatifs et ne pas remplacer un avis médical.
+
+---
+
+# 3. Le système de fidélisation : donner envie de revenir sans manipuler les joueurs
+
+Tu souhaites que les jeux soient très engageants et que les sessions se prolongent naturellement.
+
+Je recommande un système de fidélisation reposant sur la satisfaction, la progression et la découverte.
+
+Il faut distinguer deux notions :
+
+- **L'engagement positif :** le joueur apprécie le jeu, voit ses progrès et décide librement de continuer.
+- **La rétention artificielle :** le jeu impose des obstacles frustrants, des publicités excessives ou des mécanismes qui rendent l'arrêt difficile.
+
+Pour GRANMED.STORE, je privilégierais la première approche. Elle est plus favorable à la réputation du site, à la satisfaction des joueurs et à une monétisation durable.
+
+### Les mécanismes communs aux 20 jeux
+
+| Mécanisme | Fonctionnement | Intérêt |
+|---|---|---|
+| Records personnels | Sauvegarder les meilleurs résultats | Encourager la progression |
+| Défi quotidien | Proposer une nouvelle partie chaque jour | Donner une raison de revenir |
+| Niveaux progressifs | Augmenter la difficulté graduellement | Maintenir un défi adapté |
+| Collections | Débloquer des images, poissons ou objets | Donner un objectif à long terme |
+| Succès | Récompenser des objectifs atteints | Valoriser les accomplissements |
+| Séries de victoires | Afficher les réussites consécutives | Encourager la régularité |
+| Favoris | Permettre de retrouver rapidement un jeu | Faciliter les prochaines visites |
+| Reprise automatique | Restaurer une partie interrompue | Éviter la perte de progression |
+| Partage des scores | Créer des cartes de résultats partageables | Favoriser la découverte |
+| Recommandations | Proposer un jeu similaire après une partie | Faciliter la découverte d'autres jeux |
+
+### Une fonctionnalité particulièrement intéressante : le parcours cérébral
+
+Tu pourrais créer un tableau de bord appelé **« Mon parcours Granmed »**.
+
+Il rassemblerait :
+- Les jeux préférés.
+- Les défis réalisés.
+- Les records personnels.
+- Les activités terminées.
+- Les progrès dans les différents types de jeux.
+- Les objectifs personnels.
+
+Il faut toutefois présenter les résultats comme des statistiques ludiques. Des scores élevés ne démontrent pas à eux seuls une amélioration générale de la mémoire, de l'intelligence ou des capacités cognitives.
+
+Le joueur doit pouvoir utiliser le site sans créer de compte. La sauvegarde locale suffit pour les premières versions ; une synchronisation entre appareils pourra être ajoutée ultérieurement.
+
+---
+
+# 4. Une stratégie SEO, AIO et GEO conçue pour les 20 jeux
+
+C'est probablement l'un des aspects les plus importants de ton projet.
+
+Un jeu de qualité ne génère pas nécessairement du trafic. Il faut aussi que les moteurs de recherche puissent découvrir chaque page, comprendre son contenu, l'indexer et la proposer aux bonnes requêtes.
+
+**La stratégie consiste à faire de chaque jeu une destination autonome, tout en bénéficiant de la force de l'ensemble du domaine.**
+
+## 4.1. Une URL distincte pour chaque jeu
+
+Je recommande cette architecture bilingue :
+
+| Jeu | Français | Anglais |
+|---|---|---|
+| Memory Match | `/fr/jeu-memory/` | `/en/memory-match/` |
+| Gran' Mémoire | `/fr/memoire-sequences/` | `/en/sequence-memory/` |
+| Vision Active | `/fr/table-schulte/` | `/en/schulte-table/` |
+| Calcul Éclair | `/fr/calcul-mental-rapide/` | `/en/speed-math/` |
+| Culture Gran | `/fr/mots-croises/` | `/en/mini-crossword/` |
+| Vrai ou Faux | `/fr/quiz-sante/` | `/en/health-true-false/` |
+| Jardin de Gran | `/fr/jardin-merge/` | `/en/merge-garden/` |
+| 2048 Nutrition | `/fr/2048-nutrition/` | `/en/2048-nutrition/` |
+| Sudoku Zen | `/fr/sudoku/` | `/en/sudoku/` |
+| Mot du Jour | `/fr/mot-du-jour/` | `/en/daily-word-game/` |
+| Démineur | `/fr/demineur/` | `/en/minesweeper/` |
+| Block Puzzle | `/fr/block-puzzle/` | `/en/block-puzzle/` |
+| Jigsaw Puzzle | `/fr/puzzle-images/` | `/en/jigsaw-puzzle/` |
+| Pill Toss | `/fr/lancer-de-pilules/` | `/en/pill-toss/` |
+| Fire Escape | `/fr/pompier-de-gran/` | `/en/fire-escape/` |
+| Zen Fishing | `/fr/peche-zen/` | `/en/zen-fishing/` |
+| Fruit Slice | `/fr/decoupe-de-fruits/` | `/en/fruit-slice/` |
+| Devine l'Expression | `/fr/devine-expression/` | `/en/guess-the-idiom/` |
+| Mot le Plus Long | `/fr/mot-le-plus-long/` | `/en/longest-word-game/` |
+| Histoire Interactive | `/fr/histoire-interactive/` | `/en/interactive-story/` |
+
+Ces URL sont des propositions d'architecture. Elles devront être définies avant la mise en production et conservées ensuite pour éviter les changements inutiles.
+
+Avec 20 jeux et deux langues, tu obtiendras déjà **40 pages principales de jeux**.
+
+À cela pourront s'ajouter la page d'accueil, les pages de catégories, les règles, les guides et les défis quotidiens lorsque ceux-ci apportent une réelle valeur.
+
+Attention : il ne faut pas créer des milliers de pages quasi identiques simplement pour augmenter artificiellement le nombre d'URL indexables.
+
+## 4.2. Les éléments SEO obligatoires sur chaque page
+
+Chaque page de jeu devra posséder :
+
+- Un titre SEO unique.
+- Une meta description spécifique.
+- Un H1 descriptif.
+- Une présentation originale du jeu.
+- Des règles clairement expliquées.
+- Un jeu immédiatement accessible.
+- Des instructions adaptées aux mobiles.
+- Une FAQ réellement utile.
+- Des liens vers des jeux complémentaires.
+- Des métadonnées Open Graph pour le partage.
+- Une URL canonique cohérente.
+- Les balises `hreflang` pour les versions françaises et anglaises.
+- Des données structurées uniquement lorsqu'elles correspondent réellement au contenu.
+- Une gestion correcte des erreurs et des pages introuvables.
+
+Il faut également produire un sitemap XML, un fichier `robots.txt` approprié et vérifier que les pages importantes ne sont pas bloquées par les règles d'exploration.
+
+Les versions françaises et anglaises doivent être de véritables adaptations linguistiques, et non des pages identiques avec seulement quelques mots traduits.
+
+## 4.3. La stratégie de mots-clés
+
+Je répartirais le travail en trois groupes.
+
+**Groupe 1 — Requêtes principales**
+
+Exemples en français :
+- jeu de mémoire gratuit ;
+- jeu de calcul mental ;
+- sudoku gratuit en ligne ;
+- démineur en ligne ;
+- jeu de mots gratuit ;
+- puzzle gratuit en ligne ;
+- jeu de logique ;
+- jeu de réflexes.
+
+Exemples en anglais :
+- free memory game ;
+- online brain games ;
+- mental math game ;
+- free online sudoku ;
+- minesweeper online ;
+- free word puzzle games ;
+- block puzzle game ;
+- daily word game.
+
+**Groupe 2 — Requêtes liées à l'intention**
+
+Exemples :
+- jeu de mémoire sans téléchargement ;
+- jouer au sudoku sur téléphone ;
+- jeu de calcul mental avec chronomètre ;
+- jeu de mots quotidien gratuit ;
+- relaxing fishing game online ;
+- play memory matching game online ;
+- free puzzle games for adults ;
+- quick brain games for short breaks.
+
+**Groupe 3 — Requêtes informationnelles**
+
+Exemples :
+- comment jouer au démineur ;
+- règles du sudoku pour débutants ;
+- comment améliorer son score au jeu de mémoire ;
+- astuces pour résoudre un puzzle ;
+- how to play minesweeper ;
+- sudoku strategies for beginners ;
+- how to improve at memory matching games ;
+- best strategies for word guessing games.
+
+Ces expressions sont des pistes de recherche, pas des mots-clés dont le volume ou la concurrence auraient déjà été vérifiés.
+
+Il faudra analyser les volumes, les tendances, les intentions de recherche et les concurrents avant de fixer les priorités éditoriales.
+
+## 4.4. Le référencement auprès des intelligences artificielles : AIO et GEO
+
+Pour que les systèmes d'IA puissent identifier et éventuellement citer GRANMED.STORE, chaque jeu doit être présenté comme une ressource compréhensible et identifiable.
+
+Je recommande notamment :
+
+1. Une définition claire du jeu dès le début de la page.
+2. Une description concise de son objectif.
+3. Les règles et commandes.
+4. Les niveaux de difficulté disponibles.
+5. Les fonctionnalités réelles.
+6. Les réponses aux questions fréquentes.
+7. Une page consacrée à la marque et à son catalogue.
+8. Des informations cohérentes sur l'éditeur du site.
+9. Des liens internes explicites entre les jeux.
+10. Des contenus originaux qui apportent une valeur distincte.
+
+Les données structurées `WebSite`, `Organization`, `BreadcrumbList` et éventuellement `VideoGame` pourront être étudiées selon leur pertinence et leur prise en charge.
+
+Il ne faut pas utiliser de balisage fictif ni promettre des résultats enrichis qui ne sont pas garantis.
+
+Il n'existe pas de balise magique permettant de garantir le référencement dans les réponses de toutes les intelligences artificielles. L'objectif est de rendre le contenu accessible, clair, utile et techniquement exploitable.
+
+---
+
+# 5. Le bilinguisme français-anglais
+
+La plateforme doit s'adapter automatiquement à la langue préférée du visiteur, tout en lui laissant le contrôle.
+
+Je recommande ce fonctionnement :
+
+1. Détecter la langue préférée du navigateur lors de la première visite.
+2. Afficher la version française si le navigateur préfère le français, et la version anglaise s'il préfère l'anglais.
+3. Si la langue du navigateur n'est pas prise en charge, afficher l'anglais par défaut.
+4. Permettre de changer de langue à tout moment.
+5. Mémoriser le choix de l'utilisateur.
+6. Respecter les URL françaises et anglaises pour les visites suivantes.
+7. Traduire les boutons, menus, messages, règles, erreurs, notifications et paramètres du jeu.
+8. Adapter les dictionnaires, questions, expressions et contenus propres à chaque jeu.
+
+Pour le référencement, je déconseille de servir deux langues différentes sous une URL unique en fonction du seul navigateur.
+
+Les pages françaises et anglaises doivent posséder des URL distinctes et être reliées par `hreflang`. La détection de langue sert à améliorer l'expérience utilisateur, sans empêcher les moteurs de recherche d'accéder aux deux versions.
+
+---
+
+# 6. Les effets sonores réels et les animations
+
+Tu as raison d'accorder de l'importance à l'identité sonore.
+
+Les sons peuvent améliorer la perception des interactions et rendre les jeux plus agréables, à condition de ne pas devenir fatigants.
+
+Je recommande de constituer une bibliothèque sonore commune.
+
+| Événement | Effet sonore recherché |
+|---|---|
+| Clic sur un bouton | Clic doux et net |
+| Bonne réponse | Son court, positif |
+| Mauvaise réponse | Son discret et non agressif |
+| Découverte d'une paire | Son léger et satisfaisant |
+| Fusion d'objets | Son de transformation |
+| Validation d'un niveau | Petite séquence musicale |
+| Déblocage d'un succès | Effet sonore distinctif |
+| Déplacement d'une pièce | Son subtil |
+| Lancement d'une ligne | Effet de balayage |
+| Ambiance de pêche | Eau, éclaboussures et environnement naturel |
+| Découpe de fruits | Son bref et dynamique |
+| Découverte d'un élément | Son de révélation |
+
+### Où trouver les sons ?
+
+Tu peux commencer par consulter ces bibliothèques :
+
+- [Freesound](https://freesound.org/?utm_source=chatgpt.com) — bibliothèque communautaire d'effets sonores.
+- [Pixabay Sound Effects](https://pixabay.com/sound-effects/?utm_source=chatgpt.com) — effets sonores utilisables selon les conditions de la plateforme.
+- [Mixkit](https://mixkit.co/free-sound-effects/?utm_source=chatgpt.com) — collection d'effets sonores gratuits.
+
+Il faudra vérifier la licence de chaque fichier, les conditions d'utilisation commerciale et les éventuelles obligations d'attribution. Le fait qu'un son soit téléchargeable gratuitement ne signifie pas automatiquement qu'il peut être utilisé sans restriction.
+
+### Exigences techniques
+
+- Précharger uniquement les sons essentiels.
+- Charger les effets secondaires à la demande.
+- Éviter de télécharger toute la bibliothèque au premier affichage.
+- Prévoir un réglage du volume et une option de coupure du son.
+- Ne pas lancer de musique automatiquement avant une interaction explicite.
+- Utiliser des fichiers audio optimisés.
+- Synchroniser précisément les sons avec les animations.
+- Limiter les sons répétitifs trop agressifs.
+- Respecter les préférences de réduction des animations lorsque cela est pertinent.
+
+Les formats et paramètres audio devront être choisis selon la compatibilité des navigateurs et la qualité recherchée.
+
+---
+
+# 7. L'expérience utilisateur : une priorité absolue
+
+La qualité du jeu ne dépend pas uniquement de ses fonctionnalités. Elle dépend aussi de la facilité avec laquelle le joueur comprend ce qu'il doit faire.
+
+Je fixerais les exigences suivantes.
+
+### Sur téléphone
+
+- Interface conçue d'abord pour les petits écrans.
+- Zones tactiles suffisamment grandes.
+- Aucun défilement horizontal involontaire.
+- Texte lisible.
+- Contrôles accessibles au pouce.
+- Pas de pop-up publicitaire recouvrant les commandes.
+- Temps de chargement réduit.
+- Sauvegarde de la partie lorsqu'elle est interrompue.
+- Fonctionnement correct en mode portrait, lorsque le jeu s'y prête.
+
+### Sur ordinateur
+
+- Prise en charge du clavier pour les jeux qui le permettent.
+- Souris précise.
+- Interface adaptée aux grandes surfaces d'affichage.
+- Gestion correcte du redimensionnement.
+- Possibilité de jouer sans interface encombrante.
+
+### Sur tous les appareils
+
+- Bouton de pause lorsque pertinent.
+- Bouton pour recommencer.
+- Explication des règles.
+- Indication de progression.
+- Messages d'erreur compréhensibles.
+- Contrastes suffisants.
+- Navigation au clavier lorsque possible.
+- Absence d'animations bloquantes.
+
+Je viserais de bonnes performances sur les Core Web Vitals, notamment le LCP, l'INP et le CLS.
+
+Les objectifs de référence sont un LCP inférieur ou égal à 2,5 secondes, un INP inférieur ou égal à 200 millisecondes et un CLS inférieur ou égal à 0,1, mesurés au 75e percentile des visites lorsque les données sont disponibles.
+
+---
+
+# 8. La monétisation : comment générer des revenus
+
+Je recommande de commencer par une monétisation publicitaire raisonnable, puis d'ajouter des fonctionnalités premium si l'audience le justifie.
+
+## 8.1. Publicité sur le site
+
+Les formats possibles comprennent :
+- Des annonces intégrées aux pages de jeu.
+- Des annonces dans les espaces de navigation.
+- Des interstitiels uniquement aux moments appropriés.
+- Des vidéos récompensées lorsque l'intégration technique et le réseau publicitaire le permettent.
+
+La disponibilité réelle des formats dépendra du réseau utilisé et de son éligibilité.
+
+Pour les jeux web classiques, il ne faut pas supposer qu'un format de vidéo récompensée sera automatiquement disponible comme dans un jeu mobile natif.
+
+Je privilégierais :
+- Une publicité dans un emplacement distinct du plateau.
+- Des annonces entre deux parties plutôt qu'au milieu d'une action.
+- Des limites de fréquence.
+- Un accès immédiat au jeu, sans publicité obligatoire avant chaque partie.
+- Un système de consentement adapté aux obligations applicables.
+
+Les revenus dépendront notamment du pays des visiteurs, du volume de trafic, du taux de remplissage publicitaire et de la visibilité des annonces.
+
+**Un million de pages vues ne garantit donc pas un revenu déterminé.**
+
+## 8.2. Récompenses facultatives
+
+Lorsqu'une intégration publicitaire compatible est disponible, une annonce récompensée pourrait débloquer :
+- Un indice.
+- Un thème visuel.
+- Un puzzle supplémentaire.
+- Une illustration de collection.
+- Un bonus facultatif.
+
+Les récompenses ne doivent pas être indispensables pour terminer les jeux.
+
+## 8.3. Affiliation
+
+La thématique permet également d'explorer :
+- Des livres de jeux et de mots croisés.
+- Des livres de puzzles.
+- Des jeux de société.
+- Des accessoires de loisirs.
+- Des produits de jardinage.
+- Des ouvrages de culture générale.
+
+Les liens d'affiliation devront être clairement identifiés.
+
+Pour les contenus liés à la santé, il faudra éviter les recommandations trompeuses ou les produits présentés comme des traitements sans justification scientifique.
+
+---
+
+# 9. La technologie que je recommande
+
+Pour un portail comprenant 20 jeux, je recommande une architecture web moderne, légère et conçue pour le référencement.
+
+| Élément | Recommandation |
+|---|---|
+| Framework | Next.js avec TypeScript |
+| Interface | React |
+| Styles | Tailwind CSS |
+| Moteur de jeu | HTML5, Canvas ou SVG selon le jeu |
+| Animations | CSS et animations JavaScript ciblées |
+| Audio | Web Audio API et fichiers audio optimisés |
+| Internationalisation | Système de traduction avec routes FR/EN |
+| Stockage initial | localStorage et IndexedDB |
+| Base de données future | PostgreSQL si des comptes sont nécessaires |
+| Hébergement | Plateforme compatible avec le rendu statique et les besoins du projet |
+| Suivi SEO | Google Search Console et Bing Webmaster Tools |
+| Analyse d'audience | Outil d'analyse respectueux de la confidentialité |
+
+### Pourquoi Next.js ?
+
+Parce que le projet doit combiner :
+- Des pages publiques indexables.
+- Des contenus éditoriaux.
+- Des interfaces interactives.
+- Des routes distinctes pour les langues.
+- Des pages de jeux rapides.
+- Une architecture extensible.
+
+Il faudra toutefois choisir soigneusement les modes de rendu. Les éléments descriptifs et les métadonnées des pages doivent être présents dans le HTML initial, et non dépendre exclusivement de l'exécution du jeu dans le navigateur.
+
+### Un point essentiel : chaque jeu doit fonctionner indépendamment
+
+Le portail partagera un en-tête, un pied de page, des composants visuels et des services communs.
+
+En revanche, chaque jeu disposera de son propre moteur, de ses propres règles et de ses propres tests.
+
+Cette architecture permettra de corriger un jeu sans compromettre les autres.
+
+---
+
+# 10. Les exigences de qualité pour les 20 jeux
+
+Il ne suffit pas qu'un jeu s'affiche. Il faut vérifier qu'il est réellement jouable, cohérent et fiable.
+
+Je recommande une fiche de recette pour chacun des 20 jeux.
+
+Elle devra notamment vérifier :
+
+1. Le lancement d'une nouvelle partie.
+2. Le fonctionnement de toutes les commandes.
+3. La cohérence du calcul des scores.
+4. La progression de la difficulté.
+5. Les conditions de victoire et de défaite.
+6. Le fonctionnement du bouton de redémarrage.
+7. La sauvegarde et la reprise.
+8. Le comportement sur mobile.
+9. Le fonctionnement au clavier lorsque pertinent.
+10. La synchronisation des sons et des animations.
+11. Le comportement lorsque le navigateur est mis en arrière-plan.
+12. L'absence d'erreurs bloquantes.
+13. Le bon fonctionnement des versions française et anglaise.
+14. La compatibilité avec les navigateurs ciblés.
+15. Le respect des préférences de confidentialité.
+
+Certains jeux nécessiteront des tests supplémentaires. Le sudoku doit notamment proposer des grilles valides, tandis que le jeu de mots doit utiliser un dictionnaire adapté à la langue.
+
+---
+
+# 11. Le plan de développement : éviter de lancer 20 jeux médiocres simultanément
+
+Même si l'objectif final comprend les 20 jeux, je déconseille de les publier tous avant d'avoir vérifié leur qualité.
+
+Je procéderais par étapes.
+
+### Phase 1 — Fondations
+
+Développer :
+- Le site bilingue.
+- La navigation.
+- La page d'accueil.
+- Les pages de catégories.
+- Le système de traduction.
+- Le système audio.
+- Les composants graphiques communs.
+- Les sauvegardes locales.
+- Les métadonnées SEO.
+- Les outils d'analyse et de suivi.
+
+### Phase 2 — Première sélection de jeux
+
+Je commencerais par cinq jeux :
+
+1. Memory Match.
+2. Calcul Éclair.
+3. Sudoku Zen.
+4. Mot du Jour.
+5. Block Puzzle.
+
+Cette sélection couvre plusieurs mécaniques différentes et permet de tester les principales interactions.
+
+### Phase 3 — Première optimisation
+
+Mesurer :
+- Le nombre de visiteurs.
+- Le taux de lancement d'une partie.
+- La durée des sessions.
+- Le taux de retour.
+- Les erreurs techniques.
+- Les pages indexées.
+- Les requêtes générant des impressions.
+- Les performances mobiles.
+
+Ces données permettront de déterminer quels jeux méritent une priorité supplémentaire.
+
+### Phase 4 — Extension
+
+Ajouter progressivement les 15 autres jeux, en réutilisant les composants communs tout en conservant une véritable qualité propre à chaque jeu.
+
+### Phase 5 — Acquisition de trafic
+
+Développer :
+- Les guides de jeu.
+- Les pages de règles.
+- Les défis quotidiens.
+- Les contenus éditoriaux.
+- Les possibilités de partage.
+- Les partenariats et les canaux de distribution pertinents.
+
+Le référencement prendra du temps. Il n'est pas possible de garantir un positionnement rapide ou un volume de trafic précis simplement en multipliant les pages.
+
+---
+
+# 12. Les indicateurs à suivre dès le lancement
+
+Pour éviter de piloter le projet uniquement à l'intuition, je suivrais un tableau de bord comprenant :
+
+| Indicateur | Ce qu'il permet de comprendre |
+|---|---|
+| Visiteurs organiques | Capacité du site à attirer des joueurs depuis les moteurs de recherche |
+| Impressions et clics SEO | Visibilité des pages dans les résultats |
+| Taux de lancement | Proportion de visiteurs qui commencent réellement une partie |
+| Durée médiane de session | Temps passé sur le site, sans être faussé uniquement par quelques sessions longues |
+| Parties terminées | Capacité du jeu à maintenir un parcours cohérent |
+| Taux de retour à 7 jours | Proportion de joueurs qui reviennent |
+| Partages | Potentiel de diffusion organique |
+| Erreurs JavaScript | Fiabilité technique |
+| Core Web Vitals | Qualité des performances réelles |
+| Revenu par mille pages vues | Efficacité de la monétisation publicitaire |
+| Revenu par jeu | Contribution économique de chaque jeu |
+
+Il est important de comparer les jeux entre eux plutôt que d'appliquer un seul objectif à tous. Une partie de sudoku ne se comporte pas comme une partie de Fruit Slice.
+
+---
+
+# 13. Ma recommandation finale pour GRANMED.STORE
+
+Je construirais GRANMED.STORE comme un **portail de jeux HTML5 bilingue, rapide, accessible et pensé pour le référencement dès sa conception**.
+
+Les 20 jeux partageraient une identité graphique et une infrastructure commune, mais chacun posséderait :
+- Une page dédiée.
+- Un moteur de jeu indépendant.
+- Des règles précises.
+- Des animations adaptées.
+- Une bibliothèque sonore pertinente.
+- Des contenus français et anglais.
+- Des objectifs de progression.
+- Des sauvegardes fiables.
+- Une stratégie SEO propre.
+- Des mécanismes de fidélisation respectueux des joueurs.
+
+La priorité ne serait pas de produire le plus grand nombre possible de pages. Elle serait de proposer des jeux suffisamment bons pour que les visiteurs aient envie de les découvrir, d'y revenir et de les partager.
+
+**Le véritable avantage concurrentiel de GRANMED.STORE sera la combinaison de trois éléments : une excellente expérience de jeu, une acquisition organique méthodique et une monétisation qui ne détruit pas cette expérience.**
+
+### La prochaine étape
+
+Avant de passer au code, je te recommande de transformer ce concept en un **cahier des charges technique et fonctionnel complet**, destiné à un agent de développement capable de construire l'ensemble du projet.
+
+Ce document devra définir précisément :
+- L'architecture du site.
+- Les 20 jeux et leurs règles.
+- Les interfaces et les animations.
+- Le système audio.
+- Les routes françaises et anglaises.
+- La stratégie SEO, AIO et GEO.
+- La monétisation.
+- Les exigences de performance.
+- Les tests d'acceptation.
+- Les étapes de déploiement.
+
+Ce cahier des charges permettra ensuite de développer les jeux méthodiquement, sans laisser l'agent improviser des fonctionnalités essentielles ou produire des jeux superficiels.
