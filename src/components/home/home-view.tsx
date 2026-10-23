@@ -12,6 +12,7 @@ import { useHydrated, todayKey } from '@/lib/utils-game'
 import { GUIDES } from '@/lib/content/guides'
 import { HOME_FAQ } from '@/lib/content/home-faq'
 import { GameCard, GradientTile, SectionHeader, GameGrid } from '@/components/shared/ui-bits'
+import { GamePreview } from '@/components/shared/game-preview'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 
@@ -103,8 +104,16 @@ export function HomeView() {
       {/* ============ DÉFI DU JOUR ============ */}
       <section className="mt-10" aria-labelledby="daily-title">
         <SectionHeader id="daily-title" icon="🎯" title={t('home.dailyTitle')} sub={t('home.dailySub')} />
-        <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-amber-300/50 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm dark:border-amber-500/25 dark:from-amber-500/10 dark:to-orange-500/10 sm:p-6">
-          <GradientTile icon={dailyGame.icon} category={dailyGame.category} size="xl" className="anim-glow" />
+        <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-amber-300/50 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm transition-shadow hover:shadow-md dark:border-amber-500/25 dark:from-amber-500/10 dark:to-orange-500/10 sm:p-6">
+          {/* aperçu animé du jeu du jour */}
+          <div
+            className="hidden w-44 shrink-0 cursor-pointer overflow-hidden rounded-2xl shadow-md ring-1 ring-amber-300/40 transition-transform duration-300 hover:scale-[1.03] sm:block"
+            aria-hidden="true"
+            onClick={() => goGame(dailyGame.slug)}
+          >
+            <GamePreview slug={dailyGame.slug} className="aspect-[4/3] w-full" />
+          </div>
+          <GradientTile icon={dailyGame.icon} category={dailyGame.category} size="xl" className="anim-glow sm:hidden" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">{todayKey()}</p>
             <h3 className="mt-0.5 font-display text-xl font-bold sm:text-2xl">{dailyGame.title[lang]}</h3>

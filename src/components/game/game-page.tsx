@@ -20,7 +20,8 @@ import { CATEGORIES, CATEGORY_STYLES, getGame } from '@/lib/games/catalog'
 import { GameLoader, useGameContent } from '@/lib/games/registry'
 import { GameShell } from '@/components/game/game-shell'
 import { GameErrorBoundary } from '@/components/shared/error-boundary'
-import { GradientTile, DifficultyDots, GameGrid, SectionHeader } from '@/components/shared/ui-bits'
+import { DifficultyDots, GameGrid, SectionHeader } from '@/components/shared/ui-bits'
+import { GamePreview } from '@/components/shared/game-preview'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 export function GamePage({ slug }: { slug: string }) {
@@ -110,12 +111,14 @@ export function GamePage({ slug }: { slug: string }) {
       {/* En-tête du jeu — ultra-compact sur mobile pour que le plateau soit
           visible dès l'arrivée, sans le moindre scroll. */}
       <header className="mb-2.5 flex items-start gap-2.5 sm:mb-5 sm:gap-4">
-        <GradientTile
-          icon={game.icon}
-          category={game.category}
-          size="xl"
-          className="anim-glow h-11 w-11 rounded-2xl text-2xl sm:h-20 sm:w-20 sm:rounded-3xl sm:text-4xl"
-        />
+        {/* Aperçu animé du jeu — identité visuelle vivante dès l'arrivée */}
+        <div
+          className="anim-glow h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-2xl shadow-md ring-1 ring-black/10 sm:h-20 sm:w-20 sm:rounded-3xl"
+          aria-hidden="true"
+          onClick={() => sfx.play('click')}
+        >
+          <GamePreview slug={slug} className="h-full w-full" />
+        </div>
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-lg font-extrabold leading-tight tracking-tight sm:text-4xl">{game.title[lang]}</h1>
           {content ? <p className="mt-1.5 hidden text-sm text-muted-foreground sm:block sm:text-base">{content.tagline[lang]}</p> : null}

@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Yes, the animated preview thumbnails remain **attractive and highly readable** in dark mode. The vibrant gradients (teal, lime, yellow, pink) are clearly visible against the dark card backgrounds. The white \"Play\" buttons and UI elements (like the Sudoku grid or memory tiles) provide excellent contrast without any readability issues.\n\nThe rest of the card is **correctly themed for dark mode**:\n*   **Titles:** Displayed in clean white text.\n*   **Chips/Tags:** The category chips (e.g., \"Puzzles & logic\") use dark backgrounds with light text, fitting the theme perfectly.\n*   **Metadata:** Descriptions and icons (like the \"Top\" flame) use appropriate muted grey/orange tones that are easy on the eyes but legible.\n\nOverall, the design successfully balances the colorful game previews with a cohesive dark interface.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792775373,
+  "id": "202610240109290bc001954e8740a0",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "202610240109290bc001954e8740a0",
+  "usage": {
+    "completion_tokens": 178,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1292,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 1470
+  }
+}
