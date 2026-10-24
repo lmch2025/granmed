@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { FR_WORDS, EN_WORDS, FR_LETTER_WEIGHTS, EN_LETTER_WEIGHTS } from '@/components/games/data/longest-word-data'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 
 export const gameId = 'longest-word'
@@ -237,6 +238,7 @@ export default function LongestWordGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -257,6 +259,9 @@ export default function LongestWordGame() {
   const [timeLeft, setTimeLeft] = useState(ROUND_MS)
   const [nineFlash, setNineFlash] = useState<string | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  /* Célébration de fin de manche — médaille + étoiles selon la performance. */
+  const [burstStars, setBurstStars] = useState(3)
+  const [burstKey, setBurstKey] = useState(0)
   const [lastGain, setLastGain] = useState<{ pts: number; quick: boolean; key: number } | null>(null)
   const [announce, setAnnounce] = useState('')
   const [endData, setEndData] = useState<EndData | null>(null)
@@ -452,6 +457,8 @@ export default function LongestWordGame() {
       }
       const xp = Math.floor(sc / 3)
       addXp(xp)
+      // XP du jeu : 10 + 2 × mots trouvés, plafonné à 30.
+      addGameXp(gameId, Math.min(30, 10 + 2 * foundWords.length))
       if (foundWords.length >= 5) {
         addWin(gameId)
         sfx.play('win')
@@ -462,11 +469,18 @@ export default function LongestWordGame() {
         sfx.play('sweep', { volume: 0.5 })
       }
       if (isRecord) setConfettiKey((k) => k + 1)
+      // Étoiles de fin de manche : 3 si le meilleur mot possible du tirage a été
+      // trouvé, 2 à partir de 5 mots ou d'un long mot, sinon 1 (manche sans
+      // mot : aucune célébration).
+      if (foundWords.length > 0) {
+        setBurstStars(foundBest ? 3 : foundWords.length >= 5 || longestLen >= 7 ? 2 : 1)
+        setBurstKey((k) => k + 1)
+      }
       if (mode === 'daily' && foundWords.length >= 1) completeDaily(gameId)
       setEndData({ score: sc, longest, count: foundWords.length, isRecord, daily: mode === 'daily', skipped, xp, solutions, foundBest })
       setPhase('end')
     },
-    [mode, lang, setBest, addXp, addWin, completeDaily],
+    [addGameXp, mode, lang, setBest, addXp, addWin, completeDaily],
   )
 
   /* --- Compte à rebours (pause quand l'onglet est masqué) --- */
@@ -647,8 +661,9 @@ export default function LongestWordGame() {
 
   /* ================= Rendu ================= */
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 100} />
+    <div className="relative select-none my-auto w-full">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 100} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={burstStars} emoji="🔤" />
       <span className="sr-only" aria-live="polite">
         {announce}
       </span>
@@ -981,16 +996,16 @@ export default function LongestWordGame() {
           )}
 
           {/* Rejouer immédiatement visible, récapitulatif scrollable ensuite */}
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => startGame(mode)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.playAgain}
-            </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={() => { sfx.play('click'); setPhase('menu') }}>
-              <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
-            </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
-              <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
-            </Button>
+          <div className="mt-4 flex flex-col items-center gap-2.5">
+            <RoundEndActions gameId={gameId} onReplay={() => startGame(mode)} replayLabel={L.playAgain} />
+            <div className="flex flex-wrap justify-center gap-2.5">
+              <Button size="lg" variant="secondary" className="rounded-full" onClick={() => { sfx.play('click'); setPhase('menu') }}>
+                <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
+              </Button>
+              <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
+                <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
+              </Button>
+            </div>
           </div>
 
           {endData.count > 0 ? (

@@ -1,0 +1,702 @@
+   200→   200→  daily: 'text-[clamp(13px,6cqw,26px)]',
+   201→   201→}
+   202→   202→
+   203→   203→const HEALTH_TIPS: Array<{ fr: string; en: string }> = [
+   204→   204→  {
+   205→   205→    fr: 'Les recommandations de santé publique conseillent 7 à 9 heures de sommeil par nuit pour un adulte.',
+   206→   206→    en: 'Public health guidelines recommend 7 to 9 hours of sleep per night for adults.',
+   207→   207→  },
+   208→   208→  {
+   209→   209→    fr: 'Buvez de l’eau régulièrement tout au long de la journée, même sans sensation de soif.',
+   210→   210→    en: 'Sip water regularly throughout the day, even before you feel thirsty.',
+   211→   211→  },
+   212→   212→  {
+   213→   213→    fr: 'L’OMS recommande au moins 150 minutes d’activité physique modérée par semaine : 30 minutes de marche rapide par jour suffisent.',
+   214→   214→    en: 'The WHO recommends at least 150 minutes of moderate physical activity per week: a brisk 30-minute daily walk is enough.',
+   215→   215→  },
+   216→   216→  {
+   217→   217→    fr: 'Règle du 20-20-20 : toutes les 20 minutes, regardez à 6 mètres pendant 20 secondes pour reposer vos yeux.',
+   218→   218→    en: 'The 20-20-20 rule: every 20 minutes, look some 20 feet (6 m) away for 20 seconds to rest your eyes.',
+   219→   219→  },
+   220→   220→  {
+   221→   221→    fr: 'Cinq portions de fruits et légumes par jour : l’objectif repris par la plupart des recommandations nutritionnelles.',
+   222→   222→    en: 'Five portions of fruit and vegetables a day: the target echoed by most nutritional guidelines.',
+   223→   223→  },
+   224→   224→  {
+   225→   225→    fr: 'Quelques respirations lentes et profondes suffisent à faire baisser la fréquence cardiaque et le stress.',
+   226→   226→    en: 'A few slow, deep breaths are enough to lower your heart rate and stress.',
+   227→   227→  },
+   228→   228→  {
+   229→   229→    fr: 'Entretenir ses liens sociaux fait partie des facteurs de bien-être reconnus par la recherche en santé publique.',
+   230→   230→    en: 'Nurturing social ties is a well-being factor recognised by public health research.',
+   231→   231→  },
+   232→   232→  {
+   233→   233→    fr: 'Des micro-pauses de 5 minutes toutes les heures améliorent la concentration et limitent la fatigue visuelle.',
+   234→   234→    en: 'Five-minute micro-breaks every hour improve focus and reduce eye strain.',
+   235→   235→  },
+   236→   236→  {
+   237→   237→    fr: 'Levez-vous et étirez-vous : la position assise prolongée sollicite durablement le dos et la circulation.',
+   238→   238→    en: 'Stand up and stretch: prolonged sitting puts lasting strain on your back and circulation.',
+   239→   239→  },
+   240→   240→  {
+   241→   241→    fr: 'S’exposer à la lumière naturelle le matin aide à réguler l’horloge biologique et le sommeil.',
+   242→   242→    en: 'Morning exposure to natural light helps regulate your body clock and your sleep.',
+   243→   243→  },
+   244→   244→]
+   245→   245→
+   246→   246→const L_FR = {
+   247→   247→  easy: 'Facile',
+   248→   248→  medium: 'Intermédiaire',
+   249→   249→  expert: 'Expert',
+   250→   250→  dailyName: 'Défi du jour',
+   251→   251→  dailyDesc: 'Grille Facile (9×9 · 10 mines) identique pour tous les joueurs, renouvelée chaque jour.',
+   252→   252→  startDaily: 'Jouer le défi du jour',
+   253→   253→  dailyDoneToday: 'Défi du jour réussi — revenez demain pour une nouvelle grille !',
+   254→   254→  replayDaily: 'Rejouer',
+   255→   255→  play: 'Jouer',
+   256→   256→  best: 'Record',
+   257→   257→  minesLeft: 'Mines restantes',
+   258→   258→  timeLabel: 'Temps',
+   259→   259→  paused: 'En pause',
+   260→   260→  flagMode: 'Mode drapeau',
+   261→   261→  restart: 'Recommencer',
+   262→   262→  levels: 'Niveaux',
+   263→   263→  winTitle: 'Grille dégagée !',
+   264→   264→  winSub: 'Toutes les cases sûres sont révélées.',
+   265→   265→  loseTitle: 'Boom !',
+   266→   266→  loseSub: 'Une mine a explosé — le champ de mines est révélé.',
+   267→   267→  newRecord: 'Nouveau record !',
+   268→   268→  playAgain: 'Rejouer',
+   269→   269→  tipTitle: 'Astuce bien-être',
+   270→   270→  dismiss: 'Masquer cette astuce',
+   271→   271→  boardLabel: 'Champ de mines',
+   272→   272→  keyboardHint: 'Clavier : flèches pour naviguer, Entrée pour révéler, F pour marquer, R pour recommencer.',
+   273→   273→  expertHint: 'Grille experte : faites glisser horizontalement pour voir toute la grille.',
+   274→   274→  firstClickHint: 'Le premier clic est toujours sans danger — les mines sont placées après.',
+   275→   275→  hiddenCell: 'case cachée',
+   276→   276→  flaggedCell: 'case marquée d’un drapeau',
+   277→   277→  mineCell: 'mine',
+   278→   278→  emptyCell: 'case vide',
+   279→   279→  adjCell: '{n} mines autour',
+   280→   280→}
+   281→   281→
+   282→   282→const L_EN = {
+   283→   283→  easy: 'Easy',
+   284→   284→  medium: 'Intermediate',
+   285→   285→  expert: 'Expert',
+   286→   286→  dailyName: 'Daily challenge',
+   287→   287→  dailyDesc: 'An Easy grid (9×9 · 10 mines) identical for every player, refreshed daily.',
+   288→   288→  startDaily: "Play today's challenge",
+   289→   289→  dailyDoneToday: 'Daily challenge complete — come back tomorrow for a new grid!',
+   290→   290→  replayDaily: 'Replay',
+   291→   291→  play: 'Play',
+   292→   292→  best: 'Best',
+   293→   293→  minesLeft: 'Mines left',
+   294→   294→  timeLabel: 'Time',
+   295→   295→  paused: 'Paused',
+   296→   296→  flagMode: 'Flag mode',
+   297→   297→  restart: 'Restart',
+   298→   298→  levels: 'Levels',
+   299→   299→  winTitle: 'Board cleared!',
+   300→   300→  winSub: 'Every safe cell is revealed.',
+   301→   301→  loseTitle: 'Boom!',
+   302→   302→  loseSub: 'A mine exploded — the minefield is revealed.',
+   303→   303→  newRecord: 'New personal best!',
+   304→   304→  playAgain: 'Play again',
+   305→   305→  tipTitle: 'Well-being tip',
+   306→   306→  dismiss: 'Dismiss this tip',
+   307→   307→  boardLabel: 'Minefield',
+   308→   308→  keyboardHint: 'Keyboard: arrows to navigate, Enter to reveal, F to flag, R to restart.',
+   309→   309→  expertHint: 'Expert grid: swipe horizontally to see the whole board.',
+   310→   310→  firstClickHint: 'The first click is always safe — mines are placed afterwards.',
+   311→   311→  hiddenCell: 'hidden cell',
+   312→   312→  flaggedCell: 'flagged cell',
+   313→   313→  mineCell: 'mine',
+   314→   314→  emptyCell: 'empty cell',
+   315→   315→  adjCell: '{n} mines around',
+   316→   316→}
+   317→   317→
+   318→   318→/* ================= Moteur de jeu ================= */
+   319→   319→
+   320→   320→function emptyBoard(n: number): Cell[] {
+   321→   321→  return Array.from({ length: n }, () => ({ mine: false, adj: 0, revealed: false, flagged: false }))
+   322→   322→}
+   323→   323→
+   324→   324→function neighborsOf(idx: number, w: number, h: number): number[] {
+   325→   325→  const x = idx % w
+   326→   326→  const y = Math.floor(idx / w)
+   327→   327→  const out: number[] = []
+   328→   328→  for (let dy = -1; dy <= 1; dy++) {
+   329→   329→    for (let dx = -1; dx <= 1; dx++) {
+   330→   330→      if (dx === 0 && dy === 0) continue
+   331→   331→      const nx = x + dx
+   332→   332→      const ny = y + dy
+   333→   333→      if (nx >= 0 && nx < w && ny >= 0 && ny < h) out.push(ny * w + nx)
+   334→   334→    }
+   335→   335→  }
+   336→   336→  return out
+   337→   337→}
+   338→   338→
+   339→   339→/** Place les mines en excluant la case sûre et ses voisines, puis calcule les compteurs. */
+   340→   340→function placeMines(cells: Cell[], w: number, h: number, mines: number, safeIdx: number, rand: () => number): void {
+   341→   341→  const forbidden = new Set<number>([safeIdx, ...neighborsOf(safeIdx, w, h)])
+   342→   342→  const candidates: number[] = []
+   343→   343→  for (let i = 0; i < cells.length; i++) {
+   344→   344→    if (!forbidden.has(i)) candidates.push(i)
+   345→   345→  }
+   346→   346→  const count = Math.min(mines, candidates.length)
+   347→   347→  for (let i = 0; i < count; i++) {
+   348→   348→    const j = i + Math.floor(rand() * (candidates.length - i))
+   349→   349→    const tmp = candidates[i]
+   350→   350→    candidates[i] = candidates[j]
+   351→   351→    candidates[j] = tmp
+   352→   352→    cells[candidates[i]].mine = true
+   353→   353→  }
+   354→   354→  for (let i = 0; i < cells.length; i++) {
+   355→   355→    if (cells[i].mine) continue
+   356→   356→    let n = 0
+   357→   357→    for (const k of neighborsOf(i, w, h)) {
+   358→   358→      if (cells[k].mine) n++
+   359→   359→    }
+   360→   360→    cells[i].adj = n
+   361→   361→  }
+   362→   362→}
+   363→   363→
+   364→   364→/** Révélation en cascade (pile) ; retourne l’index de la mine touchée, ou -1 si rien n’explose. */
+   365→   365→function floodReveal(cells: Cell[], w: number, h: number, start: number): number {
+   366→   366→  if (cells[start].revealed || cells[start].flagged) return -1
+   367→   367→  if (cells[start].mine) {
+   368→   368→    cells[start].revealed = true
+   369→   369→    return start
+   370→   370→  }
+   371→   371→  const stack = [start]
+   372→   372→  while (stack.length > 0) {
+   373→   373→    const i = stack.pop() as number
+   374→   374→    if (cells[i].revealed || cells[i].flagged) continue
+   375→   375→    cells[i].revealed = true
+   376→   376→    if (cells[i].adj === 0) {
+   377→   377→      for (const n of neighborsOf(i, w, h)) {
+   378→   378→        if (!cells[n].revealed && !cells[n].mine) stack.push(n)
+   379→   379→      }
+   380→   380→    }
+   381→   381→  }
+   382→   382→  return -1
+   383→   383→}
+   384→   384→
+   385→   385→function countRevealed(cells: Cell[]): number {
+   386→   386→  let n = 0
+   387→   387→  for (const c of cells) if (c.revealed) n++
+   388→   388→  return n
+   389→   389→}
+   390→   390→
+   391→   391→function inOverlay(e: Event): boolean {
+   392→   392→  const t = e.target as Element | null
+   393→   393→  return (
+   394→   394→    !!t &&
+   395→   395→    typeof t.closest === 'function' &&
+   396→   396→    !!t.closest('[role="dialog"], [data-radix-popper-content-wrapper], [role="menu"]')
+   397→   397→  )
+   398→   398→}
+   399→   399→
+   400→   400→/** Haptique légère (drapeau, mine) — ignorée sur les appareils sans vibrateur. */
+   401→   401→function buzz() {
+   402→   402→  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+   403→   403→    try {
+   404→   404→      navigator.vibrate(10)
+   405→   405→    } catch {}
+   406→   406→  }
+   407→   407→}
+   408→   408→
+   409→   409→interface Press {
+   410→   410→  idx: number
+   411→   411→  x: number
+   412→   412→  y: number
+   413→   413→  timer: number
+   414→   414→  longFired: boolean
+   415→   415→  cancelled: boolean
+   416→   416→}
+   417→   417→
+   418→   418→/* ================= Composant principal ================= */
+   419→   419→export default function MinesweeperGame() {
+   420→   420→  const lang = useLang()
+   421→   421→  const reduce = useReducedMotion()
+   422→   422→  const dailyDone = useIsDailyDone(gameId)
+   423→   423→  /* Sélecteur à référence stable (undefined tant que le jeu n'a pas de stats) */
+   424→   424→  const gameRec = useProfileStore((s) => s.profile.games[gameId])
+   425→   425→  const records = gameRec?.records ?? {}
+   426→   426→  const addPlay = useProfileStore((s) => s.addPlay)
+   427→   427→  const addWin = useProfileStore((s) => s.addWin)
+   428→   428→  const addXp = useProfileStore((s) => s.addXp)
+   429→   429→  const setBest = useProfileStore((s) => s.setBest)
+   430→   430→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   431→   431→  const completeDaily = useProfileStore((s) => s.completeDaily)
+   432→   432→  const L = lang === 'fr' ? L_FR : L_EN
+   433→   433→
+   434→   434→  const [diff, setDiff] = useState<Diff>('easy')
+   435→   435→  const [phase, setPhase] = useState<'idle' | 'playing' | 'won' | 'lost'>('idle')
+   436→   436→  const [board, setBoard] = useState<Cell[]>([])
+   437→   437→  const [flagMode, setFlagMode] = useState(false)
+   438→   438→  const [elapsed, setElapsed] = useState(0)
+   439→   439→  const [paused, setPaused] = useState(false)
+   440→   440→  const [exploded, setExploded] = useState<number | null>(null)
+   441→   441→  const [confettiKey, setConfettiKey] = useState(0)
+   442→   442→  const [newRecord, setNewRecord] = useState(false)
+   443→   443→  const [finalTime, setFinalTime] = useState<number | null>(null)
+   444→   444→  const [finalXp, setFinalXp] = useState<number | null>(null)
+   445→   445→  const [tipIdx, setTipIdx] = useState(0)
+   446→   446→  const [tipOpen, setTipOpen] = useState(false)
+   447→   447→
+   448→   448→  /* Réfs miroirs (lus uniquement dans les handlers/callbacks, jamais pendant le rendu) */
+   449→   449→  const boardRef = useRef<Cell[]>([])
+   450→   450→  const phaseRef = useRef(phase)
+   451→   451→  const diffRef = useRef(diff)
+   452→   452→  useEffect(() => {
+   453→   453→    boardRef.current = board
+   454→   454→    phaseRef.current = phase
+   455→   455→    diffRef.current = diff
+   456→   456→  })
+   457→   457→
+   458→   458→  const startRef = useRef(0)
+   459→   459→  const pauseStartRef = useRef(0)
+   460→   460→  const minesPlacedRef = useRef(false)
+   461→   461→  const pressRef = useRef<Press | null>(null)
+   462→   462→  const lastLongPressRef = useRef<{ idx: number; t: number } | null>(null)
+   463→   463→  const cellRefs = useRef<Array<HTMLButtonElement | null>>([])
+   464→   464→
+   465→   465→  const cfg = DIFFS[diff]
+   466→   466→  const isExpert = diff === 'expert'
+   467→   467→
+   468→   468→  /* --- Chronomètre --- */
+   469→   469→  useEffect(() => {
+   470→   470→    if (phase !== 'playing' || paused) return
+   471→   471→    const id = window.setInterval(() => {
+   472→   472→      if (startRef.current > 0) setElapsed(Date.now() - startRef.current)
+   473→   473→    }, 250)
+   474→   474→    return () => window.clearInterval(id)
+   475→   475→  }, [phase, paused])
+   476→   476→
+   477→   477→  /* --- Pause quand l'onglet est masqué --- */
+   478→   478→  useEffect(() => {
+   479→   479→    function onVis() {
+   480→   480→      if (phaseRef.current !== 'playing') return
+   481→   481→      if (document.hidden) {
+   482→   482→        if (startRef.current > 0 && !pauseStartRef.current) {
+   483→   483→          pauseStartRef.current = Date.now()
+   484→   484→          setPaused(true)
+   485→   485→        }
+   486→   486→      } else if (pauseStartRef.current) {
+   487→   487→        startRef.current += Date.now() - pauseStartRef.current
+   488→   488→        pauseStartRef.current = 0
+   489→   489→        setPaused(false)
+   490→   490→      }
+   491→   491→    }
+   492→   492→    document.addEventListener('visibilitychange', onVis)
+   493→   493→    return () => document.removeEventListener('visibilitychange', onVis)
+   494→   494→  }, [])
+   495→   495→
+   496→   496→  /* --- Nettoyage de l'appui long au démontage --- */
+   497→   497→  useEffect(() => {
+   498→   498→    return () => {
+   499→   499→      if (pressRef.current) window.clearTimeout(pressRef.current.timer)
+   500→   500→    }
+   501→   501→  }, [])
+   502→   502→
+   503→   503→  /* ================= Actions ================= */
+   504→   504→
+   505→   505→  function startGame(d: Diff) {
+   506→   506→    const c = DIFFS[d]
+   507→   507→    const cells = emptyBoard(c.w * c.h)
+   508→   508→    minesPlacedRef.current = false
+   509→   509→    startRef.current = 0
+   510→   510→    pauseStartRef.current = 0
+   511→   511→    cellRefs.current = []
+   512→   512→    setDiff(d)
+   513→   513→    setPhase('playing')
+   514→   514→    setBoard(cells)
+   515→   515→    setExploded(null)
+   516→   516→    setElapsed(0)
+   517→   517→    setPaused(false)
+   518→   518→    setFinalTime(null)
+   519→   519→    setFinalXp(null)
+   520→   520→    setNewRecord(false)
+   521→   521→    setTipOpen(false)
+   522→   522→    addPlay(gameId)
+   523→   523→    sfx.play('click')
+   524→   524→    if (d === 'daily') {
+   525→   525→      // Grille déterministe : même graine (date), même case de départ, mêmes mines pour tous.
+   526→   526→      const rand = mulberry32(seedFromString(`${gameId}:${todayKey()}`))
+   527→   527→      const safe = Math.floor(rand() * cells.length)
+   528→   528→      placeMines(cells, c.w, c.h, c.mines, safe, rand)
+   529→   529→      floodReveal(cells, c.w, c.h, safe)
+   530→   530→      minesPlacedRef.current = true
+   531→   531→      startRef.current = Date.now()
+   532→   532→    }
+   533→   533→  }
+   534→   534→
+   535→   535→  function backToLevels() {
+   536→   536→    sfx.play('click', { volume: 0.5 })
+   537→   537→    setPhase('idle')
+   538→   538→  }
+   539→   539→
+   540→   540→  /** Révèle une case cachée — ou joue le chording si la case est déjà révélée et chiffrée. */
+   541→   541→  function revealAt(idx: number) {
+   542→   542→    if (phaseRef.current !== 'playing') return
+   543→   543→    const cur = boardRef.current
+   544→   544→    if (cur.length === 0) return
+   545→   545→    if (cur[idx].revealed) {
+   546→   546→      chordAt(idx)
+   547→   547→      return
+   548→   548→    }
+   549→   549→    if (cur[idx].flagged) return
+   550→   550→    const c = DIFFS[diffRef.current]
+   551→   551→    const next = cur.map((x) => ({ ...x }))
+   552→   552→    if (!minesPlacedRef.current) {
+   553→   553→      placeMines(next, c.w, c.h, c.mines, idx, Math.random)
+   554→   554→      minesPlacedRef.current = true
+   555→   555→      startRef.current = Date.now()
+   556→   556→    }
+   557→   557→    const hit = floodReveal(next, c.w, c.h, idx)
+   558→   558→    const opened = countRevealed(next) - countRevealed(cur)
+   559→   559→    setBoard(next)
+   560→   560→    if (hit >= 0) {
+   561→   561→      finishLose(hit, next)
+   562→   562→      return
+   563→   563→    }
+   564→   564→    if (opened > 0) sfx.play(opened >= 4 ? 'sweep' : 'pop')
+   565→   565→    if (countRevealed(next) === next.length - c.mines) finishWin(next)
+   566→   566→  }
+   567→   567→
+   568→   568→  /** Chording : clic sur un chiffre dont les drapeaux voisins sont exactement posés. */
+   569→   569→  function chordAt(idx: number) {
+   570→   570→    if (phaseRef.current !== 'playing') return
+   571→   571→    const cur = boardRef.current
+   572→   572→    if (cur.length === 0) return
+   573→   573→    const cell = cur[idx]
+   574→   574→    if (!cell.revealed || cell.mine || cell.adj === 0) return
+   575→   575→    const c = DIFFS[diffRef.current]
+   576→   576→    const nbrs = neighborsOf(idx, c.w, c.h)
+   577→   577→    let flagged = 0
+   578→   578→    for (const n of nbrs) {
+   579→   579→      if (cur[n].flagged) flagged++
+   580→   580→    }
+   581→   581→    if (flagged !== cell.adj) return
+   582→   582→    const next = cur.map((x) => ({ ...x }))
+   583→   583→    let hit = -1
+   584→   584→    for (const n of nbrs) {
+   585→   585→      if (!next[n].revealed && !next[n].flagged) {
+   586→   586→        const r = floodReveal(next, c.w, c.h, n)
+   587→   587→        if (r >= 0) hit = r
+   588→   588→      }
+   589→   589→    }
+   590→   590→    const opened = countRevealed(next) - countRevealed(cur)
+   591→   591→    setBoard(next)
+   592→   592→    if (hit >= 0) {
+   593→   593→      finishLose(hit, next)
+   594→   594→      return
+   595→   595→    }
+   596→   596→    if (opened > 0) sfx.play(opened >= 4 ? 'sweep' : 'pop')
+   597→   597→    if (countRevealed(next) === next.length - c.mines) finishWin(next)
+   598→   598→  }
+   599→   599→
+   600→   600→  function toggleFlagAt(idx: number) {
+   601→   601→    if (phaseRef.current !== 'playing') return
+   602→   602→    const cur = boardRef.current
+   603→   603→    if (cur.length === 0 || cur[idx].revealed) return
+   604→   604→    const next = cur.map((x) => ({ ...x }))
+   605→   605→    next[idx].flagged = !next[idx].flagged
+   606→   606→    setBoard(next)
+   607→   607→    sfx.play(next[idx].flagged ? 'drop' : 'flip')
+   608→   608→    buzz()
+   609→   609→  }
+   610→   610→
+   611→   611→  function finishWin(cells: Cell[]) {
+   612→   612→    const d = diffRef.current
+   613→   613→    const c = DIFFS[d]
+   614→   614→    const ms = startRef.current > 0 ? Date.now() - startRef.current : 0
+   615→   615→    const seconds = Math.max(1, Math.round(ms / 1000))
+   616→   616→    const next = cells.map((x) => ({ ...x }))
+   617→   617→    for (const cell of next) {
+   618→   618→      if (cell.mine) cell.flagged = true
+   619→   619→    }
+   620→   620→    setBoard(next)
+   621→   621→    setPhase('won')
+   622→   622→    setFinalTime(seconds)
+   623→   623→    setConfettiKey((k) => k + 1)
+   624→   624→    sfx.play('win')
+   625→   625→    setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
+   626→   626→    setTipOpen(true)
+   627→   627→    // Rejouer un défi déjà réussi ne recompte pas la récompense du jour.
+   628→   628→    if (d === 'daily' && dailyDone) return
+   629→   629→    addWin(gameId)
+   630→   630→    addXp(c.xp)
+   631→   631→    setFinalXp(c.xp)
+   632→   632→    setNewRecord(setBest(gameId, c.metric, seconds, true))
+   633→   633→    if (d === 'medium') unlockBadge('mine-medium')
+   634→   634→    if (d === 'expert') unlockBadge('mine-expert')
+   635→   635→    if (d === 'daily') completeDaily(gameId)
+   636→   636→  }
+   637→   637→
+   638→   638→  function finishLose(explodedIdx: number, cells: Cell[]) {
+   639→   639→    const next = cells.map((x) => ({ ...x }))
+   640→   640→    for (const cell of next) {
+   641→   641→      if (cell.mine) cell.revealed = true
+   642→   642→    }
+   643→   643→    setBoard(next)
+   644→   644→    setExploded(explodedIdx)
+   645→   645→    setPhase('lost')
+   646→   646→    sfx.play('lose')
+   647→   647→    buzz()
+   648→   648→    setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
+   649→   649→    setTipOpen(true)
+   650→   650→  }
+   651→   651→
+   652→   652→  /* ================= Appuis (toucher / souris) ================= */
+   653→   653→
+   654→   654→  function onCellPointerDown(e: React.PointerEvent<HTMLButtonElement>, idx: number) {
+   655→   655→    if (e.button !== 0 || phaseRef.current !== 'playing') return
+   656→   656→    const press: Press = { idx, x: e.clientX, y: e.clientY, timer: 0, longFired: false, cancelled: false }
+   657→   657→    pressRef.current = press
+   658→   658→    // À la souris : pas d'appui long (le clic droit marque), uniquement toucher/stylet.
+   659→   659→    if (e.pointerType === 'mouse') return
+   660→   660→    press.timer = window.setTimeout(() => {
+   661→   661→      if (pressRef.current !== press || press.cancelled) return
+   662→   662→      press.longFired = true
+   663→   663→      lastLongPressRef.current = { idx, t: Date.now() }
+   664→   664→      toggleFlagAt(idx)
+   665→   665→    }, 450)
+   666→   666→  }
+   667→   667→
+   668→   668→  function onCellPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+   669→   669→    const p = pressRef.current
+   670→   670→    if (!p || p.cancelled) return
+   671→   671→    if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > 12) cancelPress()
+   672→   672→  }
+   673→   673→
+   674→   674→  function cancelPress() {
+   675→   675→    const p = pressRef.current
+   676→   676→    if (!p) return
+   677→   677→    p.cancelled = true
+   678→   678→    window.clearTimeout(p.timer)
+   679→   679→  }
+   680→   680→
+   681→   681→  function onCellPointerUp(idx: number) {
+   682→   682→    const p = pressRef.current
+   683→   683→    if (!p || p.idx !== idx) return
+   684→   684→    window.clearTimeout(p.timer)
+   685→   685→    const wasLong = p.longFired
+   686→   686→    const wasCancelled = p.cancelled
+   687→   687→    pressRef.current = null
+   688→   688→    if (wasCancelled || wasLong) return
+   689→   689→    const cur = boardRef.current
+   690→   690→    if (flagMode && cur.length > 0 && !cur[idx].revealed) toggleFlagAt(idx)
+   691→   691→    else revealAt(idx)
+   692→   692→  }
+   693→   693→
+   694→   694→  /* ================= Clavier (grille) ================= */
+   695→   695→
+   696→   696→  function onBoardKeyDown(e: React.KeyboardEvent) {
+   697→   697→    if (phase !== 'playing') return
+   698→   698→    const el = e.target as HTMLElement
+   699→   699→    const idxStr = el.getAttribute('data-idx')
+   700→   700→    if (idxStr === null) return
+   701→   701→    const idx = Number.parseInt(idxStr, 10)
+   702→   702→    const c = DIFFS[diff]
+   703→   703→    let target = -1
+   704→   704→    switch (e.key) {
+   705→   705→      case 'ArrowRight':
+   706→   706→        target = idx % c.w < c.w - 1 ? idx + 1 : idx
+   707→   707→        break
+   708→   708→      case 'ArrowLeft':
+   709→   709→        target = idx % c.w > 0 ? idx - 1 : idx
+   710→   710→        break
+   711→   711→      case 'ArrowDown':
+   712→   712→        target = idx + c.w < c.w * c.h ? idx + c.w : idx
+   713→   713→        break
+   714→   714→      case 'ArrowUp':
+   715→   715→        target = idx - c.w >= 0 ? idx - c.w : idx
+   716→   716→        break
+   717→   717→      case 'Enter':
+   718→   718→      case ' ':
+   719→   719→        e.preventDefault()
+   720→   720→        revealAt(idx)
+   721→   721→        return
+   722→   722→      case 'f':
+   723→   723→      case 'F':
+   724→   724→        toggleFlagAt(idx)
+   725→   725→        return
+   726→   726→      default:
+   727→   727→        return
+   728→   728→    }
+   729→   729→    e.preventDefault()
+   730→   730→    if (target >= 0 && target !== idx) cellRefs.current[target]?.focus()
+   731→   731→  }
+   732→   732→
+   733→   733→  function cellAria(cell: Cell): string {
+   734→   734→    if (cell.flagged) return L.flaggedCell
+   735→   735→    if (!cell.revealed) return L.hiddenCell
+   736→   736→    if (cell.mine) return L.mineCell
+   737→   737→    return cell.adj === 0 ? L.emptyCell : L.adjCell.replace('{n}', String(cell.adj))
+   738→   738→  }
+   739→   739→
+   740→   740→  /* --- R pour recommencer (listener rafraîchi à chaque rendu, jamais dans le corps d'effet) --- */
+   741→   741→  useEffect(() => {
+   742→   742→    function onKey(e: KeyboardEvent) {
+   743→   743→      if (e.metaKey || e.ctrlKey || e.altKey) return
+   744→   744→      if (inOverlay(e)) return
+   745→   745→      if (e.key !== 'r' && e.key !== 'R') return
+   746→   746→      if (phaseRef.current === 'idle') return
+   747→   747→      e.preventDefault()
+   748→   748→      startGame(diffRef.current)
+   749→   749→    }
+   750→   750→    window.addEventListener('keydown', onKey)
+   751→   751→    return () => window.removeEventListener('keydown', onKey)
+   752→   752→  })
+   753→   753→
+   754→   754→  /* ================= Rendu ================= */
+   755→   755→  const flags = board.reduce((n, c) => n + (c.flagged ? 1 : 0), 0)
+   756→   756→  const minesLeft = cfg.mines - flags
+   757→   757→  const popIn = reduce ? '' : 'anim-pop-in'
+   758→   758→
+   759→   759→  const cells = board.map((cell, idx) => {
+   760→   760→    const wrongFlag = phase === 'lost' && cell.flagged && !cell.mine
+   761→   761→    const isExploded = exploded === idx
+   762→   762→    const revealedMine = phase === 'lost' && cell.mine
+   763→   763→    return (
+   764→   764→      <button
+   765→   765→        key={idx}
+   766→   766→        ref={(el) => {
+   767→   767→          cellRefs.current[idx] = el
+   768→   768→        }}
+   769→   769→        type="button"
+   770→   770→        role="gridcell"
+   771→   771→        data-idx={idx}
+   772→   772→        tabIndex={idx === 0 ? 0 : -1}
+   773→   773→        aria-label={cellAria(cell)}
+   774→   774→        onPointerDown={(e) => onCellPointerDown(e, idx)}
+   775→   775→        onPointerMove={onCellPointerMove}
+   776→   776→        onPointerUp={() => onCellPointerUp(idx)}
+   777→   777→        onPointerCancel={cancelPress}
+   778→   778→        onPointerLeave={cancelPress}
+   779→   779→        onAuxClick={(e) => {
+   780→   780→          // Clic molette = chording (desktop)
+   781→   781→          if (e.button === 1) {
+   782→   782→            e.preventDefault()
+   783→   783→            chordAt(idx)
+   784→   784→          }
+   785→   785→        }}
+   786→   786→        onContextMenu={(e) => {
+   787→   787→          e.preventDefault()
+   788→   788→          // Android émet aussi un contextmenu après l'appui long : ne pas double-marquer.
+   789→   789→          const lp = lastLongPressRef.current
+   790→   790→          if (lp && lp.idx === idx && Date.now() - lp.t < 700) return
+   791→   791→          toggleFlagAt(idx)
+   792→   792→        }}
+   793→   793→        className={cn(
+   794→   794→          'no-select flex select-none items-center justify-center border font-display font-extrabold leading-none transition-transform duration-75 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-ring active:scale-95',
+   795→   795→          isExpert ? 'h-[30px] w-[30px] rounded-[4px]' : 'aspect-square w-full rounded-[5px]',
+   796→   796→          cell.revealed
+   797→   797→            ? isExploded
+   798→   798→              ? 'anim-shake border-red-600 bg-red-500'
+   799→   799→              : revealedMine
+   800→   800→                ? 'border-red-300 bg-red-100 dark:border-red-500/40 dark:bg-red-500/20'
+   801→   801→                : 'border-border/60 bg-secondary/40'
+   802→   802→            : 'border-primary/30 bg-gradient-to-br from-primary to-orange-400/90 shadow-[inset_0_-2px_0_rgba(0,0,0,0.15)] hover:brightness-105',
+   803→   803→        )}
+   804→   804→      >
+   805→   805→        {cell.revealed ? (
+   806→   806→          cell.mine ? (
+   807→   807→            <span className={cn(CELL_EMOJI[diff], popIn)} aria-hidden="true">
+   808→   808→              💣
+   809→   809→            </span>
+   810→   810→          ) : cell.adj > 0 ? (
+   811→   811→            <span className={cn(CELL_TEXT[diff], NUM_COLORS[cell.adj], popIn)} aria-hidden="true">
+   812→   812→              {cell.adj}
+   813→   813→            </span>
+   814→   814→          ) : null
+   815→   815→        ) : cell.flagged ? (
+   816→   816→          <span className={cn('relative', CELL_EMOJI[diff], popIn)} aria-hidden="true">
+   817→   817→            🚩
+   818→   818→            {wrongFlag ? (
+   819→   819→              <span className="absolute inset-0 flex items-center justify-center text-[15px] font-black text-red-600">✕</span>
+   820→   820→            ) : null}
+   821→   821→          </span>
+   822→   822→        ) : null}
+   823→   823→      </button>
+   824→   824→    )
+   825→   825→  })
+   826→   826→
+   827→   827→  return (
+   828→   828→    <div className="relative select-none">
+   829→   829→      <Confetti fire={confettiKey} count={reduce ? 0 : 120} />
+   830→   830→
+   831→   831→      {phase === 'idle' ? (
+   832→   832→        <>
+   833→   833→          {/* Choix de difficulté — compact : tout tient à l'écran sans scroll */}
+   834→   834→          <div className="grid grid-cols-3 gap-2">
+   835→   835→            {(['easy', 'medium', 'expert'] as const).map((d) => {
+   836→   836→              const c = DIFFS[d]
+   837→   837→              const rec = records[c.metric]
+   838→   838→              return (
+   839→   839→                <button
+   840→   840→                  key={d}
+   841→   841→                  type="button"
+   842→   842→                  onClick={() => startGame(d)}
+   843→   843→                  className="group flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card/70 px-2 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring sm:min-h-[96px] sm:gap-1.5 sm:px-4"
+   844→   844→                >
+   845→   845→                  <span className="flex items-center gap-1.5 font-display text-sm font-extrabold sm:text-lg">
+   846→   846→                    {L[d]}
+   847→   847→                    <Play className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-primary sm:h-4 sm:w-4" aria-hidden="true" />
+   848→   848→                  </span>
+   849→   849→                  <span className="text-[10px] text-muted-foreground sm:text-xs">
+   850→   850→                    {c.w}×{c.h} · 💣 {c.mines}
+   851→   851→                  </span>
+   852→   852→                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 sm:text-xs">
+   853→   853→                    {rec ? `🏆 ${rec.value}s` : '—'}
+   854→   854→                  </span>
+   855→   855→                </button>
+   856→   856→              )
+   857→   857→            })}
+   858→   858→          </div>
+   859→   859→
+   860→   860→          {/* Défi du jour */}
+   861→   861→          {!dailyDone ? (
+   862→   862→            <button
+   863→   863→              type="button"
+   864→   864→              onClick={() => startGame('daily')}
+   865→   865→              className="mt-2 flex w-full items-center gap-2.5 rounded-2xl border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-left transition-transform hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-ring active:scale-[0.99] dark:border-amber-500/25 dark:bg-amber-500/10"
+   866→   866→            >
+   867→   867→              <span className="text-xl sm:text-2xl" aria-hidden="true">
+   868→   868→                🎁
+   869→   869→              </span>
+   870→   870→              <span className="min-w-0 flex-1">
+   871→   871→                <span className="block text-xs font-bold text-amber-700 sm:text-sm dark:text-amber-300">
+   872→   872→                  💣 {L.dailyName} — {todayKey()}
+   873→   873→                </span>
+   874→   874→                <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">{L.dailyDesc}</span>
+   875→   875→              </span>
+   876→   876→              <span className="shrink-0 rounded-full bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white sm:px-4 sm:py-2 sm:text-xs">
+   877→   877→                {L.startDaily}
+   878→   878→              </span>
+   879→   879→            </button>
+   880→   880→          ) : (
+   881→   881→            <div className="mt-2 flex items-center gap-2.5 rounded-2xl border border-emerald-300/50 bg-emerald-50/60 px-3 py-2.5 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+   882→   882→              <CalendarCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+   883→   883→              <p className="min-w-0 flex-1 text-xs font-semibold leading-snug text-emerald-700 dark:text-emerald-300">{L.dailyDoneToday}</p>
+   884→   884→              <button
+   885→   885→                type="button"
+   886→   886→                onClick={() => startGame('daily')}
+   887→   887→                className="shrink-0 rounded-full border border-emerald-400/60 px-3 py-1.5 text-[11px] font-bold text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-ring dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/15"
+   888→   888→              >
+   889→   889→                <RotateCcw className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden="true" />
+   890→   890→                {L.replayDaily}
+   891→   891→              </button>
+   892→   892→            </div>
+   893→   893→          )}
+   894→   894→
+   895→   895→          <p className="mt-2 text-center text-[11px] text-muted-foreground sm:mt-3 sm:text-xs">{L.firstClickHint}</p>
+   896→   896→        </>
+   897→   897→      ) : (
+   898→   898→        <>
+   899→   899→          {/* HUD compact — une seule ligne : mines, chrono, mode drapeau, recommencer, niveaux */}
+
+[showing lines 200-899 of 1084; use offset=900 with limit to continue reading]

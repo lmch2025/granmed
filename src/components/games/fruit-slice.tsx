@@ -10,6 +10,7 @@ import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromStr
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'fruit-slice'
 
@@ -285,6 +286,7 @@ export default function FruitSliceGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -294,6 +296,9 @@ export default function FruitSliceGame() {
   const [hud, setHud] = useState({ score: 0, lives: 3, chain: 0 })
   const [result, setResult] = useState<null | { score: number; sliced: number; bestChain: number; isRecord: boolean; xp: number }>(null)
   const [confetti, setConfetti] = useState(0)
+  /* Célébration de victoire (manche ≥ 150 points) — médaille + étoiles. */
+  const [burstStars, setBurstStars] = useState(3)
+  const [burstKey, setBurstKey] = useState(0)
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -364,6 +369,14 @@ export default function FruitSliceGame() {
     }
     if (w.bestChain >= 2) setBest(gameId, 'best-combo', w.bestChain)
     if (w.score >= 150) unlockBadge('fruit-150')
+    // XP du jeu : manche gagnée (≥ 150 pts, même seuil que addWin) 20-28 XP,
+    // manche terminée sans victoire 8-12 XP selon le score.
+    addGameXp(
+      gameId,
+      w.winCounted
+        ? w.score >= 300 ? 28 : w.score >= 200 ? 24 : 20
+        : w.score >= 80 ? 12 : w.score >= 40 ? 10 : 8,
+    )
     if (isRecord) {
       sfx.play('win')
       setConfetti((k) => k + 1)
@@ -372,9 +385,14 @@ export default function FruitSliceGame() {
       sfx.play('lose')
       buzz(30)
     }
+    // Victoire arcade : éclat de médaille par paliers de score.
+    if (w.winCounted) {
+      setBurstStars(w.score >= 300 ? 3 : w.score >= 200 ? 2 : 1)
+      setBurstKey((k) => k + 1)
+    }
     setResult({ score: w.score, sliced: w.fruitsSliced, bestChain: w.bestChain, isRecord, xp })
     setPhase('over')
-  }, [addXp, setBest, unlockBadge])
+  }, [addGameXp, addXp, setBest, unlockBadge])
 
   /* ================= Boucle principale ================= */
   useEffect(() => {
@@ -820,8 +838,8 @@ export default function FruitSliceGame() {
 
   /* ================= Rendu React ================= */
   return (
-    <div className="relative select-none">
-      <Confetti fire={confetti} count={reduce ? 0 : 90} />
+    <div className="relative select-none my-auto flex w-full flex-col h-[var(--board-h,auto)]">
+      <Confetti fire={confetti} count={reduce ? 0 : 90} waves={2} gold />
 
       {/* HUD compact — une seule ligne au-dessus de l'aire */}
       <div className="mb-2 flex min-w-0 items-center gap-1.5">
@@ -905,7 +923,7 @@ export default function FruitSliceGame() {
       {/* Aire de jeu — remplit le budget vertical mobile, jamais de scroll */}
       <div
         ref={wrapRef}
-        className="relative h-[calc(100dvh-250px)] max-h-[720px] min-h-[300px] w-full overflow-hidden rounded-2xl border shadow-inner"
+        className="relative h-[var(--board-h,calc(100dvh-250px))] max-h-[720px] min-h-[300px] w-full overflow-hidden rounded-2xl border shadow-inner"
       >
         <canvas
           ref={canvasRef}
@@ -959,15 +977,16 @@ export default function FruitSliceGame() {
                   {T.best} : <span className="font-bold tabular-nums">{Math.max(bestScore, result.score)}</span>
                 </p>
               )}
-              <div className="mt-4 flex justify-center">
-                <Button ref={replayBtnRef} size="lg" className="h-12 rounded-full px-8" onClick={handleStart}>
-                  <RotateCcw className="h-5 w-5" aria-hidden="true" /> {T.replay}
-                </Button>
+              <div className="mt-4">
+                <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.replay} primaryRef={replayBtnRef} />
               </div>
             </div>
           </div>
         ) : null}
       </div>
+
+      {/* Célébration de victoire — au-dessus de l'écran de fin (même z, plus tard dans le DOM) */}
+      <VictoryBurst fire={burstKey} stars={burstStars} emoji="🍉" />
     </div>
   )
 }

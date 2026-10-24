@@ -115,6 +115,14 @@ const DICT: Record<string, Record<Lang, string>> = {
   'game.startDaily': { fr: 'Jouer le défi du jour', en: "Play today's challenge" },
   'game.resume': { fr: 'Reprendre la partie sauvegardée', en: 'Resume saved game' },
   'game.newGame': { fr: 'Nouvelle partie', en: 'New game' },
+  'game.exit': { fr: 'Quitter le jeu', en: 'Exit game' },
+  'game.exitShort': { fr: 'Quitter', en: 'Quit' },
+  'game.switchGame': { fr: 'Changer de jeu', en: 'Switch game' },
+  'game.fullscreen': { fr: 'Plein écran', en: 'Full screen' },
+  'game.levelProgress': { fr: 'Niveau du jeu', en: 'Game level' },
+  'game.nextUp': { fr: 'À essayer aussi', en: 'You might also like' },
+  'game.nextRound': { fr: 'Manche suivante', en: 'Next round' },
+  'game.keepPlaying': { fr: 'Poursuivre le jeu', en: 'Keep playing' },
 
   // --- Accueil
   'home.heroTitle': {

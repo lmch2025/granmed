@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'memory-match'
 
@@ -217,6 +218,7 @@ export default function MemoryMatchGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -235,6 +237,7 @@ export default function MemoryMatchGame() {
   const [elapsed, setElapsed] = useState(0)
   const [won, setWon] = useState<{ time: number; moves: number; mistakes: number; isRecord: boolean; xp: number } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [deal, setDeal] = useState(0)
   const lockRef = useRef(false)
   const genRef = useRef(0)
@@ -298,15 +301,17 @@ export default function MemoryMatchGame() {
       setPhase('won')
       setWon({ time, moves: finalMoves, mistakes: finalMistakes, isRecord, xp })
       setConfettiKey((k) => k + 1)
+      setBurstKey((k) => k + 1)
       sfx.play('win')
       navigator.vibrate?.(30)
       addWin(gameId)
       addXp(xp)
+      addGameXp(gameId, 22 + (finalMistakes === 0 ? 8 : 0))
       if (finalMistakes === 0) unlockBadge('memory-perfect')
       if (pairs === 15) unlockBadge('memory-master')
       if (dailyMode) completeDaily(gameId)
     },
-    [dailyMode, dailyConfig.size, size, setBest, addWin, addXp, unlockBadge, completeDaily],
+    [dailyMode, dailyConfig.size, size, setBest, addWin, addXp, addGameXp, unlockBadge, completeDaily],
   )
 
   /* --- Chronomètre (pause quand l'onglet est masqué) --- */
@@ -414,9 +419,12 @@ export default function MemoryMatchGame() {
   }, [won, lang, pairsTotal, t])
 
   /* --- Rendu --- */
+  const winStars = won ? (won.mistakes === 0 ? 3 : won.mistakes <= 2 ? 2 : 1) : 3
+
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={110} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={110} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={winStars} sub={won ? `${t('common.moves')} ${won.moves} · ${fmt(won.time)}` : undefined} />
 
       {phase === 'idle' ? (
         /* ============ Écran de réglages compact : « Jouer » visible sans scroll ============ */
@@ -626,10 +634,15 @@ export default function MemoryMatchGame() {
               </span>
             ) : null}
           </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button ref={replayBtnRef} size="lg" className="rounded-full" onClick={() => startGame({ daily: dailyMode })}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-            </Button>
+          <div className="mt-4">
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startGame({ daily: dailyMode })}
+              replayLabel={t('common.playAgain')}
+              primaryRef={replayBtnRef}
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
             <Button size="lg" variant="secondary" className="rounded-full" onClick={goIdle}>
               <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
             </Button>

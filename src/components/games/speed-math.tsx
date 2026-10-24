@@ -10,6 +10,7 @@ import { todayKey, mulberry32, seedFromString, useReducedMotion } from '@/lib/ut
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'speed-math'
 
@@ -208,6 +209,7 @@ export default function SpeedMathGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -227,6 +229,7 @@ export default function SpeedMathGame() {
   const [timeLeft, setTimeLeft] = useState(SPRINT_MS)
   const [over, setOver] = useState<{ score: number; correct: number; bestStreak: number; accuracy: number; isRecord: boolean } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   const phaseRef = useRef<'idle' | 'playing' | 'over'>('idle')
   const endRef = useRef(0)
@@ -360,10 +363,12 @@ export default function SpeedMathGame() {
     const rec1 = setBest(gameId, 'best-score', s.score)
     const rec2 = setBest(gameId, 'best-correct', s.correct)
     setOver({ score: s.score, correct: s.correct, bestStreak: s.bestStreak, accuracy, isRecord: rec1 || rec2 })
-    if (rec1 || rec2) setConfettiKey((k) => k + 1)
+    setConfettiKey((k) => k + 1)
+    setBurstKey((k) => k + 1)
     sfx.play('win')
     addWin(gameId)
     addXp(Math.round(s.score / 2))
+    addGameXp(gameId, Math.min(30, 10 + s.correct))
     if (s.correct >= 25) unlockBadge('math-25')
     if (s.correct >= 40) unlockBadge('math-40')
     if (dailyModeRef.current) completeDaily(gameId)
@@ -503,7 +508,7 @@ export default function SpeedMathGame() {
   const inPlayDiff = dailyMode ? dailyConfig.diff : diff
 
   return (
-    <div className="relative select-none">
+    <div className="relative my-auto w-full select-none">
       {/* Barre de configuration — visible uniquement au repos, bouton Jouer immédiat */}
       {phase === 'idle' ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -735,7 +740,12 @@ export default function SpeedMathGame() {
           className="anim-rise relative overflow-hidden rounded-2xl border-2 border-emerald-300/60 bg-emerald-50/60 p-4 text-center sm:p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10"
           role="status"
         >
-          <Confetti fire={confettiKey} count={reduce ? 0 : 90} />
+          <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+          <VictoryBurst
+            fire={burstKey}
+            stars={over.correct >= 20 ? 3 : over.correct >= 12 ? 2 : 1}
+            sub={`${over.score} ${L.points} · ${over.accuracy}%`}
+          />
           <p className="font-display text-xl font-extrabold text-emerald-700 dark:text-emerald-300 sm:text-2xl">⚡ {L.wellDone}</p>
           <p className="mt-1 font-display text-5xl font-black tabular-nums">
             {over.score} <span className="text-base font-bold text-muted-foreground">{L.points}</span>
@@ -750,17 +760,14 @@ export default function SpeedMathGame() {
               </span>
             ) : null}
           </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-            <Button
-              size="lg"
-              className="rounded-full"
-              onClick={() => {
-                sfx.play('pop')
-                start(inPlayDiff, dailyMode)
-              }}
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-            </Button>
+          <div className="mt-4">
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => start(inPlayDiff, dailyMode)}
+              replayLabel={t('common.playAgain')}
+            />
+          </div>
+          <div className="mt-2 flex justify-center">
             <Button
               size="lg"
               variant="secondary"

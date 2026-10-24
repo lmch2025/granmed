@@ -34,6 +34,7 @@ import {
 } from '@/components/games/data/mini-crossword-data'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'mini-crossword'
 
@@ -204,6 +205,7 @@ export default function MiniCrosswordGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -219,6 +221,7 @@ export default function MiniCrosswordGame() {
   const [shakeNonce, setShakeNonce] = useState(0)
   const [solvedIds, setSolvedIds] = useState<string[]>([])
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [newRecord, setNewRecord] = useState(false)
   const [elapsed, setElapsed] = useState(0)
 
@@ -450,6 +453,7 @@ export default function MiniCrosswordGame() {
       setPhase('solved')
       setActive(null)
       setConfettiKey((k) => k + 1)
+      setBurstKey((k) => k + 1)
       sfx.play('win')
       navigator.vibrate?.([30, 40, 30])
       const wasSolved = solvedIds.includes(puzzle.id)
@@ -459,6 +463,9 @@ export default function MiniCrosswordGame() {
       setNewRecord(setBest(gameId, 'best-time', seconds, true))
       addWin(gameId)
       addXp(wasSolved ? 10 : 30)
+      /* Niveaux par jeu : nouvelle grille 20-30 XP selon les indices utilisés,
+         re-résolution d'une grille connue → valeur réduite. */
+      addGameXp(gameId, wasSolved ? 12 : Math.max(20, 30 - hintsUsed * 3))
       if (!wasSolved) {
         setBest(gameId, 'solved', newSolved.length, false)
         unlockBadge('crossword-first')
@@ -467,7 +474,7 @@ export default function MiniCrosswordGame() {
       if (isDaily) completeDaily(gameId)
       persist({}, puzzle, hintsUsed, newSolved, finalMs, isDaily)
     },
-    [puzzle, solvedIds, elapsedNow, setBest, addWin, addXp, unlockBadge, completeDaily, isDaily, hintsUsed, persist],
+    [puzzle, solvedIds, elapsedNow, setBest, addWin, addXp, addGameXp, unlockBadge, completeDaily, isDaily, hintsUsed, persist],
   )
 
   /* Sélectionne un mot : première case vide, sinon sa case de départ. */
@@ -847,7 +854,7 @@ export default function MiniCrosswordGame() {
     const list = puzzlesFor(lang)
     const solvedCount = list.filter((p) => solvedIds.includes(p.id)).length
     return (
-      <div className="relative select-none">
+      <div className="relative my-auto w-full select-none">
         {!dailyDone ? (
           <button
             type="button"
@@ -906,8 +913,14 @@ export default function MiniCrosswordGame() {
   }
 
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={110} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={110} waves={2} gold />
+      <VictoryBurst
+        fire={burstKey}
+        stars={hintsUsed === 0 ? 3 : hintsUsed === 1 ? 2 : 1}
+        title={L.solvedMsg}
+        sub={phase === 'solved' ? `⏱ ${formatMs(elapsed)} · ${L.hintsUsed} ${hintsUsed}/${HINTS_MAX}` : undefined}
+      />
 
       {/* HUD compact : thème, défi, chrono, mots trouvés */}
       <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
@@ -1177,13 +1190,16 @@ export default function MiniCrosswordGame() {
               ⭐ {t('common.newRecord')}
             </span>
           ) : null}
-          <div className="mt-3 flex flex-wrap justify-center gap-2.5">
-            <Button size="lg" className="rounded-full" onClick={() => startPuzzle(puzzle, isDaily)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-            </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={startNextPuzzle}>
+          <div className="mt-3 flex flex-col items-center gap-2.5">
+            <Button size="lg" variant="secondary" className="h-11 rounded-full px-6" onClick={startNextPuzzle}>
               {L.nextGrid} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startPuzzle(puzzle, isDaily)}
+              replayLabel={t('common.playAgain')}
+              replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+            />
           </div>
         </div>
       ) : null}

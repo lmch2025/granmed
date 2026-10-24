@@ -28,6 +28,7 @@ import type { IdiomCategory, IdiomEntry } from '@/components/games/data/guess-th
 import { Button } from '@/components/ui/button'
 import { DifficultyDots } from '@/components/shared/ui-bits'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 
 export const gameId = 'guess-the-idiom'
@@ -272,6 +273,7 @@ export default function GuessTheIdiomGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -304,6 +306,9 @@ export default function GuessTheIdiomGame() {
   const [shakeKey, setShakeKey] = useState(0)
   const [notice, setNotice] = useState<'incomplete' | 'wrong' | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  /* Célébration de victoire (série gagnée) — médaille + étoiles selon la réussite. */
+  const [burstStars, setBurstStars] = useState(3)
+  const [burstKey, setBurstKey] = useState(0)
 
   const nextBtnRef = useRef<HTMLButtonElement>(null)
   const roundStartRef = useRef(0)
@@ -667,12 +672,16 @@ export default function GuessTheIdiomGame() {
   function endGame() {
     const rewardable = mode !== 'daily' || !dailyPracticeRef.current
     const won = mode === 'daily' ? solvedCount >= rounds.length : solvedCount >= rounds.length - 1
+    const ratio = rounds.length > 0 ? solvedCount / rounds.length : 0
     setBest(gameId, 'total-solved', totalSolvedRef.current) // cumul, idempotent
     const isRecord = rewardable && score > 0 ? setBest(gameId, 'best-score', score) : false
     const xp = 15 * solvedCount + speedTotalRef.current
     if (won) {
       sfx.play('win')
       setConfettiKey((k) => k + 1)
+      // Étoiles selon la proportion d'expressions trouvées (≥ 90 % → 3, ≥ 70 % → 2).
+      setBurstStars(ratio >= 0.9 ? 3 : ratio >= 0.7 ? 2 : 1)
+      setBurstKey((k) => k + 1)
       navigator.vibrate?.(30)
       if (rewardable) addWin(gameId)
     } else {
@@ -680,6 +689,8 @@ export default function GuessTheIdiomGame() {
       navigator.vibrate?.(20)
     }
     if (rewardable) addXp(xp)
+    // XP du jeu : 10 à 28 selon la proportion d'expressions trouvées.
+    if (rewardable) addGameXp(gameId, Math.round(10 + 18 * ratio))
     if (mode === 'daily' && won && rewardable) completeDaily(gameId)
     setEndData({ score, solved: solvedCount, total: rounds.length, won, isRecord, xp: rewardable ? xp : 0, practice: !rewardable, dailyCredit: mode === 'daily' && won && rewardable })
     setPhase('end')
@@ -803,8 +814,9 @@ export default function GuessTheIdiomGame() {
   const totalRecord = menuRecords?.['total-solved']?.value
 
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+    <div className="relative select-none my-auto w-full">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={burstStars} emoji="💬" />
 
       {/* ===== Écran de menu (compact : bouton Jouer visible immédiatement) ===== */}
       {phase === 'menu' ? (
@@ -1208,16 +1220,16 @@ export default function GuessTheIdiomGame() {
           </div>
           {endData.dailyCredit ? <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">✅ {L.dailyCredit}</p> : null}
           {endData.practice ? <p className="mt-2 text-xs text-muted-foreground">{L.practiceNote}</p> : null}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button size="lg" className="h-11 rounded-full" onClick={() => startGame(mode)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.playAgain}
-            </Button>
-            <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={quitToMenu}>
-              <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
-            </Button>
-            <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={onShare}>
-              <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
-            </Button>
+          <div className="mt-4 flex flex-col items-center gap-2.5">
+            <RoundEndActions gameId={gameId} onReplay={() => startGame(mode)} replayLabel={L.playAgain} />
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={quitToMenu}>
+                <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
+              </Button>
+              <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={onShare}>
+                <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}

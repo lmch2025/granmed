@@ -10,6 +10,7 @@ import { useReducedMotion } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'sequence-memory'
 
@@ -153,6 +154,7 @@ export default function SequenceMemoryGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const recordsRef = useProfileStore((s) => s.profile.games[gameId]?.records)
@@ -169,6 +171,7 @@ export default function SequenceMemoryGame() {
   const [showOver, setShowOver] = useState(false)
   const [turnFlash, setTurnFlash] = useState(false)
   const [confetti, setConfetti] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   const seqRef = useRef<number[]>([])
   const timersRef = useRef<number[]>([])
@@ -196,6 +199,7 @@ export default function SequenceMemoryGame() {
       sequence: 'La séquence attendue',
       expected: 'Attendu',
       played: 'Joué',
+      retry: 'Réessayer',
       startHint: 'Quatre pastilles, quatre notes : mémorisez l’ordre et reproduisez-le.',
     },
     en: {
@@ -215,6 +219,7 @@ export default function SequenceMemoryGame() {
       sequence: 'The expected sequence',
       expected: 'Expected',
       played: 'Played',
+      retry: 'Try again',
       startHint: 'Four pads, four tones: memorize the order and repeat it.',
     },
   }[lang]
@@ -301,6 +306,12 @@ export default function SequenceMemoryGame() {
     if (score >= 10) unlockBadge('simon-10')
     if (score >= 20) unlockBadge('simon-20')
     if (score >= 5) addWin(gameId)
+    /* Manche « victorieuse » (série ≥ 5) : célébration + 25 XP ; sinon 10 XP de consolation. */
+    if (score >= 5) {
+      setConfetti((c) => c + 1)
+      setBurstKey((k) => k + 1)
+    }
+    addGameXp(gameId, score >= 5 ? 25 : 10)
     goPhase('over')
     setOver({ score, isRecord, failedAt, played, seq: [...seq] })
     setShowOver(false)
@@ -383,9 +394,10 @@ export default function SequenceMemoryGame() {
   }, [])
 
   const best = records[mode === 'classic' ? 'best-sequence-classic' : 'best-sequence-fast']?.value
+  const overStars = over ? (over.score >= 8 ? 3 : over.score >= 5 ? 2 : 1) : 3
 
   return (
-    <div className="relative select-none">
+    <div className="relative my-auto w-full select-none">
       {/* ---- HUD : une seule ligne compacte, au-dessus des pads ---- */}
       <div className="mb-2.5 flex min-h-10 flex-wrap items-center gap-1.5">
         {phase === 'idle' || phase === 'over' ? (
@@ -568,26 +580,26 @@ export default function SequenceMemoryGame() {
                     {L.played} <span aria-hidden="true">{PADS[over.played].emoji}</span>
                   </p>
                 </div>
-                <div className="mt-1 flex flex-wrap justify-center gap-2">
-                  <Button size="sm" className="h-9 rounded-full px-4" onClick={() => start(mode)}>
-                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                    {t('common.playAgain')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="h-9 rounded-full px-4"
-                    onClick={() => start(mode === 'classic' ? 'fast' : 'classic')}
-                  >
-                    <Play className="h-4 w-4" aria-hidden="true" />
-                    {mode === 'classic' ? L.fastMode : L.classicMode}
-                  </Button>
-                </div>
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={() => start(mode)}
+                  replayLabel={over && over.score >= 5 ? t('common.playAgain') : L.retry}
+                />
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-9 shrink-0 rounded-full px-4"
+                  onClick={() => start(mode === 'classic' ? 'fast' : 'classic')}
+                >
+                  <Play className="h-4 w-4" aria-hidden="true" />
+                  {mode === 'classic' ? L.fastMode : L.classicMode}
+                </Button>
               </div>
             </div>
           ) : null}
 
-          <Confetti fire={confetti} count={reduce ? 0 : 90} />
+          <Confetti fire={confetti} count={reduce ? 0 : 110} waves={2} gold />
+          <VictoryBurst fire={burstKey} stars={overStars} sub={over ? `${over.score} — ${L.reached}` : undefined} />
         </div>
       </div>
 

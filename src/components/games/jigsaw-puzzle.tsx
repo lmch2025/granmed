@@ -10,6 +10,7 @@ import { mulberry32, seedFromString, formatMs, clamp, useReducedMotion } from '@
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { loadSave, saveSave } from '@/lib/save'
 
 export const gameId = 'jigsaw-puzzle'
@@ -277,6 +278,7 @@ export default function JigsawPuzzleGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
 
@@ -285,7 +287,7 @@ export default function JigsawPuzzleGame() {
   const [game, setGame] = useState<PlayState | null>(null)
   const [restored, setRestored] = useState<Progress | null>(null)
   const [gallery, setGallery] = useState<Record<string, number>>({})
-  const [won, setWon] = useState<{ seconds: number; isRecord: boolean; xp: number } | null>(null)
+  const [won, setWon] = useState<{ seconds: number; isRecord: boolean; xp: number; stars: number } | null>(null)
   const [areaW, setAreaW] = useState(0)
   const [trayH, setTrayH] = useState(0)
   const [showPreview, setShowPreview] = useState(false)
@@ -294,6 +296,7 @@ export default function JigsawPuzzleGame() {
   const [bumpId, setBumpId] = useState<number | null>(null)
   const [elapsedMs, setElapsedMs] = useState(0)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [dealKey, setDealKey] = useState(0)
 
   const areaRef = useRef<HTMLDivElement>(null)
@@ -311,6 +314,8 @@ export default function JigsawPuzzleGame() {
   const timersRef = useRef<Set<number>>(new Set())
   const genRef = useRef(0)
   const lastStartRef = useRef(0)
+  /* Aperçu œil utilisé pendant la manche (3 étoiles uniquement sans aide). */
+  const usedPreviewRef = useRef(false)
 
   const playing = game != null && won == null
 
@@ -567,6 +572,7 @@ export default function JigsawPuzzleGame() {
     }
     elapsedBaseRef.current = 0
     runningSinceRef.current = Date.now()
+    usedPreviewRef.current = false
     areaWRef.current = w
     trayHRef.current = TRAY_FALLBACK
     areaHRef.current = w + GAP + TRAY_FALLBACK
@@ -625,6 +631,7 @@ export default function JigsawPuzzleGame() {
     })
     elapsedBaseRef.current = restored.elapsed || 0
     runningSinceRef.current = Date.now()
+    usedPreviewRef.current = false
     areaWRef.current = w
     trayHRef.current = TRAY_FALLBACK
     areaHRef.current = areaH
@@ -686,10 +693,15 @@ export default function JigsawPuzzleGame() {
     const seconds = Math.max(1, Math.round(ms / 1000))
     const isRecord = setBest(gameId, `best-time-${g.count}`, seconds, true)
     const xp = g.count === 12 ? 30 : g.count === 24 ? 60 : 120
+    // Niveau de jeu : victoire 25-30 XP selon la taille du puzzle.
+    addGameXp(gameId, g.count === 48 ? 30 : g.count === 24 ? 28 : 25)
+    // 3 étoiles sans aucun aperçu œil et à un rythme record, 2 sinon.
+    const stars = !usedPreviewRef.current && isRecord ? 3 : 2
     const key = `${g.imageId}:${g.count}`
     sfx.play('win')
     buzz(25)
     setConfettiKey((k) => k + 1)
+    setBurstKey((k) => k + 1)
     addWin(gameId)
     addXp(xp)
     if (g.count === 48) unlockBadge('jigsaw-48')
@@ -699,7 +711,7 @@ export default function JigsawPuzzleGame() {
     galleryRef.current = nextGallery
     setGallery(nextGallery)
     saveSave(gameId, { gallery: nextGallery, progress: null })
-    setWon({ seconds, isRecord, xp })
+    setWon({ seconds, isRecord, xp, stars })
   }
 
   /* --- Glisser-déposer (Pointer Events + capture, position impérative) --- */
@@ -846,8 +858,9 @@ export default function JigsawPuzzleGame() {
   const doneTotal = COUNTS.reduce((n, c) => n + Object.keys(gallery).filter((k) => k.endsWith(`:${c}`)).length, 0)
 
   return (
-    <div className="no-select relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+    <div className="no-select relative select-none my-auto w-full">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={won?.stars ?? 3} />
 
       {/* Bandeau de reprise */}
       {restored && !game ? (
@@ -1013,6 +1026,7 @@ export default function JigsawPuzzleGame() {
               disabled={won != null}
               onClick={() => {
                 sfx.play('flip', { volume: 0.4 })
+                if (!showPreview) usedPreviewRef.current = true
                 setShowPreview((v) => !v)
               }}
             >
@@ -1155,13 +1169,18 @@ export default function JigsawPuzzleGame() {
                       <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
                     </span>
                   ) : null}
-                  <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-                    <Button ref={replayBtnRef} size="lg" className="rounded-full" onClick={() => startGame(game.imageId, game.count)}>
-                      <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-                    </Button>
-                    <Button size="lg" variant="secondary" className="rounded-full" onClick={backToSelection}>
-                      <Puzzle className="h-4 w-4" aria-hidden="true" /> {L.otherImages}
-                    </Button>
+                  <div className="mt-4">
+                    <RoundEndActions
+                      gameId={gameId}
+                      onReplay={() => startGame(game.imageId, game.count)}
+                      replayLabel={t('common.playAgain')}
+                      primaryRef={replayBtnRef}
+                    />
+                    <div className="mt-2 flex justify-center">
+                      <Button size="lg" variant="secondary" className="rounded-full" onClick={backToSelection}>
+                        <Puzzle className="h-4 w-4" aria-hidden="true" /> {L.otherImages}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

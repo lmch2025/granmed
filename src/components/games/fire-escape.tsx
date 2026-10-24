@@ -11,6 +11,7 @@ import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromStr
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'fire-escape'
 
@@ -429,6 +430,8 @@ export default function FireEscapeGame() {
   const [hud, setHud] = useState({ dist: 0, water: 0, level: 1 })
   const [result, setResult] = useState<null | { dist: number; water: number; isRecord: boolean; xp: number }>(null)
   const [confetti, setConfetti] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
+  const [burstStars, setBurstStars] = useState(3)
   const [shake, setShake] = useState(false)
 
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -443,11 +446,17 @@ export default function FireEscapeGame() {
   const pausedRef = useRef(false)
   const deathTimerRef = useRef(0)
   const lastStartRef = useRef(0)
+  const replayBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { langRef.current = lang }, [lang])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+
+  /* Focus clavier sur « Rejouer » dès l'écran de fin de course. */
+  useEffect(() => {
+    if (phase === 'over') replayBtnRef.current?.focus({ preventScroll: true })
+  }, [phase])
 
   /* Défi du jour déterministe : 250 / 400 / 600 m selon la date (mémoïsé par jour). */
   const dailyKey = todayKey()
@@ -528,12 +537,21 @@ export default function FireEscapeGame() {
       const xp = Math.max(1, Math.floor(dist / 20) + Math.floor(w.water / 2))
       if (dist > 0) st.setBest(gameId, 'best-distance', dist)
       st.addXp(xp)
+      // Niveau de jeu : 10 à 28 XP selon la distance grimpée.
+      st.addGameXp(gameId, Math.min(28, 10 + Math.floor(dist / 50)))
       if (dist >= 500) st.unlockBadge('fire-500')
       if (dist >= 1500) st.unlockBadge('fire-1500')
       sfx.play('lose')
       buzz(20)
       if (!reduceRef.current) setShake(true)
       if (isRecord) setConfetti((k) => k + 1)
+      // Célébration de fin de course : nouveau record (dès 100 m, objectif
+      // d'une première ascension), défi du jour ou victoire 500 m — étoiles
+      // par palier de distance.
+      if ((isRecord && dist >= 100) || w.dailyWon || dist >= 500) {
+        setBurstStars(dist >= 500 ? 3 : dist >= 250 ? 2 : 1)
+        setBurstKey((k) => k + 1)
+      }
       setResult({ dist, water: w.water, isRecord, xp })
       window.clearTimeout(deathTimerRef.current)
       deathTimerRef.current = window.setTimeout(() => { setPhase('over') }, reduceRef.current ? 260 : 620)
@@ -985,13 +1003,14 @@ export default function FireEscapeGame() {
   )
 
   return (
-    <div className="relative select-none" onContextMenu={(e) => e.preventDefault()}>
-      <Confetti fire={confetti} count={reduce ? 0 : 90} />
+    <div className="relative select-none my-auto w-full flex h-[var(--board-h,auto)] flex-col" onContextMenu={(e) => e.preventDefault()}>
+      <Confetti fire={confetti} count={reduce ? 0 : 90} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={burstStars} />
 
       {/* Colonne bornée : HUD une ligne + aire verticale dans le budget mobile */}
-      <div className="mx-auto w-full max-w-[560px]">
+      <div className="mx-auto flex w-full max-w-[560px] grow flex-col">
         {/* HUD compact une ligne */}
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        <div className="mb-2 flex shrink-0 flex-wrap items-center gap-1.5">
           {phase === 'playing' ? (
             <>
               <HudChip title={T.distance} icon={<Ruler className="h-3.5 w-3.5" aria-hidden="true" />}>
@@ -1034,7 +1053,7 @@ export default function FireEscapeGame() {
             if (e.target === e.currentTarget) setShake(false)
           }}
           className={cn(
-            'relative h-[calc(100dvh-242px)] max-h-[720px] min-h-[360px] w-full touch-none overflow-hidden rounded-2xl border shadow-inner',
+            'relative h-[var(--board-h,calc(100dvh-242px))] max-h-[720px] min-h-[360px] w-full touch-none overflow-hidden rounded-2xl border shadow-inner',
             shake && 'anim-shake',
           )}
         >
@@ -1101,10 +1120,8 @@ export default function FireEscapeGame() {
                 )}
                 <p className="mt-1 text-[11px] font-semibold text-muted-foreground">+{result.xp} XP · {T.xpGained}</p>
                 <p className="mt-2 text-[11px] text-muted-foreground">{T.tip}</p>
-                <div className="mt-4 flex justify-center">
-                  <Button size="lg" autoFocus className="h-12 rounded-full px-8" onClick={handleStart}>
-                    <RotateCcw className="h-5 w-5" aria-hidden="true" /> {T.replay}
-                  </Button>
+                <div className="mt-4">
+                  <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.replay} primaryRef={replayBtnRef} />
                 </div>
               </div>
             </div>

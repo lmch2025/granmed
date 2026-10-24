@@ -11,6 +11,7 @@ import { loadSave, saveSave } from '@/lib/save'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'schulte-table'
 
@@ -141,6 +142,7 @@ interface WonInfo {
   avg: number
   isRecord: boolean
   xp: number
+  stars: number
   daily: boolean
 }
 
@@ -196,6 +198,14 @@ function fmtClock(ms: number): string {
   return `${m}:${String(sec).padStart(2, '0')}.${d}`
 }
 
+/** Étoiles de fin de manche selon le temps, sur des seuils du jeu
+ *  (le badge « 5×5 en 30 s » sert de repère : par = référence rapide).
+ *  ≤ par → 3 ⭐, ≤ par × 1,6 → 2 ⭐, sinon 1 ⭐. */
+function starsForTime(n: number, ms: number): number {
+  const par = (n <= 3 ? 10 : n === 4 ? 18 : n === 5 ? 30 : n === 6 ? 50 : 80) * 1000
+  return ms <= par ? 3 : ms <= par * 1.6 ? 2 : 1
+}
+
 /** 23.4 → « 23,4 s » (fr) / « 23.4 s » (en) — pour les records stockés en secondes. */
 function fmtSecs(secs: number, lang: Lang): string {
   const s = secs.toFixed(1)
@@ -218,6 +228,7 @@ export default function SchulteTableGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -235,6 +246,7 @@ export default function SchulteTableGame() {
   const [won, setWon] = useState<WonInfo | null>(null)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   const startRef = useRef(0) // début du segment courant (0 = chronomètre à l'arrêt)
   const accRef = useRef(0) // millisecondes accumulées avant le segment courant
@@ -370,18 +382,21 @@ export default function SchulteTableGame() {
     const sameSize = entries.filter((e) => e.size === n)
     const avg = sameSize.reduce((sum, e) => sum + e.ms, 0) / sameSize.length
     const xp = n * n + (isRecord ? 10 : 0)
+    const stars = starsForTime(n, ms)
     setPhase('won')
-    setWon({ ms, size: n, avg, isRecord, xp, daily: dailyMode })
+    setWon({ ms, size: n, avg, isRecord, xp, stars, daily: dailyMode })
     sfx.play('win')
     navigator.vibrate?.(20)
     addWin(gameId)
     addXp(xp)
+    addGameXp(gameId, isRecord ? 30 : 25)
     if (n === 7) unlockBadge('schulte-7')
     if (n === 5 && ms < 30000) unlockBadge('schulte-5-30')
     if (dailyMode) completeDaily(gameId)
     setHistory(entries)
     saveSave(gameId, { entries })
-    if (isRecord) setConfettiKey((k) => k + 1)
+    setConfettiKey((k) => k + 1)
+    setBurstKey((k) => k + 1)
   }
 
   function tap(v: number) {
@@ -422,8 +437,9 @@ export default function SchulteTableGame() {
   const DisplayIcon = DISPLAY_MODES.find(([m]) => m === display)?.[1] ?? Sun
 
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 90} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={won?.stars ?? 3} sub={won ? fmtClock(won.ms) : undefined} />
 
       {phase === 'idle' ? (
         <>
@@ -664,10 +680,10 @@ export default function SchulteTableGame() {
               <Trophy className="h-4 w-4" aria-hidden="true" /> {t('common.newRecord')}
             </span>
           ) : null}
-          <div className="mt-1 flex flex-wrap justify-center gap-2">
-            <Button size="lg" className="h-11 rounded-full px-6" onClick={() => start(won?.size ?? size)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-            </Button>
+          <div className="mt-1">
+            <RoundEndActions gameId={gameId} onReplay={() => start(won?.size ?? size)} replayLabel={t('common.playAgain')} />
+          </div>
+          <div className="flex justify-center">
             <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={goIdle}>
               {t('common.settings')}
             </Button>

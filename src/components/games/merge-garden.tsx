@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Confetti } from '@/components/shared/confetti'
+import { VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 
 export const gameId = 'merge-garden'
@@ -241,6 +242,7 @@ export default function MergeGardenGame() {
   const setBest = useProfileStore((s) => s.setBest)
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
 
   const [board, setBoard] = useState<(number | null)[]>(() => new Array(CELLS).fill(null))
@@ -257,6 +259,7 @@ export default function MergeGardenGame() {
   const [pops, setPops] = useState<{ id: number; idx: number; text: string }[]>([])
   const [banner, setBanner] = useState<{ id: number; tier: number } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   const restoredRef = useRef(false)
   const playCountedRef = useRef(false)
@@ -393,6 +396,9 @@ export default function MergeGardenGame() {
     navigator.vibrate?.(15)
     setConfettiKey((k) => k + 1)
     addXp(xp)
+    /* Niveaux par jeu : petit bonus par objectif de jardin atteint (5 au total,
+       jamais de spam — un objectif n'est franchi qu'une fois). */
+    addGameXp(gameId, 4)
     toast('🏅', { description: `${L.goalReached} (+${xp} XP)`, duration: 4500 })
     if (newly.includes(GOALS.length - 1)) {
       // Collection complète : la seule « victoire » du jardin
@@ -408,11 +414,14 @@ export default function MergeGardenGame() {
     sfx.play('levelup')
     navigator.vibrate?.(20)
     setConfettiKey((k) => k + 1)
+    setBurstKey((k) => k + 1)
     setBanner({ id: ++bannerIdRef.current, tier })
     window.clearTimeout(bannerTimerRef.current)
     bannerTimerRef.current = window.setTimeout(() => setBanner(null), 2600)
     toast(sp.emoji, { description: `${L.newSpecies} — ${sp.name[lang]} (+${10 * tier} XP)`, duration: 4500 })
     addXp(10 * tier)
+    /* Niveaux par jeu : chaque nouvelle espèce découverte = jalon de session. */
+    addGameXp(gameId, 12)
     setBest(gameId, 'species-discovered', nd.length, false)
     setBest(gameId, 'highest-tier', tier, false)
     if (nd.length >= 8) unlockBadge('merge-half')
@@ -665,7 +674,7 @@ export default function MergeGardenGame() {
 
   /* --- Rendu --- */
   return (
-    <div className="relative select-none">
+    <div className="relative my-auto w-full select-none">
       {/* HUD compact — une ligne : graines + progression, planter, collection
           (avec l’espèce max), fusions, prochain objectif */}
       <div className="mb-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -824,6 +833,13 @@ export default function MergeGardenGame() {
         ) : null}
 
         <Confetti fire={confettiKey} count={reduce ? 0 : 90} />
+        <VictoryBurst
+          fire={burstKey}
+          stars={banner ? (banner.tier >= 13 ? 3 : banner.tier >= 8 ? 2 : 1) : 3}
+          title={L.newSpecies}
+          sub={banner ? `${SPECIES[banner.tier - 1].name[lang]} · ${L.tier} ${banner.tier}` : undefined}
+          emoji={banner ? SPECIES[banner.tier - 1].emoji : '🌱'}
+        />
       </div>
 
       {/* Statut + aide contextuelle — toujours SOUS le plateau, jamais au-dessus */}

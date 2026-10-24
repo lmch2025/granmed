@@ -10,6 +10,7 @@ import { todayKey, seedFromString } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions } from '@/components/game/round-end'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 
 export const gameId = 'block-puzzle'
@@ -326,6 +327,7 @@ export default function BlockPuzzleGame() {
   const dailyDone = useIsDailyDone(gameId)
   const addPlay = useProfileStore((s) => s.addPlay)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -419,12 +421,14 @@ export default function BlockPuzzleGame() {
   )
 
   /* --- Fin de partie : XP + records + succès (appelée depuis le handler) --- */
-  function finish(finalScore: number, wasDaily: boolean) {
+  function finish(finalScore: number, wasDaily: boolean, finalLines: number) {
     sfx.play('lose')
     const rec = finalScore > 0 ? setBest(gameId, 'best-score', finalScore, false) : false
     setWasRecord(rec)
     if (rec) setConfettiFire((n) => n + 1)
     if (finalScore > 0) addXp(Math.floor(finalScore / 100))
+    // Niveau de jeu : 10 XP + 1 par ligne effacée, plafonné à 30.
+    addGameXp(gameId, 10 + Math.min(20, finalLines))
     if (finalScore >= 5000) unlockBadge('block-5000')
     if (wasDaily && finalScore > 0) completeDaily(gameId)
   }
@@ -472,7 +476,7 @@ export default function BlockPuzzleGame() {
     lockRef.current = false
     addPlay(gameId)
     sfx.play('pop')
-    if (over) finish(saved.score, saved.daily)
+    if (over) finish(saved.score, saved.daily, saved.lines)
   }
 
   /* --- Aperçu fantôme (souris uniquement, jamais pendant un drag) --- */
@@ -610,7 +614,7 @@ export default function BlockPuzzleGame() {
     } else {
       lockRef.current = false
     }
-    if (over) finish(newScore, game.daily)
+    if (over) finish(newScore, game.daily, game.lines + nLines)
   }
 
   /* ================= Drag & drop (pointer events + capture) ================= */
@@ -709,7 +713,7 @@ export default function BlockPuzzleGame() {
   const xpGain = game ? Math.floor(game.score / 100) : 0
 
   return (
-    <div className="relative no-select select-none">
+    <div className="relative no-select select-none my-auto w-full">
       {/* Bandeau de reprise */}
       {saved && !game ? (
         <div className="mb-2.5 flex flex-wrap items-center gap-2.5 rounded-2xl border-2 border-amber-300/60 bg-amber-50 px-3.5 py-2.5 dark:border-amber-500/25 dark:bg-amber-500/10">
@@ -947,15 +951,17 @@ export default function BlockPuzzleGame() {
               {xpGain > 0 ? (
                 <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">+{xpGain} XP</p>
               ) : null}
-              <Button size="lg" className="h-10 gap-1.5 rounded-full" onClick={() => startGame(game.mode, false)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                {t('common.playAgain')}
-              </Button>
+              <RoundEndActions
+                gameId={gameId}
+                onReplay={() => startGame(game.mode, false)}
+                replayLabel={t('common.playAgain')}
+                className="mt-1"
+              />
             </div>
           ) : null}
 
           {/* Confettis (uniquement en cas de record ; respecte useReducedMotion en interne) */}
-          <Confetti fire={confettiFire} />
+          <Confetti fire={confettiFire} waves={2} gold />
         </div>
       ) : (
         <div className="checkerboard flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center sm:min-h-[300px]">

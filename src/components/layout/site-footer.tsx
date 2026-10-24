@@ -22,7 +22,7 @@ export function SiteFooter() {
     'block w-full truncate rounded px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline'
 
   return (
-    <footer className="mt-auto border-t bg-card/60">
+    <footer id="site-footer" className="mt-auto border-t bg-card/60">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-5">
         <div className={colClass}>
           <div className="flex items-center gap-2.5">

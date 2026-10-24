@@ -70,7 +70,7 @@ export function GamePage({ slug }: { slug: string }) {
   return (
     <article className="mx-auto w-full max-w-4xl px-3 pb-16 pt-3 sm:px-6 sm:pt-6">
       {/* Fil d'Ariane (desktop uniquement — l'écran mobile va droit au jeu) */}
-      <nav aria-label="Breadcrumb" className="mb-3 hidden text-sm text-muted-foreground sm:mb-4 sm:block">
+      <nav id="game-page-nav" aria-label="Breadcrumb" className="mb-3 hidden text-sm text-muted-foreground sm:mb-4 sm:block">
         <ol className="flex flex-wrap items-center gap-1">
           <li>
             <button
@@ -110,7 +110,7 @@ export function GamePage({ slug }: { slug: string }) {
 
       {/* En-tête du jeu — ultra-compact sur mobile pour que le plateau soit
           visible dès l'arrivée, sans le moindre scroll. */}
-      <header className="mb-2.5 flex items-start gap-2.5 sm:mb-5 sm:gap-4">
+      <header id="game-page-header" className="mb-2.5 flex items-start gap-2.5 sm:mb-5 sm:gap-4">
         {/* Aperçu animé du jeu — identité visuelle vivante dès l'arrivée */}
         <div
           className="anim-glow h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-2xl shadow-md ring-1 ring-black/10 sm:h-20 sm:w-20 sm:rounded-3xl"
@@ -159,7 +159,7 @@ export function GamePage({ slug }: { slug: string }) {
           Le texte reste dans le DOM (indéxable), mais replié derrière des
           boutons clairs pour ne jamais pousser le jeu hors de l'écran. */}
       {content ? (
-        <div className="mt-8 space-y-2.5 sm:mt-12 sm:space-y-3">
+        <div id="game-page-content" className="mt-8 space-y-2.5 sm:mt-12 sm:space-y-3">
           <GuideSection id="about-game" icon={Info} title={t('game.about')}>
             <div className="space-y-3 text-sm leading-relaxed text-foreground/90 sm:text-base">
               {content.description[lang].map((p, i) => (

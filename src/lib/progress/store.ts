@@ -8,6 +8,7 @@ import type { Lang } from '@/lib/i18n'
 import { sfx } from '@/lib/sound'
 import { BADGES_BY_ID } from '@/lib/progress/badges'
 import { todayKey, dateKeyOffset } from '@/lib/utils-game'
+import { gameLevelFromXp, tierForLevel } from '@/lib/progress/levels'
 
 export interface GameRecord {
   value: number
@@ -29,6 +30,8 @@ export interface Profile {
   dailyDone: Record<string, string> // gameId → date
   dailyLog: string[] // dates où au moins un défi du jour a été réussi
   games: Record<string, GameStats>
+  /** XP dédiée à la progression PAR JEU (niveaux de jeu). */
+  gameXp?: Record<string, number>
   settings: {
     sound: boolean
     volume: number
@@ -88,10 +91,17 @@ export function computeStreak(dailyLog: string[]): number {
   return streak
 }
 
+interface GameXpResult {
+  leveledUp: boolean
+  level: number
+}
+
 interface ProfileState {
   profile: Profile
   hydrated: boolean
   addXp: (amount: number, reason?: Record<Lang, string>) => void
+  /** XP de progression par jeu — retourne le nouveau niveau si palier franchi. */
+  addGameXp: (gameId: string, amount: number) => GameXpResult
   setBest: (gameId: string, metric: string, value: number, lowerIsBetter?: boolean) => boolean
   addPlay: (gameId: string) => void
   addWin: (gameId: string) => void
@@ -126,6 +136,26 @@ export const useProfileStore = create<ProfileState>()(
           if (after >= 5) get().unlockBadge('level-5')
           if (after >= 10) get().unlockBadge('level-10')
         }
+      },
+
+      addGameXp: (gameId, amount) => {
+        if (amount <= 0) return { leveledUp: false, level: 1 }
+        const before = gameLevelFromXp(get().profile.gameXp?.[gameId] ?? 0)
+        set((s) => {
+          const gameXp = { ...(s.profile.gameXp ?? {}) }
+          gameXp[gameId] = (gameXp[gameId] ?? 0) + amount
+          return { profile: { ...s.profile, gameXp } }
+        })
+        const after = gameLevelFromXp(get().profile.gameXp?.[gameId] ?? 0)
+        if (after > before) {
+          const tier = tierForLevel(after)
+          sfx.play('levelup')
+          toast.success(`${tier.emoji} ${after}`, {
+            description: `${tier.name.fr} · ${tier.name.en}`,
+            duration: 4500,
+          })
+        }
+        return { leveledUp: after > before, level: after }
       },
 
       setBest: (gameId, metric, value, lowerIsBetter = false) => {

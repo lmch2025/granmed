@@ -12,6 +12,7 @@ import { todayKey, seedFromString, shuffle, useReducedMotion } from '@/lib/utils
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 
 export const gameId = '2048-nutrition'
@@ -327,6 +328,7 @@ export default function Game2048() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -341,6 +343,7 @@ export default function Game2048() {
   const [bumps, setBumps] = useState<number[]>(() => new Array(16).fill(0))
   const [animKind, setAnimKind] = useState<AnimKind[]>(() => new Array(16).fill(null))
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [gainFx, setGainFx] = useState<{ n: number; k: number } | null>(null)
   const swipeRef = useRef<{ x: number; y: number } | null>(null)
   const moveRef = useRef<(d: Dir) => void>(() => {})
@@ -399,10 +402,14 @@ export default function Game2048() {
   }, [])
 
   /* --- Fin de partie : XP une seule fois, records à chaque palier (setBest est idempotent) --- */
-  function awardEnd(score: number, board: number[], alreadyAwarded: boolean): void {
+  function awardEnd(score: number, board: number[], alreadyAwarded: boolean, won: boolean): void {
     setBest(gameId, 'best-score', score, false)
     setBest(gameId, 'best-tile', highestTile(board), false)
-    if (!alreadyAwarded) addXp(Math.floor(score / 50))
+    if (!alreadyAwarded) {
+      addXp(Math.floor(score / 50))
+      /* Niveaux par jeu : banquet 2048 atteint ~30, fin de partie 10 + bonus score. */
+      addGameXp(gameId, won ? 30 : 10 + Math.min(2, Math.floor(score / 1000)))
+    }
   }
 
   /* --- Nouvelle partie --- */
@@ -530,14 +537,15 @@ export default function Game2048() {
     }
 
     if (!game.won && maxTile >= 2048) {
-      awardEnd(newScore, next, game.xpAwarded)
+      awardEnd(newScore, next, game.xpAwarded, true)
       setGame((g) => (g ? { ...g, won: true, xpAwarded: true } : g))
       setConfettiKey((k) => k + 1)
+      setBurstKey((k) => k + 1)
       sfx.play('win')
       navigator.vibrate?.(20)
       addWin(gameId)
     } else if (!canMove(next)) {
-      awardEnd(newScore, next, game.xpAwarded)
+      awardEnd(newScore, next, game.xpAwarded, false)
       setGame((g) => (g ? { ...g, over: true, xpAwarded: true } : g))
       sfx.play('lose')
       clearSave(gameId)
@@ -615,7 +623,7 @@ export default function Game2048() {
   /* --- Rendu : écran d'accueil compact (bouton Jouer immédiatement visible) --- */
   if (!game) {
     return (
-      <div className="checkerboard flex min-h-[300px] select-none flex-col items-center justify-center gap-3.5 rounded-2xl border p-5 text-center sm:min-h-[380px] sm:gap-4 sm:p-8">
+      <div className="checkerboard flex min-h-[300px] w-full select-none flex-col items-center justify-center gap-3.5 rounded-2xl border p-5 text-center sm:min-h-[380px] sm:gap-4 sm:p-8 my-auto">
         <div className="flex gap-2" aria-hidden="true">
           {['🍒', '🍓', '🍊', '🍉'].map((e, i) => (
             <span key={i} className={cn('text-3xl sm:text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
@@ -665,9 +673,16 @@ export default function Game2048() {
   const mode = game.mode
 
   return (
-    <div className="relative mx-auto w-full max-w-[420px] select-none">
+    <div className="relative mx-auto my-auto w-full max-w-[420px] select-none">
       <style>{'@keyframes merge-pulse-g { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } } .anim-merge-pulse-g { animation: merge-pulse-g 0.28s ease-out; }'}</style>
-      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst
+        fire={burstKey}
+        stars={maxTile >= 4096 || game.score >= 8000 ? 3 : 2}
+        title={L.winTitle}
+        emoji="🍉"
+        sub={`${formatNum(game.score, lang)} ${L.points} · ${FOOD[maxTile] ?? '🍽️'} ${maxTile}`}
+      />
 
       {/* HUD compact une ligne : score + record, annuler, mode, nouvelle partie */}
       <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
@@ -790,16 +805,27 @@ export default function Game2048() {
 
         {/* Bannière de victoire */}
         {winOverlay ? (
-          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-card/85 p-5 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
+          <div className="anim-rise nice-scroll absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 overflow-y-auto rounded-2xl bg-card/85 p-4 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
             <span className="text-4xl sm:text-5xl" aria-hidden="true">🍉</span>
             <p className="font-display text-xl font-extrabold text-emerald-600 sm:text-2xl dark:text-emerald-400">{L.winTitle}</p>
             <p className="max-w-xs text-sm text-muted-foreground">{L.winSub}</p>
-            <div className="mt-1 flex flex-wrap justify-center gap-2.5">
-              <Button size="lg" className="rounded-full" onClick={() => { sfx.play('click'); setGame((g) => (g ? { ...g, ack: true } : g)) }}>
-                {t('common.continue')}
-              </Button>
-              <Button size="lg" variant="secondary" className="rounded-full" onClick={() => startNew(game.daily)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
+            <div className="mt-1 w-full">
+              <RoundEndActions
+                gameId={gameId}
+                onReplay={() => {
+                  sfx.play('click')
+                  setGame((g) => (g ? { ...g, ack: true } : g))
+                }}
+                replayLabel={t('common.continue')}
+                replayIcon={<Play className="h-5 w-5" aria-hidden="true" />}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 h-9 w-full rounded-2xl text-xs font-semibold"
+                onClick={() => startNew(game.daily)}
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> {t('game.newGame')}
               </Button>
             </div>
           </div>
@@ -807,7 +833,7 @@ export default function Game2048() {
 
         {/* Écran de fin */}
         {game.over ? (
-          <div className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-card/90 p-4 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
+          <div className="anim-rise nice-scroll absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 overflow-y-auto rounded-2xl bg-card/90 p-4 text-center backdrop-blur-sm sm:gap-3 sm:p-6" role="status">
             <span className="text-4xl sm:text-5xl" aria-hidden="true">🍽️</span>
             <p className="font-display text-xl font-extrabold sm:text-2xl">{L.overTitle}</p>
             <div className="flex flex-wrap justify-center gap-1.5">
@@ -815,15 +841,18 @@ export default function Game2048() {
               <StatBox label={L.bestTile} value={String(maxTile)} />
               <StatBox label={L.moves} value={String(game.moves)} />
             </div>
-            <div className="mt-1 flex flex-wrap justify-center gap-2.5">
+            <div className="mt-1 flex w-full flex-col items-center gap-2">
               {game.prev && game.undos > 0 ? (
-                <Button size="lg" variant="secondary" className="rounded-full" onClick={undo}>
+                <Button size="lg" variant="secondary" className="h-11 w-full rounded-2xl" onClick={undo}>
                   <Undo2 className="h-4 w-4" aria-hidden="true" /> {L.undosLeft.replace('{n}', String(game.undos))}
                 </Button>
               ) : null}
-              <Button size="lg" className="rounded-full" onClick={() => startNew(game.daily)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" /> {t('common.playAgain')}
-              </Button>
+              <RoundEndActions
+                gameId={gameId}
+                onReplay={() => startNew(game.daily)}
+                replayLabel={t('common.playAgain')}
+                replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              />
             </div>
           </div>
         ) : null}

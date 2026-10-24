@@ -13,6 +13,7 @@ import { loadSave, saveSave } from '@/lib/save'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 import {
   answersFor,
@@ -419,6 +420,7 @@ export default function DailyWordGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -435,6 +437,7 @@ export default function DailyWordGame() {
   const [shakeCount, setShakeCount] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [stats, setStats] = useState<DWStats>(defaultStats)
   const [ready, setReady] = useState(false)
 
@@ -593,10 +596,14 @@ export default function DailyWordGame() {
     if (won) {
       sfx.play('win')
       setConfettiKey((k) => k + 1)
+      setBurstKey((k) => k + 1)
       navigator.vibrate?.(10)
     } else {
       sfx.play('lose')
     }
+    /* Niveaux par jeu — une seule fois par fin de manche (défi ou entraînement) :
+       victoire 20 + (7 − essais) × 2, défaite 8. */
+    addGameXp(gameId, won ? 20 + (7 - tries) * 2 : 8)
     if (mode === 'daily') recordDailyResult(answer, won, tries, gs)
   }
 
@@ -751,8 +758,15 @@ export default function DailyWordGame() {
 
   /* ================= Rendu ================= */
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 120} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 120} waves={2} gold />
+      <VictoryBurst
+        fire={burstKey}
+        stars={guesses.length <= 2 ? 3 : guesses.length <= 4 ? 2 : 1}
+        title={L.wonTitle}
+        emoji="🎉"
+        sub={phase === 'won' ? `${guesses.length}/6 · ${mode === 'daily' ? L.dailyBadge : L.practiceBadge}` : undefined}
+      />
 
       {/* HUD compact : mode, n° du jour, série, essais restants */}
       <div className="flex flex-wrap items-center gap-1.5">
@@ -931,22 +945,19 @@ export default function DailyWordGame() {
               ✅ {L.dailyDone}
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap justify-center gap-2.5">
+          <div className="mt-4 flex flex-col items-center gap-2.5">
             {mode === 'daily' ? (
-              <Button size="lg" className="rounded-full" onClick={shareResult}>
+              <Button size="lg" variant="secondary" className="rounded-full" onClick={shareResult}>
                 <Share2 className="h-4 w-4" aria-hidden="true" />
                 {L.share}
               </Button>
             ) : null}
-            <Button
-              size="lg"
-              variant={mode === 'daily' ? 'secondary' : 'default'}
-              className="rounded-full"
-              onClick={() => startPractice()}
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {mode === 'practice' ? L.newWord : L.practiceBtn}
-            </Button>
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startPractice()}
+              replayLabel={mode === 'practice' ? L.newWord : L.practiceBtn}
+              replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+            />
           </div>
         </div>
       ) : null}

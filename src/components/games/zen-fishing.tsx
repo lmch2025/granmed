@@ -11,6 +11,7 @@ import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromStr
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { VictoryBurst } from '@/components/game/round-end'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export const gameId = 'zen-fishing'
@@ -379,6 +380,7 @@ export default function ZenFishingGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -393,6 +395,9 @@ export default function ZenFishingGame() {
   const [bookOpen, setBookOpen] = useState(false)
   const [confetti, setConfetti] = useState(0)
   const [banner, setBanner] = useState<Banner | null>(null)
+  /* Célébration de victoire (défi du jour / nouvelle espèce) — médaille + étoiles. */
+  const [burst, setBurst] = useState<{ emoji: string; stars: number; title?: string } | null>(null)
+  const [burstKey, setBurstKey] = useState(0)
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -400,6 +405,7 @@ export default function ZenFishingGame() {
   const phaseRef = useRef(phase)
   const reduceRef = useRef(reduce)
   const dailyDoneRef = useRef(dailyDone)
+  const langRef = useRef(lang)
   const rafRef = useRef(0)
   const pausedRef = useRef(false)
   const caughtRef = useRef<Set<string>>(new Set())
@@ -412,6 +418,7 @@ export default function ZenFishingGame() {
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+  useEffect(() => { langRef.current = lang }, [lang])
 
   /* Minuteurs suivis — tous purgés au démontage */
   const later = useCallback((fn: () => void, ms: number) => {
@@ -683,6 +690,18 @@ export default function ZenFishingGame() {
         setBest(gameId, 'species', size)
         setCaught(new Set(caughtRef.current))
         if (size >= 10) unlockBadge('fish-10')
+        // Nouvelle(s) espèce(s) : 12 XP chacune + célébration brève (la garde
+        // !caughtRef.has() ci-dessus assure le « une seule fois » par espèce).
+        addGameXp(gameId, 12 * discoveryQueueRef.current.length)
+        const fresh = discoveryQueueRef.current[discoveryQueueRef.current.length - 1]
+        if (fresh) {
+          setBurst({
+            emoji: fresh.emoji,
+            stars: fresh.rarity === 'legendary' ? 3 : fresh.rarity === 'rare' ? 2 : 1,
+            title: L[langRef.current].newSpecies,
+          })
+          setBurstKey((k) => k + 1)
+        }
         processDiscovery()
       }
       if (rareCaught) unlockBadge('fish-rare')
@@ -713,6 +732,10 @@ export default function ZenFishingGame() {
         setConfetti((k) => k + 1)
         showBanner({ kind: 'daily' })
         buzz(20)
+        // « Victoire » de la session zen : défi du jour atteint.
+        addGameXp(gameId, 25)
+        setBurst({ emoji: '🎣', stars: 3, title: L[langRef.current].goalDone })
+        setBurstKey((k) => k + 1)
       }
     }
 
@@ -1011,7 +1034,7 @@ export default function ZenFishingGame() {
       window.removeEventListener('keyup', onKeyUp)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [addWin, addXp, completeDaily, dailyGoal, persist, processDiscovery, pushHud, setBest, showBanner, unlockBadge])
+  }, [addGameXp, addWin, addXp, completeDaily, dailyGoal, persist, processDiscovery, pushHud, setBest, showBanner, unlockBadge])
 
   /* ================= Rendu React ================= */
   const rarityChip = (r: Rarity) =>
@@ -1028,8 +1051,9 @@ export default function ZenFishingGame() {
   }
 
   return (
-    <div className="relative select-none touch-manipulation">
-      <Confetti fire={confetti} count={reduce ? 0 : 80} />
+    <div className="relative select-none touch-manipulation my-auto flex w-full flex-col h-[var(--board-h,auto)]">
+      <Confetti fire={confetti} count={reduce ? 0 : 80} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={burst?.stars ?? 3} emoji={burst?.emoji ?? '🎣'} title={burst?.title} />
 
       {/* HUD compact — une seule ligne */}
       <div className="mb-2 flex items-center gap-1.5">
@@ -1079,7 +1103,7 @@ export default function ZenFishingGame() {
       {/* Aquarium — tient dans le budget vertical mobile, éléments en % */}
       <div
         ref={wrapRef}
-        className="relative w-full overflow-hidden rounded-2xl border shadow-inner h-[calc(100dvh-244px)] max-h-[680px] min-h-[300px]"
+        className="relative w-full overflow-hidden rounded-2xl border shadow-inner h-[var(--board-h,calc(100dvh-244px))] max-h-[680px] min-h-[300px]"
       >
         <canvas
           ref={canvasRef}

@@ -10,6 +10,7 @@ import { todayKey, mulberry32, seedFromString, formatMs, useReducedMotion } from
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'minesweeper'
 
@@ -426,6 +427,7 @@ export default function MinesweeperGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -439,6 +441,8 @@ export default function MinesweeperGame() {
   const [paused, setPaused] = useState(false)
   const [exploded, setExploded] = useState<number | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
+  const [winStars, setWinStars] = useState(3)
   const [newRecord, setNewRecord] = useState(false)
   const [finalTime, setFinalTime] = useState<number | null>(null)
   const [finalXp, setFinalXp] = useState<number | null>(null)
@@ -613,6 +617,8 @@ export default function MinesweeperGame() {
     const c = DIFFS[d]
     const ms = startRef.current > 0 ? Date.now() - startRef.current : 0
     const seconds = Math.max(1, Math.round(ms / 1000))
+    // Drapeaux gaspillés avant l'auto-marquage des mines (3 étoiles si aucun).
+    const wrongFlags = cells.reduce((n, cell) => n + (cell.flagged && !cell.mine ? 1 : 0), 0)
     const next = cells.map((x) => ({ ...x }))
     for (const cell of next) {
       if (cell.mine) cell.flagged = true
@@ -621,6 +627,8 @@ export default function MinesweeperGame() {
     setPhase('won')
     setFinalTime(seconds)
     setConfettiKey((k) => k + 1)
+    setWinStars(wrongFlags === 0 ? 3 : 2)
+    setBurstKey((k) => k + 1)
     sfx.play('win')
     setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
     setTipOpen(true)
@@ -628,8 +636,11 @@ export default function MinesweeperGame() {
     if (d === 'daily' && dailyDone) return
     addWin(gameId)
     addXp(c.xp)
+    addGameXp(gameId, 25)
     setFinalXp(c.xp)
-    setNewRecord(setBest(gameId, c.metric, seconds, true))
+    const rec = setBest(gameId, c.metric, seconds, true)
+    setNewRecord(rec)
+    if (rec) setWinStars(3)
     if (d === 'medium') unlockBadge('mine-medium')
     if (d === 'expert') unlockBadge('mine-expert')
     if (d === 'daily') completeDaily(gameId)
@@ -643,6 +654,7 @@ export default function MinesweeperGame() {
     setBoard(next)
     setExploded(explodedIdx)
     setPhase('lost')
+    addGameXp(gameId, 10)
     sfx.play('lose')
     buzz()
     setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
@@ -825,8 +837,9 @@ export default function MinesweeperGame() {
   })
 
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 120} />
+    <div className="relative select-none my-auto w-full">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 120} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={winStars} />
 
       {phase === 'idle' ? (
         <>
@@ -1038,15 +1051,14 @@ export default function MinesweeperGame() {
                   ) : null}
                 </p>
               ) : null}
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                <Button className="h-10 rounded-full" onClick={() => startGame(diff)}>
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                  {L.playAgain}
-                </Button>
-                <Button variant="secondary" className="h-10 rounded-full" onClick={backToLevels}>
-                  <LayoutGrid className="h-4 w-4" aria-hidden="true" />
-                  {L.levels}
-                </Button>
+              <div className="mt-3">
+                <RoundEndActions gameId={gameId} onReplay={() => startGame(diff)} replayLabel={L.playAgain} />
+                <div className="mt-2 flex justify-center">
+                  <Button variant="secondary" className="h-10 rounded-full" onClick={backToLevels}>
+                    <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+                    {L.levels}
+                  </Button>
+                </div>
               </div>
             </div>
           ) : null}

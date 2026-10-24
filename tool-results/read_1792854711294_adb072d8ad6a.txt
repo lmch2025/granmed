@@ -1,0 +1,1228 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+     4→     4→import { Play, BookOpen, CalendarCheck, Check, X } from 'lucide-react'
+     5→     5→import { cn } from '@/lib/utils'
+     6→     6→import { sfx } from '@/lib/sound'
+     7→     7→import { useLang } from '@/lib/i18n'
+     8→     8→import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
+     9→     9→import { loadSave, saveSave } from '@/lib/save'
+    10→    10→import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString } from '@/lib/utils-game'
+    11→    11→import type { GameSEOContent } from '@/lib/games/types'
+    12→    12→import { Button } from '@/components/ui/button'
+    13→    13→import { Confetti } from '@/components/shared/confetti'
+    14→    14→import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+    15→    15→
+    16→    16→export const gameId = 'zen-fishing'
+    17→    17→
+    18→    18→/* ================= Contenu SEO bilingue ================= */
+    19→    19→export const content: GameSEOContent = {
+    20→    20→  tagline: {
+    21→    21→    fr: 'Une pêche détendante à une main : descendez l’hameçon, remontez au bon moment et complétez votre collection de 12 espèces.',
+    22→    22→    en: 'Relaxed one-hand fishing: drop your hook, reel up at the right moment and complete your 12-species collection.',
+    23→    23→  },
+    24→    24→  description: {
+    25→    25→    fr: [
+    26→    26→      'Pêche Miraculeuse (Zen Fishing) est un jeu de détente gratuit dans lequel vous descendez un hameçon dans une mer apaisante, puis le remontez pour attraper les poissons croisés sur le chemin. Une seule commande : maintenez pour descendre, relâchez pour remonter.',
+    27→    27→      'À la descente, les poissons vous ignorent : c’est à la remontée que tout se joue. Sardines et dauphins peuplent les eaux peu profondes, poissons-clowns et tortues la mi-profondeur, tandis que requins et le légendaire poisson doré se cachent dans les grandes profondeurs. Chaque nouvelle espèce rejoint votre carnet de collection.',
+    28→    28→      'Le carnet compte 12 espèces à découvrir, des communes aux légendaires, sauvegardé sur votre appareil. Trois défis tournent chaque jour (5 poissons en une descente, un poisson des profondeurs, 10 poissons dans la journée) : le défi du jour rapporte un bonus d’XP et alimente votre série.',
+    29→    29→    ],
+    30→    30→    en: [
+    31→    31→      'Miraculous Fishing (Zen Fishing) is a free relaxation game in which you lower a hook into a calm sea, then reel it back up to catch the fish crossed on the way. One single control: hold to descend, release to reel in.',
+    32→    32→      'On the way down, fish ignore you: everything happens on the way up. Sardines and dolphins fill the shallow waters, clownfish and turtles the mid depths, while sharks and the legendary golden fish hide in the deep. Every new species joins your collection book.',
+    33→    33→      'The book holds 12 species to discover, from common to legendary, saved on your device. Three challenges rotate daily (5 fish in one descent, a deep-water fish, 10 fish in the day): the daily challenge earns bonus XP and feeds your streak.',
+    34→    34→    ],
+    35→    35→  },
+    36→    36→  rules: {
+    37→    37→    fr: [
+    38→    38→      'Maintenez l’écran (ou la barre d’espace) pour descendre l’hameçon.',
+    39→    39→      'Relâchez pour remonter : la remontée s’arrête à la surface.',
+    40→    40→      'À la descente, les poissons traversent l’hameçon sans être pris.',
+    41→    41→      'À la remontée, chaque poisson touché par l’hameçon est accroché et remonte avec lui.',
+    42→    42→      'De retour en surface, la prise est comptée et les nouvelles espèces rejoignent le carnet.',
+    43→    43→      'Relâchez au bon moment : plus vous descendez profond, plus vous remontez à travers de bancs de poissons.',
+    44→    44→    ],
+    45→    45→    en: [
+    46→    46→      'Hold the screen (or the space bar) to lower the hook.',
+    47→    47→      'Release to reel it back up: the ascent stops at the surface.',
+    48→    48→      'On the way down, fish pass through the hook without being caught.',
+    49→    49→      'On the way up, every fish the hook touches gets hooked and rises with it.',
+    50→    50→      'Back at the surface, the catch is counted and new species join the book.',
+    51→    51→      'Release at the right moment: the deeper you go, the more schools you reel through.',
+    52→    52→    ],
+    53→    53→  },
+    54→    54→  controls: {
+    55→    55→    fr: [
+    56→    56→      'Mobile et tablette : maintenez n’importe où sur le jeu pour descendre, relâchez pour remonter.',
+    57→    57→      'Ordinateur : maintenez le bouton de la souris ou la barre d’espace.',
+    58→    58→      'Ouvrez le carnet de collection avec le bouton « Collection ».',
+    59→    59→    ],
+    60→    60→    en: [
+    61→    61→      'Mobile & tablet: press and hold anywhere on the game to descend, release to reel up.',
+    62→    62→      'Desktop: hold the mouse button or the space bar.',
+    63→    63→      'Open the collection book with the “Collection” button.',
+    64→    64→    ],
+    65→    65→  },
+    66→    66→  features: {
+    67→    67→    fr: [
+    68→    68→      'Commande à un doigt, idéale pour une pause zen',
+    69→    69→      '12 espèces à collectionner, des communes au poisson doré légendaire',
+    70→    70→      '3 zones de profondeur avec faune spécifique',
+    71→    71→      'Carnet de collection sauvegardé sur votre appareil',
+    72→    72→      'Défis quotidiens rotatifs et série de jours',
+    73→    73→      'Ambiance apaisante : rayons de lumière, bulles, algues',
+    74→    74→    ],
+    75→    75→    en: [
+    76→    76→      'One-finger control, perfect for a zen break',
+    77→    77→      '12 species to collect, from common to the legendary golden fish',
+    78→    78→      '3 depth zones with their own wildlife',
+    79→    79→      'Collection book saved on your device',
+    80→    80→      'Rotating daily challenges and day streak',
+    81→    81→      'Soothing atmosphere: light rays, bubbles, seaweed',
+    82→    82→    ],
+    83→    83→  },
+    84→    84→  tips: {
+    85→    85→    fr: [
+    86→    86→      'Les espèces rares et légendaires vivent en profondeur : prenez le temps de descendre au fond avant de remonter.',
+    87→    87→      'Repérez les bancs pendant la descente : c’est à la remontée qu’on pêche, donc mémorisez les passages denses.',
+    88→    88→      'Une remontée lente et régulière traverse plus de bancs qu’une remontée précipitée.',
+    89→    89→      'Le carnet indique la zone de chaque espèce manquante : ciblez la profondeur qui vous manque.',
+    90→    90→    ],
+    91→    91→    en: [
+    92→    92→      'Rare and legendary species live deep: take the time to reach the bottom before reeling up.',
+    93→    93→      'Scout the schools during the descent: you catch on the way up, so memorize the dense passages.',
+    94→    94→      'A slow, steady ascent crosses more schools than a rushed one.',
+    95→    95→      'The book shows the zone of every missing species: target the depth you still lack.',
+    96→    96→    ],
+    97→    97→  },
+    98→    98→  faq: {
+    99→    99→    fr: [
+   100→   100→      { q: 'Pourquoi ne prend-on les poissons qu’à la remontée ?', a: 'C’est le cœur du jeu : la descente sert à choisir votre profondeur, la remontée à pêcher. Cela rend chaque lâcher de doigt décisif, sans jamais être punitif.' },
+   101→   101→      { q: 'Combien d’espèces peut-on attraper ?', a: '12 espèces réparties en trois zones de profondeur : 3 communes près de la surface, 4 à mi-profondeur (dont le rare homard) et 5 dans les grandes profondeurs (dont le requin et le légendaire poisson doré).' },
+   102→   102→      { q: 'Ma collection est-elle sauvegardée ?', a: 'Oui : le carnet est enregistré automatiquement sur votre appareil, ainsi que vos records d’espèces et de plus grosse prise. Vous pouvez y rejouer quand vous voulez.' },
+   103→   103→      { q: 'Les défis du jour changent-ils ?', a: 'Oui : chaque jour, l’objectif actif est choisi de façon déterministe parmi trois défis (5 poissons en une descente, un poisson des profondeurs, 10 poissons dans la journée). Il est identique pour tous les joueurs.' },
+   104→   104→      { q: 'Y a-t-il une fin ou un game over ?', a: 'Non : la pêche est infinie et sans échec. C’est un jeu de détente — les seuls objectifs sont votre collection et vos records personnels.' },
+   105→   105→    ],
+   106→   106→    en: [
+   107→   107→      { q: 'Why are fish only caught on the way up?', a: 'That is the heart of the game: the descent picks your depth, the ascent does the fishing. Every finger release becomes decisive, without ever being punishing.' },
+   108→   108→      { q: 'How many species can I catch?', a: '12 species across three depth zones: 3 common ones near the surface, 4 at mid depth (including the rare lobster) and 5 in the deep (including the shark and the legendary golden fish).' },
+   109→   109→      { q: 'Is my collection saved?', a: 'Yes: the book is saved automatically on your device, along with your species record and biggest catch. You can come back to it any time.' },
+   110→   110→      { q: 'Do the daily challenges change?', a: 'Yes: every day the active goal is picked deterministically among three challenges (5 fish in one descent, a deep-water fish, 10 fish in the day). It is identical for every player.' },
+   111→   111→      { q: 'Is there an end or a game over?', a: 'No: the fishing is endless and fail-free. It is a relaxation game — the only goals are your collection and your personal records.' },
+   112→   112→    ],
+   113→   113→  },
+   114→   114→  records: {
+   115→   115→    'species': { fr: 'Espèces découvertes', en: 'Species discovered' },
+   116→   116→    'best-catch': { fr: 'Plus grosse prise (une descente)', en: 'Biggest catch (one descent)' },
+   117→   117→  },
+   118→   118→}
+   119→   119→
+   120→   120→/* ================= Espèces ================= */
+   121→   121→type Rarity = 'common' | 'rare' | 'legendary'
+   122→   122→interface FishSpec {
+   123→   123→  id: string
+   124→   124→  emoji: string
+   125→   125→  name: Record<'fr' | 'en', string>
+   126→   126→  band: 0 | 1 | 2
+   127→   127→  rarity: Rarity
+   128→   128→  size: number
+   129→   129→  speed: number
+   130→   130→}
+   131→   131→
+   132→   132→const SPECIES: FishSpec[] = [
+   133→   133→  { id: 'sardine', emoji: '🐟', name: { fr: 'Sardine', en: 'Sardine' }, band: 0, rarity: 'common', size: 26, speed: 46 },
+   134→   134→  { id: 'crab', emoji: '🦀', name: { fr: 'Crabe', en: 'Crab' }, band: 0, rarity: 'common', size: 26, speed: 28 },
+   135→   135→  { id: 'dolphin', emoji: '🐬', name: { fr: 'Dauphin', en: 'Dolphin' }, band: 0, rarity: 'common', size: 36, speed: 68 },
+   136→   136→  { id: 'clownfish', emoji: '🐠', name: { fr: 'Poisson-clown', en: 'Clownfish' }, band: 1, rarity: 'common', size: 26, speed: 40 },
+   137→   137→  { id: 'shrimp', emoji: '🦐', name: { fr: 'Crevette', en: 'Shrimp' }, band: 1, rarity: 'common', size: 22, speed: 34 },
+   138→   138→  { id: 'turtle', emoji: '🐢', name: { fr: 'Tortue de mer', en: 'Sea turtle' }, band: 1, rarity: 'common', size: 30, speed: 22 },
+   139→   139→  { id: 'lobster', emoji: '🦞', name: { fr: 'Homard', en: 'Lobster' }, band: 1, rarity: 'rare', size: 28, speed: 30 },
+   140→   140→  { id: 'octopus', emoji: '🐙', name: { fr: 'Poulpe', en: 'Octopus' }, band: 2, rarity: 'common', size: 32, speed: 26 },
+   141→   141→  { id: 'angler', emoji: '🐡', name: { fr: 'Poisson-lanterne', en: 'Anglerfish' }, band: 2, rarity: 'common', size: 26, speed: 20 },
+   142→   142→  { id: 'squid', emoji: '🦑', name: { fr: 'Calmar', en: 'Squid' }, band: 2, rarity: 'common', size: 30, speed: 32 },
+   143→   143→  { id: 'shark', emoji: '🦈', name: { fr: 'Requin', en: 'Shark' }, band: 2, rarity: 'rare', size: 42, speed: 44 },
+   144→   144→  { id: 'golden', emoji: '🐟', name: { fr: 'Poisson doré', en: 'Golden fish' }, band: 2, rarity: 'legendary', size: 30, speed: 26 },
+   145→   145→]
+   146→   146→
+   147→   147→const RARITY_XP: Record<Rarity, number> = { common: 3, rare: 10, legendary: 25 }
+   148→   148→
+   149→   149→/* ================= Textes UI ================= */
+   150→   150→const L = {
+   151→   151→  fr: {
+   152→   152→    play: 'Pêcher', collection: 'Collection', species: 'Espèces', onHook: 'Prise de la descente',
+   153→   153→    today: 'Aujourd’hui', depth: 'Profondeur', meters: 'm', title: 'Pêche Miraculeuse',
+   154→   154→    hint: 'Maintenez pour descendre, relâchez pour remonter : on pêche à la remontée.',
+   155→   155→    goalTitle: 'Défis du jour', goalDone: 'Défi du jour réussi !', newRecord: 'Nouveau record !', newSpecies: 'Nouvelle espèce !',
+   156→   156→    exit: 'Quitter la partie',
+   157→   157→    ariaCanvas: 'Aquarium de la pêche zen : maintenez pour descendre l’hameçon, relâchez pour remonter.',
+   158→   158→    rarity: { common: 'Commune', rare: 'Rare', legendary: 'Légendaire' } as Record<Rarity, string>,
+   159→   159→    bands: ['Eau peu profonde', 'Mi-profondeur', 'Grandes profondeurs'],
+   160→   160→    goals: ['Attraper 5 poissons en une descente', 'Attraper un poisson des profondeurs', 'Attraper 10 poissons aujourd’hui'],
+   161→   161→    best: 'Record', speciesBest: 'Espèces', catchBest: 'Plus grosse prise',
+   162→   162→    unknown: 'Pas encore découvert',
+   163→   163→  },
+   164→   164→  en: {
+   165→   165→    play: 'Fish', collection: 'Collection', species: 'Species', onHook: 'Current descent catch',
+   166→   166→    today: 'Today', depth: 'Depth', meters: 'm', title: 'Miraculous Fishing',
+   167→   167→    hint: 'Hold to descend, release to reel up: you catch on the way up.',
+   168→   168→    goalTitle: 'Today’s challenges', goalDone: 'Daily challenge complete!', newRecord: 'New record!', newSpecies: 'New species!',
+   169→   169→    exit: 'Quit the game',
+   170→   170→    ariaCanvas: 'Zen fishing aquarium: hold to lower the hook, release to reel up.',
+   171→   171→    rarity: { common: 'Common', rare: 'Rare', legendary: 'Legendary' } as Record<Rarity, string>,
+   172→   172→    bands: ['Shallow water', 'Mid depth', 'Deep waters'],
+   173→   173→    goals: ['Catch 5 fish in one descent', 'Catch a deep-water fish', 'Catch 10 fish today'],
+   174→   174→    best: 'Best', speciesBest: 'Species', catchBest: 'Biggest catch',
+   175→   175→    unknown: 'Not discovered yet',
+   176→   176→  },
+   177→   177→} as const
+   178→   178→
+   179→   179→/* ================= Sauvegarde ================= */
+   180→   180→interface FishSave {
+   181→   181→  caught: string[]
+   182→   182→  day: string
+   183→   183→  dayCount: number
+   184→   184→  bestCastToday: number
+   185→   185→  deepToday: boolean
+   186→   186→}
+   187→   187→
+   188→   188→/* ================= Monde ================= */
+   189→   189→interface Fish {
+   190→   190→  sp: number
+   191→   191→  x: number
+   192→   192→  yFrac: number
+   193→   193→  dir: 1 | -1
+   194→   194→  speed: number
+   195→   195→  bobA: number
+   196→   196→  bobF: number
+   197→   197→  phase: number
+   198→   198→  hooked: boolean
+   199→   199→  slot: number
+   200→   200→}
+   201→   201→interface Bubble { x: number; y: number; r: number; vy: number; phase: number }
+   202→   202→interface Flyer { sp: number; x0: number; y0: number; t: number; delay: number }
+   203→   203→
+   204→   204→interface World {
+   205→   205→  W: number; H: number; t: number; scale: number
+   206→   206→  fishes: Fish[]
+   207→   207→  bubbles: Bubble[]
+   208→   208→  flyers: Flyer[]
+   209→   209→  hookY: number
+   210→   210→  hookState: 'top' | 'down' | 'up'
+   211→   211→  holding: boolean
+   212→   212→  castCount: number
+   213→   213→  bubbleT: number
+   214→   214→  rippleT: number
+   215→   215→  rippleY: number
+   216→   216→  bedTouched: boolean
+   217→   217→}
+   218→   218→
+   219→   219→function pickSpeciesIndex(band: number): number {
+   220→   220→  const pool: { idx: number; w: number }[] = []
+   221→   221→  SPECIES.forEach((s, i) => {
+   222→   222→    if (s.band !== band) return
+   223→   223→    pool.push({ idx: i, w: s.rarity === 'common' ? 1 : s.rarity === 'rare' ? 0.24 : 0.06 })
+   224→   224→  })
+   225→   225→  const total = pool.reduce((a, o) => a + o.w, 0)
+   226→   226→  let r = Math.random() * total
+   227→   227→  for (const o of pool) {
+   228→   228→    r -= o.w
+   229→   229→    if (r <= 0) return o.idx
+   230→   230→  }
+   231→   231→  return pool[pool.length - 1].idx
+   232→   232→}
+   233→   233→
+   234→   234→function spawnFish(band: number, fromEdge: boolean, W: number): Fish {
+   235→   235→  const dir: 1 | -1 = Math.random() < 0.5 ? 1 : -1
+   236→   236→  const spIdx = pickSpeciesIndex(band)
+   237→   237→  return {
+   238→   238→    sp: spIdx,
+   239→   239→    x: fromEdge ? (dir === 1 ? -50 : W + 50) : Math.random() * W,
+   240→   240→    yFrac: 0.08 + Math.random() * 0.84,
+   241→   241→    dir,
+   242→   242→    speed: SPECIES[spIdx].speed * (0.85 + Math.random() * 0.3),
+   243→   243→    bobA: 5 + Math.random() * 9,
+   244→   244→    bobF: 0.5 + Math.random() * 0.8,
+   245→   245→    phase: Math.random() * Math.PI * 2,
+   246→   246→    hooked: false,
+   247→   247→    slot: 0,
+   248→   248→  }
+   249→   249→}
+   250→   250→
+   251→   251→function makeWorld(): World {
+   252→   252→  const w: World = {
+   253→   253→    W: 320, H: 240, t: 0, scale: 1,
+   254→   254→    fishes: [], bubbles: [], flyers: [],
+   255→   255→    hookY: 0, hookState: 'top', holding: false,
+   256→   256→    castCount: 0, bubbleT: 0, rippleT: 0, rippleY: 0, bedTouched: false,
+   257→   257→  }
+   258→   258→  for (let b = 0; b < 3; b++) {
+   259→   259→    for (let i = 0; i < 4; i++) w.fishes.push(spawnFish(b, false, w.W))
+   260→   260→  }
+   261→   261→  return w
+   262→   262→}
+   263→   263→
+   264→   264→/* ================= Helpers dessin ================= */
+   265→   265→function emojiFont(size: number) {
+   266→   266→  return `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif`
+   267→   267→}
+   268→   268→
+   269→   269→function drawWater(ctx: CanvasRenderingContext2D, W: number, H: number, surfaceY: number) {
+   270→   270→  // Ciel doux au-dessus de l'eau
+   271→   271→  const sky = ctx.createLinearGradient(0, 0, 0, surfaceY)
+   272→   272→  sky.addColorStop(0, '#ffedd2')
+   273→   273→  sky.addColorStop(1, '#f9dcb0')
+   274→   274→  ctx.fillStyle = sky
+   275→   275→  ctx.fillRect(0, 0, W, surfaceY)
+   276→   276→  // Eau vert-teal (vert dominant, jamais bleu)
+   277→   277→  const water = ctx.createLinearGradient(0, surfaceY, 0, H)
+   278→   278→  water.addColorStop(0, '#9fdcc0')
+   279→   279→  water.addColorStop(0.3, '#52ab86')
+   280→   280→  water.addColorStop(0.65, '#2a7c60')
+   281→   281→  water.addColorStop(1, '#175243')
+   282→   282→  ctx.fillStyle = water
+   283→   283→  ctx.fillRect(0, surfaceY, W, H - surfaceY)
+   284→   284→  // Assombrissement des profondeurs sur les bords
+   285→   285→  const vg = ctx.createLinearGradient(0, surfaceY, 0, H)
+   286→   286→  vg.addColorStop(0, 'rgba(10,48,36,0)')
+   287→   287→  vg.addColorStop(1, 'rgba(8,40,30,0.45)')
+   288→   288→  ctx.fillStyle = vg
+   289→   289→  ctx.fillRect(0, surfaceY, W, H - surfaceY)
+   290→   290→  // Fond marin sableux
+   291→   291→  ctx.fillStyle = '#c9a36a'
+   292→   292→  ctx.beginPath()
+   293→   293→  ctx.moveTo(0, H)
+   294→   294→  ctx.lineTo(0, H - 16)
+   295→   295→  ctx.quadraticCurveTo(W * 0.25, H - 30, W * 0.5, H - 16)
+   296→   296→  ctx.quadraticCurveTo(W * 0.75, H - 4, W, H - 20)
+   297→   297→  ctx.lineTo(W, H)
+   298→   298→  ctx.closePath()
+   299→   299→  ctx.fill()
+   300→   300→}
+   301→   301→
+   302→   302→function drawBoat(ctx: CanvasRenderingContext2D, W: number, surfaceY: number, t: number, reduce: boolean) {
+   303→   303→  const bob = reduce ? 0 : Math.sin(t * 0.9) * 3
+   304→   304→  const by = surfaceY - 9 + bob
+   305→   305→  const cx = W / 2
+   306→   306→  // Coque
+   307→   307→  const g = ctx.createLinearGradient(0, by, 0, by + 20)
+   308→   308→  g.addColorStop(0, '#b97a45')
+   309→   309→  g.addColorStop(1, '#8a5a30')
+   310→   310→  ctx.fillStyle = g
+   311→   311→  ctx.beginPath()
+   312→   312→  ctx.moveTo(cx - 58, by)
+   313→   313→  ctx.lineTo(cx + 58, by)
+   314→   314→  ctx.quadraticCurveTo(cx + 52, by + 20, cx + 34, by + 20)
+   315→   315→  ctx.lineTo(cx - 34, by + 20)
+   316→   316→  ctx.quadraticCurveTo(cx - 52, by + 20, cx - 58, by)
+   317→   317→  ctx.closePath()
+   318→   318→  ctx.fill()
+   319→   319→  ctx.fillStyle = 'rgba(255,240,214,0.4)'
+   320→   320→  ctx.fillRect(cx - 56, by + 1.5, 112, 2)
+   321→   321→  ctx.strokeStyle = 'rgba(90,58,30,0.4)'
+   322→   322→  ctx.lineWidth = 1
+   323→   323→  ctx.beginPath()
+   324→   324→  ctx.moveTo(cx - 44, by + 9)
+   325→   325→  ctx.lineTo(cx + 44, by + 9)
+   326→   326→  ctx.stroke()
+   327→   327→  // Canne
+   328→   328→  ctx.strokeStyle = '#6b4a2f'
+   329→   329→  ctx.lineWidth = 2.5
+   330→   330→  ctx.beginPath()
+   331→   331→  ctx.moveTo(cx + 16, by + 2)
+   332→   332→  ctx.quadraticCurveTo(cx + 14, by - 18, cx, by - 26)
+   333→   333→  ctx.stroke()
+   334→   334→  // Pêcheur (petit chapeau)
+   335→   335→  ctx.fillStyle = '#f2a65a'
+   336→   336→  ctx.beginPath()
+   337→   337→  ctx.arc(cx - 10, by - 6, 6, 0, Math.PI * 2)
+   338→   338→  ctx.fill()
+   339→   339→  ctx.fillStyle = '#d9553f'
+   340→   340→  ctx.beginPath()
+   341→   341→  ctx.arc(cx - 10, by - 8, 6, Math.PI, 0)
+   342→   342→  ctx.fill()
+   343→   343→}
+   344→   344→
+   345→   345→/* ================= Utilitaires locaux ================= */
+   346→   346→type Banner = { kind: 'daily' } | { kind: 'record'; value: number }
+   347→   347→
+   348→   348→/** Haptique légère, sans échec sur les navigateurs non compatibles. */
+   349→   349→function buzz(pattern: number | number[]) {
+   350→   350→  try {
+   351→   351→    navigator.vibrate?.(pattern)
+   352→   352→  } catch {
+   353→   353→    /* non supporté */
+   354→   354→  }
+   355→   355→}
+   356→   356→
+   357→   357→/** Pastille compacte du HUD (une seule ligne sur mobile). */
+   358→   358→function Pill({ icon, label, children }: { icon: string; label: string; children: ReactNode }) {
+   359→   359→  return (
+   360→   360→    <span
+   361→   361→      title={label}
+   362→   362→      className="flex h-9 min-w-0 shrink-0 items-center gap-1.5 rounded-full bg-secondary/70 px-2.5 text-xs font-bold tabular-nums"
+   363→   363→    >
+   364→   364→      <span aria-hidden="true">{icon}</span>
+   365→   365→      <span className="truncate">{children}</span>
+   366→   366→      <span className="sr-only">{label}</span>
+   367→   367→    </span>
+   368→   368→  )
+   369→   369→}
+   370→   370→
+   371→   371→/* ================= Composant ================= */
+   372→   372→export default function ZenFishingGame() {
+   373→   373→  const lang = useLang()
+   374→   374→  const reduce = useReducedMotion()
+   375→   375→  const hydrated = useHydrated()
+   376→   376→  const dailyDone = useIsDailyDone(gameId)
+   377→   377→  const T = L[lang]
+   378→   378→
+   379→   379→  const addPlay = useProfileStore((s) => s.addPlay)
+   380→   380→  const addWin = useProfileStore((s) => s.addWin)
+   381→   381→  const addXp = useProfileStore((s) => s.addXp)
+   382→   382→  const setBest = useProfileStore((s) => s.setBest)
+   383→   383→  const unlockBadge = useProfileStore((s) => s.unlockBadge)
+   384→   384→  const completeDaily = useProfileStore((s) => s.completeDaily)
+   385→   385→  const bestSpecies = useProfileStore((s) => s.profile.games[gameId]?.records?.['species']?.value ?? 0)
+   386→   386→  const bestCatch = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-catch']?.value ?? 0)
+   387→   387→
+   388→   388→  const [phase, setPhase] = useState<'idle' | 'playing'>('idle')
+   389→   389→  const [hud, setHud] = useState({ cast: 0, today: 0, depth: 0 })
+   390→   390→  const [caught, setCaught] = useState<Set<string>>(new Set())
+   391→   391→  const [dayStats, setDayStats] = useState({ dayCount: 0, bestCast: 0, deep: false })
+   392→   392→  const [discovery, setDiscovery] = useState<FishSpec | null>(null)
+   393→   393→  const [bookOpen, setBookOpen] = useState(false)
+   394→   394→  const [confetti, setConfetti] = useState(0)
+   395→   395→  const [banner, setBanner] = useState<Banner | null>(null)
+   396→   396→
+   397→   397→  const wrapRef = useRef<HTMLDivElement>(null)
+   398→   398→  const canvasRef = useRef<HTMLCanvasElement>(null)
+   399→   399→  const worldRef = useRef<World>(makeWorld())
+   400→   400→  const phaseRef = useRef(phase)
+   401→   401→  const reduceRef = useRef(reduce)
+   402→   402→  const dailyDoneRef = useRef(dailyDone)
+   403→   403→  const rafRef = useRef(0)
+   404→   404→  const pausedRef = useRef(false)
+   405→   405→  const caughtRef = useRef<Set<string>>(new Set())
+   406→   406→  const dayRef = useRef<FishSave>({ caught: [], day: todayKey(), dayCount: 0, bestCastToday: 0, deepToday: false })
+   407→   407→  const discoveryQueueRef = useRef<FishSpec[]>([])
+   408→   408→  const lastStartRef = useRef(0)
+   409→   409→  const bannerTimerRef = useRef(0)
+   410→   410→  const timersRef = useRef<Set<number>>(new Set())
+   411→   411→
+   412→   412→  useEffect(() => { phaseRef.current = phase }, [phase])
+   413→   413→  useEffect(() => { reduceRef.current = reduce }, [reduce])
+   414→   414→  useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+   415→   415→
+   416→   416→  /* Minuteurs suivis — tous purgés au démontage */
+   417→   417→  const later = useCallback((fn: () => void, ms: number) => {
+   418→   418→    const id = window.setTimeout(() => {
+   419→   419→      timersRef.current.delete(id)
+   420→   420→      fn()
+   421→   421→    }, ms)
+   422→   422→    timersRef.current.add(id)
+   423→   423→    return id
+   424→   424→  }, [])
+   425→   425→  const clearLater = useCallback((id: number) => {
+   426→   426→    window.clearTimeout(id)
+   427→   427→    timersRef.current.delete(id)
+   428→   428→  }, [])
+   429→   429→  useEffect(() => {
+   430→   430→    const ids = timersRef.current
+   431→   431→    return () => {
+   432→   432→      for (const id of ids) window.clearTimeout(id)
+   433→   433→    }
+   434→   434→  }, [])
+   435→   435→
+   436→   436→  /* Défi du jour déterministe : 0, 1 ou 2 selon la date */
+   437→   437→  const dailyGoal = useMemo(
+   438→   438→    () => Math.floor(mulberry32(seedFromString(`zen-fishing:${todayKey()}`))() * 3),
+   439→   439→    [],
+   440→   440→  )
+   441→   441→
+   442→   442→  /* Chargement de la sauvegarde (setState via timer → conforme) */
+   443→   443→  useEffect(() => {
+   444→   444→    const id = window.setTimeout(() => {
+   445→   445→      const saved = loadSave<FishSave>(gameId)
+   446→   446→      const today = todayKey()
+   447→   447→      const base: FishSave = saved ?? { caught: [], day: today, dayCount: 0, bestCastToday: 0, deepToday: false }
+   448→   448→      if (base.day !== today) {
+   449→   449→        base.day = today
+   450→   450→        base.dayCount = 0
+   451→   451→        base.bestCastToday = 0
+   452→   452→        base.deepToday = false
+   453→   453→      }
+   454→   454→      const set = new Set(base.caught)
+   455→   455→      caughtRef.current = set
+   456→   456→      dayRef.current = { ...base, caught: [...set] }
+   457→   457→      setCaught(set)
+   458→   458→      setDayStats({ dayCount: base.dayCount, bestCast: base.bestCastToday, deep: base.deepToday })
+   459→   459→      setHud((h) => ({ ...h, today: base.dayCount }))
+   460→   460→    }, 0)
+   461→   461→    return () => window.clearTimeout(id)
+   462→   462→  }, [])
+   463→   463→
+   464→   464→  const persist = useCallback(() => {
+   465→   465→    saveSave<FishSave>(gameId, {
+   466→   466→      caught: [...caughtRef.current],
+   467→   467→      day: dayRef.current.day,
+   468→   468→      dayCount: dayRef.current.dayCount,
+   469→   469→      bestCastToday: dayRef.current.bestCastToday,
+   470→   470→      deepToday: dayRef.current.deepToday,
+   471→   471→    })
+   472→   472→  }, [])
+   473→   473→
+   474→   474→  const pushHud = useCallback(() => {
+   475→   475→    const w = worldRef.current
+   476→   476→    const span = Math.max(1, w.H * 0.95 - w.H * 0.14)
+   477→   477→    setHud((h) => ({
+   478→   478→      ...h,
+   479→   479→      cast: w.castCount,
+   480→   480→      depth: Math.max(0, Math.round(((w.hookY - w.H * 0.14) / span) * 30)),
+   481→   481→    }))
+   482→   482→  }, [])
+   483→   483→
+   484→   484→  /* File de cartes de découverte (timers → setState conforme) */
+   485→   485→  const discoveryBusyUntilRef = useRef(0)
+   486→   486→  const processDiscovery = useCallback(() => {
+   487→   487→    const queue = [...discoveryQueueRef.current]
+   488→   488→    discoveryQueueRef.current = []
+   489→   489→    if (queue.length === 0) return
+   490→   490→    const now = performance.now()
+   491→   491→    let delay = Math.max(0, discoveryBusyUntilRef.current - now)
+   492→   492→    discoveryBusyUntilRef.current = now + delay + queue.length * 2850
+   493→   493→    for (const spec of queue) {
+   494→   494→      later(() => {
+   495→   495→        setDiscovery(spec)
+   496→   496→        sfx.play('reveal')
+   497→   497→        buzz(15)
+   498→   498→      }, delay)
+   499→   499→      later(() => {
+   500→   500→        setDiscovery(null)
+   501→   501→      }, delay + 2500)
+   502→   502→      delay += 2850
+   503→   503→    }
+   504→   504→  }, [later])
+   505→   505→
+   506→   506→  /* Bandeau d'annonce (défi réussi / record battu) */
+   507→   507→  const showBanner = useCallback((b: Banner) => {
+   508→   508→    setBanner(b)
+   509→   509→    if (bannerTimerRef.current) clearLater(bannerTimerRef.current)
+   510→   510→    bannerTimerRef.current = later(() => setBanner(null), 2600)
+   511→   511→  }, [clearLater, later])
+   512→   512→
+   513→   513→  const openBook = useCallback(() => {
+   514→   514→    sfx.play('flip', { volume: 0.5 })
+   515→   515→    worldRef.current.holding = false
+   516→   516→    setBookOpen(true)
+   517→   517→  }, [])
+   518→   518→
+   519→   519→  const handleStart = useCallback(() => {
+   520→   520→    const now = performance.now()
+   521→   521→    if (now - lastStartRef.current < 400) return
+   522→   522→    lastStartRef.current = now
+   523→   523→    sfx.play('click')
+   524→   524→    addPlay(gameId)
+   525→   525→    setPhase('playing')
+   526→   526→  }, [addPlay])
+   527→   527→
+   528→   528→  /* Retour à l'accueil : relâche proprement hameçon et poissons */
+   529→   529→  const handleExit = useCallback(() => {
+   530→   530→    sfx.play('click', { volume: 0.5 })
+   531→   531→    const w = worldRef.current
+   532→   532→    for (const f of w.fishes) f.hooked = false
+   533→   533→    w.holding = false
+   534→   534→    w.hookState = 'top'
+   535→   535→    w.hookY = w.H * 0.14 + 8
+   536→   536→    w.castCount = 0
+   537→   537→    setPhase('idle')
+   538→   538→    setHud((h) => ({ ...h, cast: 0, depth: 0 }))
+   539→   539→  }, [])
+   540→   540→
+   541→   541→  /* ================= Boucle principale ================= */
+   542→   542→  useEffect(() => {
+   543→   543→    const cv = canvasRef.current
+   544→   544→    const wrap = wrapRef.current
+   545→   545→    if (!cv || !wrap) return
+   546→   546→    const ctx = cv.getContext('2d')
+   547→   547→    if (!ctx) return
+   548→   548→    const w = worldRef.current
+   549→   549→
+   550→   550→    let dpr = 1
+   551→   551→
+   552→   552→    /* Population adaptée à la surface de l'aquarium (éléments en %) */
+   553→   553→    const syncPopulation = () => {
+   554→   554→      const target = Math.round(clamp((w.W * w.H) / 34000, 4, 10))
+   555→   555→      for (let b = 0; b < 3; b++) {
+   556→   556→        let count = 0
+   557→   557→        for (const f of w.fishes) {
+   558→   558→          if (!f.hooked && SPECIES[f.sp].band === b) count++
+   559→   559→        }
+   560→   560→        let diff = target - count
+   561→   561→        while (diff > 0) {
+   562→   562→          w.fishes.push(spawnFish(b, false, w.W))
+   563→   563→          diff--
+   564→   564→        }
+   565→   565→        while (diff < 0) {
+   566→   566→          const idx = w.fishes.findIndex((f) => !f.hooked && SPECIES[f.sp].band === b)
+   567→   567→          if (idx < 0) break
+   568→   568→          w.fishes.splice(idx, 1)
+   569→   569→          diff++
+   570→   570→        }
+   571→   571→      }
+   572→   572→    }
+   573→   573→
+   574→   574→    const resize = () => {
+   575→   575→      const cw = wrap.clientWidth
+   576→   576→      const ch = wrap.clientHeight
+   577→   577→      if (cw < 40 || ch < 40) return
+   578→   578→      dpr = Math.min(window.devicePixelRatio || 1, 2)
+   579→   579→      w.W = cw
+   580→   580→      w.H = ch
+   581→   581→      w.scale = clamp(ch / 430, 1, 1.45)
+   582→   582→      if (w.hookState === 'top') w.hookY = ch * 0.14 + 8
+   583→   583→      w.hookY = Math.min(w.hookY, ch * 0.95)
+   584→   584→      cv.width = Math.round(cw * dpr)
+   585→   585→      cv.height = Math.round(ch * dpr)
+   586→   586→      syncPopulation()
+   587→   587→    }
+   588→   588→    resize()
+   589→   589→
+   590→   590→    const surfaceY = () => w.H * 0.14
+   591→   591→    const bedY = () => w.H * 0.95
+   592→   592→    const bandY = (band: number, yFrac: number) => {
+   593→   593→      const top = surfaceY() + (w.H - surfaceY()) * (band === 0 ? 0.04 : band === 1 ? 0.32 : 0.62)
+   594→   594→      const bottom = surfaceY() + (w.H - surfaceY()) * (band === 0 ? 0.3 : band === 1 ? 0.6 : 0.96)
+   595→   595→      return top + (bottom - top) * yFrac
+   596→   596→    }
+   597→   597→    const fishY = (f: Fish) => {
+   598→   598→      if (f.hooked) {
+   599→   599→        return Math.max(surfaceY() + 10, w.hookY - 16 * w.scale - f.slot * 26 * w.scale)
+   600→   600→      }
+   601→   601→      return bandY(SPECIES[f.sp].band, f.yFrac) + Math.sin(w.t * f.bobF + f.phase) * f.bobA * w.scale
+   602→   602→    }
+   603→   603→    const fishX = (f: Fish) => {
+   604→   604→      if (f.hooked) return w.W / 2 + Math.sin(w.t * 5 + f.slot * 1.4) * 9
+   605→   605→      return f.x
+   606→   606→    }
+   607→   607→
+   608→   608→    /* ----- entrées : maintien fiable, multi-pointeurs propre ----- */
+   609→   609→    const activePointers = new Set<number>()
+   610→   610→    const onDown = (e: PointerEvent) => {
+   611→   611→      if (phaseRef.current !== 'playing') return
+   612→   612→      e.preventDefault()
+   613→   613→      activePointers.add(e.pointerId)
+   614→   614→      w.holding = true
+   615→   615→      try {
+   616→   616→        cv.setPointerCapture(e.pointerId)
+   617→   617→      } catch {
+   618→   618→        /* capture refusée */
+   619→   619→      }
+   620→   620→    }
+   621→   621→    const onRelease = (e: PointerEvent) => {
+   622→   622→      activePointers.delete(e.pointerId)
+   623→   623→      if (activePointers.size === 0) w.holding = false
+   624→   624→    }
+   625→   625→    const onKeyDown = (e: KeyboardEvent) => {
+   626→   626→      if (phaseRef.current !== 'playing') return
+   627→   627→      if (e.code === 'Space' || e.code === 'ArrowDown') {
+   628→   628→        e.preventDefault()
+   629→   629→        w.holding = true
+   630→   630→      }
+   631→   631→    }
+   632→   632→    const onKeyUp = (e: KeyboardEvent) => {
+   633→   633→      if (e.code === 'Space' || e.code === 'ArrowDown') w.holding = false
+   634→   634→    }
+   635→   635→    const onCtx = (e: Event) => e.preventDefault()
+   636→   636→    const onVis = () => {
+   637→   637→      pausedRef.current = document.hidden
+   638→   638→    }
+   639→   639→    cv.addEventListener('pointerdown', onDown)
+   640→   640→    cv.addEventListener('pointerup', onRelease)
+   641→   641→    cv.addEventListener('pointercancel', onRelease)
+   642→   642→    cv.addEventListener('lostpointercapture', onRelease)
+   643→   643→    cv.addEventListener('contextmenu', onCtx)
+   644→   644→    window.addEventListener('keydown', onKeyDown)
+   645→   645→    window.addEventListener('keyup', onKeyUp)
+   646→   646→    document.addEventListener('visibilitychange', onVis)
+   647→   647→
+   648→   648→    /* ----- résolution d'une remontée ----- */
+   649→   649→    const resolveCast = () => {
+   650→   650→      const hooked = w.fishes.filter((f) => f.hooked)
+   651→   651→      const n = hooked.length
+   652→   652→      if (n === 0) return
+   653→   653→      sfx.play('splash', { volume: 0.7 })
+   654→   654→      let xp = 0
+   655→   655→      let newSpecies = false
+   656→   656→      let deepCaught = false
+   657→   657→      let legendary = false
+   658→   658→      let rareCaught = false
+   659→   659→      for (const f of hooked) {
+   660→   660→        const spec = SPECIES[f.sp]
+   661→   661→        xp += RARITY_XP[spec.rarity]
+   662→   662→        if (spec.band === 2) deepCaught = true
+   663→   663→        if (spec.rarity === 'legendary') legendary = true
+   664→   664→        if (spec.rarity !== 'common') rareCaught = true
+   665→   665→        if (!caughtRef.current.has(spec.id)) {
+   666→   666→          newSpecies = true
+   667→   667→          caughtRef.current.add(spec.id)
+   668→   668→          discoveryQueueRef.current.push(spec)
+   669→   669→        }
+   670→   670→        // Vol vers le compteur du jour
+   671→   671→        w.flyers.push({ sp: f.sp, x0: fishX(f), y0: fishY(f), t: 0, delay: f.slot * 0.09 })
+   672→   672→      }
+   673→   673→      // Remplace les poissons pêchés
+   674→   674→      w.fishes = w.fishes.filter((f) => !f.hooked)
+   675→   675→      for (const f of hooked) w.fishes.push(spawnFish(SPECIES[f.sp].band, true, w.W))
+   676→   676→      w.castCount = 0
+   677→   677→      // Gamification
+   678→   678→      addXp(xp)
+   679→   679→      const isRecord = setBest(gameId, 'best-catch', n)
+   680→   680→      if (isRecord && n >= 2) showBanner({ kind: 'record', value: n })
+   681→   681→      const size = caughtRef.current.size
+   682→   682→      if (newSpecies) {
+   683→   683→        setBest(gameId, 'species', size)
+   684→   684→        setCaught(new Set(caughtRef.current))
+   685→   685→        if (size >= 10) unlockBadge('fish-10')
+   686→   686→        processDiscovery()
+   687→   687→      }
+   688→   688→      if (rareCaught) unlockBadge('fish-rare')
+   689→   689→      if (n >= 5) addWin(gameId)
+   690→   690→      if (legendary) setConfetti((k) => k + 1)
+   691→   691→      // Défis du jour (remise à zéro si la partie traverse minuit)
+   692→   692→      const today = todayKey()
+   693→   693→      const day = dayRef.current
+   694→   694→      if (day.day !== today) {
+   695→   695→        day.day = today
+   696→   696→        day.dayCount = 0
+   697→   697→        day.bestCastToday = 0
+   698→   698→        day.deepToday = false
+   699→   699→      }
+   700→   700→      day.dayCount += n
+   701→   701→      day.bestCastToday = Math.max(day.bestCastToday, n)
+   702→   702→      if (deepCaught) day.deepToday = true
+   703→   703→      setDayStats({ dayCount: day.dayCount, bestCast: day.bestCastToday, deep: day.deepToday })
+   704→   704→      setHud((h) => ({ ...h, today: day.dayCount }))
+   705→   705→      persist()
+   706→   706→      const goalMet =
+   707→   707→        dailyGoal === 0 ? day.bestCastToday >= 5
+   708→   708→        : dailyGoal === 1 ? day.deepToday
+   709→   709→        : day.dayCount >= 10
+   710→   710→      if (goalMet && !dailyDoneRef.current) {
+   711→   711→        completeDaily(gameId)
+   712→   712→        sfx.play('win')
+   713→   713→        setConfetti((k) => k + 1)
+   714→   714→        showBanner({ kind: 'daily' })
+   715→   715→        buzz(20)
+   716→   716→      }
+   717→   717→    }
+   718→   718→
+   719→   719→    /* ----- simulation ----- */
+   720→   720→    let lastDepth = -1
+   721→   721→    let depthAcc = 0
+   722→   722→    const update = (dt: number) => {
+   723→   723→      const playing = phaseRef.current === 'playing'
+   724→   724→      // Hameçon
+   725→   725→      if (playing) {
+   726→   726→        if (w.hookState === 'top' && w.holding) {
+   727→   727→          w.hookState = 'down'
+   728→   728→          w.bedTouched = false
+   729→   729→          w.rippleT = 0.5
+   730→   730→          w.rippleY = surfaceY()
+   731→   731→          sfx.play('splash', { volume: 0.6 })
+   732→   732→        } else if (w.hookState === 'down') {
+   733→   733→          w.hookY += 235 * w.scale * dt
+   734→   734→          if (!w.holding) w.hookState = 'up'
+   735→   735→          if (w.hookY >= bedY()) {
+   736→   736→            w.hookY = bedY()
+   737→   737→            if (!w.bedTouched) {
+   738→   738→              w.bedTouched = true
+   739→   739→              sfx.play('drop', { volume: 0.35 })
+   740→   740→            }
+   741→   741→            if (!w.holding) w.hookState = 'up'
+   742→   742→          }
+   743→   743→        } else if (w.hookState === 'up') {
+   744→   744→          w.hookY -= 270 * w.scale * dt
+   745→   745→          // Capture à la remontée
+   746→   746→          for (const f of w.fishes) {
+   747→   747→            if (f.hooked) continue
+   748→   748→            const spec = SPECIES[f.sp]
+   749→   749→            const r = (spec.size * w.scale) / 2
+   750→   750→            const fx = fishX(f)
+   751→   751→            const fy = fishY(f)
+   752→   752→            if (Math.abs(fx - w.W / 2) < r + 15 * w.scale && Math.abs(fy - w.hookY) < r + 17 * w.scale) {
+   753→   753→              f.hooked = true
+   754→   754→              f.slot = w.castCount
+   755→   755→              w.castCount++
+   756→   756→              if (spec.rarity === 'legendary') {
+   757→   757→                sfx.play('reveal', { volume: 0.55 })
+   758→   758→                buzz([10, 40, 10])
+   759→   759→              } else if (spec.rarity === 'rare') {
+   760→   760→                sfx.play('coin', { volume: 0.45 })
+   761→   761→                buzz(15)
+   762→   762→              } else {
+   763→   763→                sfx.play('splash', { volume: 0.4 })
+   764→   764→                buzz(10)
+   765→   765→              }
+   766→   766→              pushHud()
+   767→   767→            }
+   768→   768→          }
+   769→   769→          if (w.hookY <= surfaceY() + 8) {
+   770→   770→            w.hookY = surfaceY() + 8
+   771→   771→            w.hookState = 'top'
+   772→   772→            resolveCast()
+   773→   773→            pushHud()
+   774→   774→          }
+   775→   775→        }
+   776→   776→      }
+   777→   777→
+   778→   778→      // Poissons
+   779→   779→      for (const f of w.fishes) {
+   780→   780→        if (f.hooked) continue
+   781→   781→        f.x += f.dir * f.speed * dt
+   782→   782→        if (f.x < -70 && f.dir === -1) {
+   783→   783→          const nf = spawnFish(SPECIES[f.sp].band, false, w.W)
+   784→   784→          f.sp = nf.sp
+   785→   785→          f.yFrac = nf.yFrac
+   786→   786→          f.dir = -1
+   787→   787→          f.speed = SPECIES[f.sp].speed * (0.85 + Math.random() * 0.3)
+   788→   788→          f.bobA = nf.bobA
+   789→   789→          f.bobF = nf.bobF
+   790→   790→          f.phase = nf.phase
+   791→   791→          f.x = w.W + 60
+   792→   792→        } else if (f.x > w.W + 70 && f.dir === 1) {
+   793→   793→          const nf = spawnFish(SPECIES[f.sp].band, false, w.W)
+   794→   794→          f.sp = nf.sp
+   795→   795→          f.yFrac = nf.yFrac
+   796→   796→          f.dir = 1
+   797→   797→          f.speed = SPECIES[f.sp].speed * (0.85 + Math.random() * 0.3)
+   798→   798→          f.bobA = nf.bobA
+   799→   799→          f.bobF = nf.bobF
+   800→   800→          f.phase = nf.phase
+   801→   801→          f.x = -60
+   802→   802→        }
+   803→   803→      }
+   804→   804→
+   805→   805→      // Bulles
+   806→   806→      w.bubbleT -= dt
+   807→   807→      if (w.bubbleT <= 0 && !reduceRef.current) {
+   808→   808→        w.bubbleT = 0.35 + Math.random() * 0.4
+   809→   809→        w.bubbles.push({
+   810→   810→          x: 14 + Math.random() * (w.W - 28),
+   811→   811→          y: bedY() - 4,
+   812→   812→          r: 1.5 + Math.random() * 3,
+   813→   813→          vy: 26 + Math.random() * 30,
+   814→   814→          phase: Math.random() * Math.PI * 2,
+   815→   815→        })
+   816→   816→      }
+   817→   817→      for (let i = w.bubbles.length - 1; i >= 0; i--) {
+   818→   818→        const b = w.bubbles[i]
+   819→   819→        b.y -= b.vy * dt
+   820→   820→        b.x += Math.sin(w.t * 2 + b.phase) * 8 * dt
+   821→   821→        if (b.y < surfaceY() + 4) w.bubbles.splice(i, 1)
+   822→   822→      }
+   823→   823→
+   824→   824→      // Vols vers le compteur (petit pop à l'arrivée)
+   825→   825→      for (let i = w.flyers.length - 1; i >= 0; i--) {
+   826→   826→        const fl = w.flyers[i]
+   827→   827→        if (fl.delay > 0) {
+   828→   828→          fl.delay -= dt
+   829→   829→          continue
+   830→   830→        }
+   831→   831→        fl.t += dt / 0.55
+   832→   832→        if (fl.t >= 1) {
+   833→   833→          w.flyers.splice(i, 1)
+   834→   834→          sfx.play('pop', { volume: 0.28 })
+   835→   835→        }
+   836→   836→      }
+   837→   837→
+   838→   838→      if (w.rippleT > 0) w.rippleT -= dt
+   839→   839→
+   840→   840→      // Profondeur (HUD throttlé — 0 à 30 m, proportionnel)
+   841→   841→      depthAcc += dt
+   842→   842→      if (depthAcc >= 0.12) {
+   843→   843→        depthAcc = 0
+   844→   844→        const span = Math.max(1, bedY() - surfaceY())
+   845→   845→        const depth = Math.max(0, Math.round(((w.hookY - surfaceY()) / span) * 30))
+   846→   846→        if (playing && depth !== lastDepth) {
+   847→   847→          lastDepth = depth
+   848→   848→          pushHud()
+   849→   849→        }
+   850→   850→      }
+   851→   851→    }
+   852→   852→
+   853→   853→    /* ----- rendu ----- */
+   854→   854→    const draw = () => {
+   855→   855→      const W = w.W, H = w.H
+   856→   856→      const sY = surfaceY()
+   857→   857→      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+   858→   858→      ctx.clearRect(0, 0, W, H)
+   859→   859→      drawWater(ctx, W, H, sY)
+   860→   860→
+   861→   861→      // Rayons de lumière
+   862→   862→      ctx.save()
+   863→   863→      for (let i = 0; i < 3; i++) {
+   864→   864→        const sway = reduceRef.current ? 0 : Math.sin(w.t * 0.35 + i * 2) * 26
+   865→   865→        const rx = W * (0.22 + i * 0.3) + sway
+   866→   866→        ctx.fillStyle = 'rgba(255,246,220,0.07)'
+   867→   867→        ctx.beginPath()
+   868→   868→        ctx.moveTo(rx - 14, sY)
+   869→   869→        ctx.lineTo(rx + 14, sY)
+   870→   870→        ctx.lineTo(rx + 76, H)
+   871→   871→        ctx.lineTo(rx + 20, H)
+   872→   872→        ctx.closePath()
+   873→   873→        ctx.fill()
+   874→   874→      }
+   875→   875→      ctx.restore()
+   876→   876→
+   877→   877→      // Algues
+   878→   878→      for (let i = 0; i < 5; i++) {
+   879→   879→        const sx = W * (0.08 + i * 0.21)
+   880→   880→        const sway = reduceRef.current ? 0 : Math.sin(w.t * 1.1 + i) * 8
+   881→   881→        ctx.strokeStyle = 'rgba(46,124,92,0.75)'
+   882→   882→        ctx.lineWidth = 3
+   883→   883→        ctx.lineCap = 'round'
+   884→   884→        ctx.beginPath()
+   885→   885→        ctx.moveTo(sx, H - 8)
+   886→   886→        ctx.quadraticCurveTo(sx + sway, H - 26, sx - sway * 0.6, H - 44 - (i % 2) * 10)
+   887→   887→        ctx.stroke()
+   888→   888→      }
+   889→   889→
+   890→   890→      // Bulles
+   891→   891→      for (const b of w.bubbles) {
+   892→   892→        ctx.strokeStyle = 'rgba(240,255,246,0.5)'
+   893→   893→        ctx.lineWidth = 1
+   894→   894→        ctx.beginPath()
+   895→   895→        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2)
+   896→   896→        ctx.stroke()
+   897→   897→      }
+   898→   898→
+   899→   899→      // Ligne + hameçon + appât
+   900→   900→      const hookX = W / 2
+   901→   901→      ctx.strokeStyle = 'rgba(244,233,208,0.75)'
+   902→   902→      ctx.lineWidth = 1.2
+   903→   903→      ctx.beginPath()
+   904→   904→      ctx.moveTo(hookX, sY - 35)
+   905→   905→      ctx.lineTo(hookX, w.hookState === 'top' ? sY + 8 : w.hookY)
+   906→   906→      ctx.stroke()
+   907→   907→      if (w.hookState !== 'top' || phaseRef.current === 'playing') {
+   908→   908→        const hy = w.hookState === 'top' ? sY + 8 : w.hookY
+   909→   909→        ctx.strokeStyle = '#e8e0c8'
+   910→   910→        ctx.lineWidth = 2.5 * w.scale
+   911→   911→        ctx.beginPath()
+   912→   912→        ctx.arc(hookX + 2, hy + 4 * w.scale, 6 * w.scale, -Math.PI * 0.4, Math.PI * 0.75)
+   913→   913→        ctx.stroke()
+   914→   914→        ctx.fillStyle = '#e2725b'
+   915→   915→        ctx.beginPath()
+   916→   916→        ctx.arc(hookX, hy - 1, 3 * w.scale, 0, Math.PI * 2)
+   917→   917→        ctx.fill()
+   918→   918→      }
+   919→   919→
+   920→   920→      // Poissons (taille adaptée à l'aquarium)
+   921→   921→      ctx.textAlign = 'center'
+   922→   922→      ctx.textBaseline = 'middle'
+   923→   923→      for (const f of w.fishes) {
+   924→   924→        const spec = SPECIES[f.sp]
+   925→   925→        const fx = fishX(f)
+   926→   926→        const fy = fishY(f)
+   927→   927→        if (fx < -60 || fx > W + 60) continue
+   928→   928→        const size = spec.size * w.scale
+   929→   929→        ctx.save()
+   930→   930→        ctx.translate(fx, fy)
+   931→   931→        if (f.hooked) {
+   932→   932→          ctx.rotate(Math.sin(w.t * 6 + f.slot) * 0.25)
+   933→   933→        } else {
+   934→   934→          if (!reduceRef.current) ctx.rotate(Math.sin(w.t * 3.2 + f.phase) * 0.05)
+   935→   935→          ctx.scale(f.dir === 1 ? -1 : 1, 1)
+   936→   936→        }
+   937→   937→        if (spec.rarity === 'legendary') {
+   938→   938→          const g = ctx.createRadialGradient(0, 0, 2, 0, 0, size)
+   939→   939→          g.addColorStop(0, 'rgba(247,200,115,0.65)')
+   940→   940→          g.addColorStop(1, 'rgba(247,200,115,0)')
+   941→   941→          ctx.fillStyle = g
+   942→   942→          ctx.beginPath()
+   943→   943→          ctx.arc(0, 0, size, 0, Math.PI * 2)
+   944→   944→          ctx.fill()
+   945→   945→        }
+   946→   946→        ctx.font = emojiFont(size)
+   947→   947→        ctx.fillText(spec.emoji, 0, 0)
+   948→   948→        if (spec.rarity === 'legendary') {
+   949→   949→          ctx.font = emojiFont(12 * w.scale)
+   950→   950→          ctx.fillText('✨', -size * 0.55, -size * 0.45)
+   951→   951→        }
+   952→   952→        ctx.restore()
+   953→   953→      }
+   954→   954→
+   955→   955→      // Vols vers le compteur du jour
+   956→   956→      for (const fl of w.flyers) {
+   957→   957→        if (fl.delay > 0) continue
+   958→   958→        const spec = SPECIES[fl.sp]
+   959→   959→        const t = clamp(fl.t, 0, 1)
+   960→   960→        const ex = W - 46, ey = 22
+   961→   961→        const cxp = (fl.x0 + ex) / 2
+   962→   962→        const cyp = Math.min(fl.y0, ey) - 110
+   963→   963→        const x = (1 - t) * (1 - t) * fl.x0 + 2 * (1 - t) * t * cxp + t * t * ex
+   964→   964→        const y = (1 - t) * (1 - t) * fl.y0 + 2 * (1 - t) * t * cyp + t * t * ey
+   965→   965→        ctx.save()
+   966→   966→        ctx.globalAlpha = 1 - t * 0.25
+   967→   967→        ctx.translate(x, y)
+   968→   968→        ctx.scale(1 - t * 0.4, 1 - t * 0.4)
+   969→   969→        ctx.font = emojiFont(spec.size * w.scale)
+   970→   970→        ctx.fillText(spec.emoji, 0, 0)
+   971→   971→        ctx.restore()
+   972→   972→      }
+   973→   973→
+   974→   974→      // Bateau par-dessus la ligne
+   975→   975→      drawBoat(ctx, W, sY, w.t, reduceRef.current)
+   976→   976→
+   977→   977→      // Onde de plongée
+   978→   978→      if (w.rippleT > 0) {
+   979→   979→        ctx.strokeStyle = `rgba(255,255,255,${w.rippleT})`
+   980→   980→        ctx.lineWidth = 2
+   981→   981→        ctx.beginPath()
+   982→   982→        ctx.ellipse(hookX, w.rippleY, 26 * (1 - w.rippleT) + 6, 7, 0, 0, Math.PI * 2)
+   983→   983→        ctx.stroke()
+   984→   984→      }
+   985→   985→    }
+   986→   986→
+   987→   987→    let last = performance.now()
+   988→   988→    const step = (now: number) => {
+   989→   989→      rafRef.current = requestAnimationFrame(step)
+   990→   990→      const dt = Math.min((now - last) / 1000, 0.05)
+   991→   991→      last = now
+   992→   992→      if (pausedRef.current) return
+   993→   993→      w.t += dt
+   994→   994→      update(dt)
+   995→   995→      draw()
+   996→   996→    }
+   997→   997→    rafRef.current = requestAnimationFrame(step)
+   998→   998→
+   999→   999→    const ro = new ResizeObserver(resize)
+  1000→  1000→    ro.observe(wrap)
+  1001→  1001→
+  1002→  1002→    return () => {
+  1003→  1003→      cancelAnimationFrame(rafRef.current)
+  1004→  1004→      ro.disconnect()
+  1005→  1005→      cv.removeEventListener('pointerdown', onDown)
+  1006→  1006→      cv.removeEventListener('pointerup', onRelease)
+  1007→  1007→      cv.removeEventListener('pointercancel', onRelease)
+  1008→  1008→      cv.removeEventListener('lostpointercapture', onRelease)
+  1009→  1009→      cv.removeEventListener('contextmenu', onCtx)
+  1010→  1010→      window.removeEventListener('keydown', onKeyDown)
+  1011→  1011→      window.removeEventListener('keyup', onKeyUp)
+  1012→  1012→      document.removeEventListener('visibilitychange', onVis)
+  1013→  1013→    }
+  1014→  1014→  }, [addWin, addXp, completeDaily, dailyGoal, persist, processDiscovery, pushHud, setBest, showBanner, unlockBadge])
+  1015→  1015→
+  1016→  1016→  /* ================= Rendu React ================= */
+  1017→  1017→  const rarityChip = (r: Rarity) =>
+  1018→  1018→    r === 'common'
+  1019→  1019→      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+  1020→  1020→      : r === 'rare'
+  1021→  1021→        ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300'
+  1022→  1022→        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+  1023→  1023→
+  1024→  1024→  const goalProgress = (i: number) => {
+  1025→  1025→    if (i === 0) return dayStats.bestCast >= 5
+  1026→  1026→    if (i === 1) return dayStats.deep
+  1027→  1027→    return dayStats.dayCount >= 10
+  1028→  1028→  }
+  1029→  1029→
+  1030→  1030→  return (
+  1031→  1031→    <div className="relative select-none touch-manipulation">
+  1032→  1032→      <Confetti fire={confetti} count={reduce ? 0 : 80} />
+  1033→  1033→
+  1034→  1034→      {/* HUD compact — une seule ligne */}
+  1035→  1035→      <div className="mb-2 flex items-center gap-1.5">
+  1036→  1036→        {phase === 'playing' ? (
+  1037→  1037→          <>
+  1038→  1038→            <Pill icon="🎣" label={T.onHook}>×{hud.cast}</Pill>
+  1039→  1039→            <Pill icon="📖" label={T.species}>{caught.size}/12</Pill>
+  1040→  1040→            <Pill icon="📏" label={T.depth}>{hud.depth} {T.meters}</Pill>
+  1041→  1041→            <Button
+  1042→  1042→              variant="secondary"
+  1043→  1043→              size="sm"
+  1044→  1044→              className="ms-auto h-9 w-9 shrink-0 rounded-full p-0"
+  1045→  1045→              aria-label={T.exit}
+  1046→  1046→              title={T.exit}
+  1047→  1047→              onClick={handleExit}
+  1048→  1048→            >
+  1049→  1049→              <X className="h-4 w-4" aria-hidden="true" />
+  1050→  1050→            </Button>
+  1051→  1051→            <Button
+  1052→  1052→              variant="secondary"
+  1053→  1053→              size="sm"
+  1054→  1054→              className="h-9 w-9 shrink-0 rounded-full p-0"
+  1055→  1055→              aria-label={`${T.collection} — ${caught.size}/12`}
+  1056→  1056→              title={T.collection}
+  1057→  1057→              onClick={openBook}
+  1058→  1058→            >
+  1059→  1059→              <BookOpen className="h-4 w-4" aria-hidden="true" />
+  1060→  1060→            </Button>
+  1061→  1061→          </>
+  1062→  1062→        ) : (
+  1063→  1063→          <>
+  1064→  1064→            {hydrated ? <Pill icon="📖" label={`${T.best} · ${T.speciesBest}`}>{bestSpecies}/12</Pill> : null}
+  1065→  1065→            {hydrated && bestCatch > 0 ? <Pill icon="🎣" label={`${T.best} · ${T.catchBest}`}>×{bestCatch}</Pill> : null}
+  1066→  1066→            <Button
+  1067→  1067→              variant="secondary"
+  1068→  1068→              size="sm"
+  1069→  1069→              className="ms-auto h-9 shrink-0 gap-1.5 rounded-full px-3"
+  1070→  1070→              onClick={openBook}
+  1071→  1071→            >
+  1072→  1072→              <BookOpen className="h-4 w-4" aria-hidden="true" />
+  1073→  1073→              {T.collection} {caught.size}/12
+  1074→  1074→            </Button>
+  1075→  1075→          </>
+  1076→  1076→        )}
+  1077→  1077→      </div>
+  1078→  1078→
+  1079→  1079→      {/* Aquarium — tient dans le budget vertical mobile, éléments en % */}
+  1080→  1080→      <div
+  1081→  1081→        ref={wrapRef}
+  1082→  1082→        className="relative w-full overflow-hidden rounded-2xl border shadow-inner h-[calc(100dvh-244px)] max-h-[680px] min-h-[300px]"
+  1083→  1083→      >
+  1084→  1084→        <canvas
+  1085→  1085→          ref={canvasRef}
+  1086→  1086→          role="img"
+  1087→  1087→          aria-label={T.ariaCanvas}
+  1088→  1088→          className="no-select block h-full w-full touch-none"
+  1089→  1089→          style={{ touchAction: 'none' }}
+  1090→  1090→        />
+  1091→  1091→
+  1092→  1092→        {/* Compteur du jour (cible des vols de poissons) */}
+  1093→  1093→        {phase === 'playing' ? (
+  1094→  1094→          <span
+  1095→  1095→            className="pointer-events-none absolute right-2 top-2 z-10 flex h-8 items-center gap-1.5 rounded-full bg-white/85 px-2.5 text-xs font-bold tabular-nums text-stone-700 shadow-sm backdrop-blur-sm dark:bg-stone-900/70 dark:text-stone-200"
+  1096→  1096→            title={T.today}
+  1097→  1097→          >
+  1098→  1098→            <span aria-hidden="true">🐟</span> ×{hud.today}{dailyDone ? ' ✅' : ''}
+  1099→  1099→            <span className="sr-only">{T.today}</span>
+  1100→  1100→          </span>
+  1101→  1101→        ) : null}
+  1102→  1102→
+  1103→  1103→        {/* Bandeau d'annonce (défi du jour / record) */}
+  1104→  1104→        {banner ? (
+  1105→  1105→          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center px-4" role="status">
+  1106→  1106→            <div
+  1107→  1107→              className={cn(
+  1108→  1108→                'anim-rise flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold shadow-xl backdrop-blur',
+  1109→  1109→                banner.kind === 'daily'
+  1110→  1110→                  ? 'border-emerald-300/70 bg-emerald-50/95 text-emerald-700 dark:bg-emerald-950/85 dark:text-emerald-200'
+  1111→  1111→                  : 'border-amber-300/70 bg-amber-50/95 text-amber-700 dark:bg-amber-950/85 dark:text-amber-200',
+  1112→  1112→              )}
+  1113→  1113→            >
+  1114→  1114→              {banner.kind === 'daily' ? (
+  1115→  1115→                <><span aria-hidden="true">🎯</span>{T.goalDone}</>
+  1116→  1116→              ) : (
+  1117→  1117→                <><span aria-hidden="true">🏆</span>{T.newRecord} · ×{banner.value}</>
+  1118→  1118→              )}
+  1119→  1119→            </div>
+  1120→  1120→          </div>
+  1121→  1121→        ) : null}
+  1122→  1122→
+  1123→  1123→        {/* Carte de découverte */}
+  1124→  1124→        {discovery ? (
+  1125→  1125→          <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex justify-center px-4" role="status">
+  1126→  1126→            <div className="anim-rise flex items-center gap-3 rounded-2xl border border-amber-300/70 bg-card/95 px-4 py-3 shadow-xl">
+  1127→  1127→              <span className="text-4xl" aria-hidden="true">{discovery.emoji}</span>
+  1128→  1128→              <div className="text-left">
+  1129→  1129→                <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">✨ {T.newSpecies}</p>
+  1130→  1130→                <p className="font-display text-lg font-extrabold leading-tight">{discovery.name[lang]}</p>
+  1131→  1131→                <span className={cn('mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold', rarityChip(discovery.rarity))}>
+  1132→  1132→                  {T.rarity[discovery.rarity]}
+  1133→  1133→                </span>
+  1134→  1134→              </div>
+  1135→  1135→            </div>
+  1136→  1136→          </div>
+  1137→  1137→        ) : null}
+  1138→  1138→
+  1139→  1139→        {/* Écran d'accueil — bouton Jouer visible immédiatement */}
+  1140→  1140→        {phase === 'idle' ? (
+  1141→  1141→          <div className="absolute inset-0 z-20 overflow-y-auto nice-scroll bg-stone-900/40 backdrop-blur-[2px]">
+  1142→  1142→            <div className="flex min-h-full flex-col items-center justify-center gap-3 p-4 text-center">
+  1143→  1143→              <div className="flex gap-2" aria-hidden="true">
+  1144→  1144→                {['⛵', '🐟', '✨'].map((e, i) => (
+  1145→  1145→                  <span key={i} className="text-3xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
+  1146→  1146→                ))}
+  1147→  1147→              </div>
+  1148→  1148→              <h3 className="font-display text-xl font-extrabold text-white drop-shadow sm:text-2xl">⛵ {T.title}</h3>
+  1149→  1149→              <p className="max-w-sm text-xs text-stone-100 sm:text-sm">{content.tagline[lang]}</p>
+  1150→  1150→              <p className="max-w-xs rounded-xl bg-white/15 px-3 py-1.5 text-[11px] text-stone-100">{T.hint}</p>
+  1151→  1151→              <Button size="lg" className="h-11 rounded-full px-7 anim-glow" onClick={handleStart}>
+  1152→  1152→                <Play className="h-5 w-5" aria-hidden="true" /> {T.play}
+  1153→  1153→              </Button>
+  1154→  1154→              {/* Défis du jour */}
+  1155→  1155→              <div className="w-full max-w-sm rounded-xl bg-white/10 p-2.5 text-left backdrop-blur-sm">
+  1156→  1156→                <p className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-amber-200">
+  1157→  1157→                  <CalendarCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+  1158→  1158→                  <span className="truncate">{T.goalTitle}</span>
+  1159→  1159→                  {dailyDone ? (
+  1160→  1160→                    <span className="ms-auto shrink-0 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] text-emerald-200">✓ {T.goalDone}</span>
+  1161→  1161→                  ) : null}
+  1162→  1162→                </p>
+  1163→  1163→                <ul className="space-y-0.5">
+  1164→  1164→                  {T.goals.map((goal, i) => (
+  1165→  1165→                    <li key={i} className={cn('flex items-center gap-1.5 text-[11px] text-stone-100', i === dailyGoal && 'font-bold text-amber-200')}>
+  1166→  1166→                      <span aria-hidden="true">{i === dailyGoal ? '🎯' : '•'}</span>
+  1167→  1167→                      <span className="min-w-0 flex-1">
+  1168→  1168→                        {goal}
+  1169→  1169→                        {i === 0 ? ` (${dayStats.bestCast}/5)` : i === 2 ? ` (${dayStats.dayCount}/10)` : ''}
+  1170→  1170→                      </span>
+  1171→  1171→                      {goalProgress(i) ? <Check className="h-3 w-3 shrink-0 text-emerald-400" aria-hidden="true" /> : null}
+  1172→  1172→                    </li>
+  1173→  1173→                  ))}
+  1174→  1174→                </ul>
+  1175→  1175→              </div>
+  1176→  1176→            </div>
+  1177→  1177→          </div>
+  1178→  1178→        ) : null}
+  1179→  1179→      </div>
+  1180→  1180→
+  1181→  1181→      {/* Carnet de collection */}
+  1182→  1182→      <Dialog
+  1183→  1183→        open={bookOpen}
+  1184→  1184→        onOpenChange={(o) => {
+  1185→  1185→          setBookOpen(o)
+  1186→  1186→          if (!o) sfx.play('click', { volume: 0.4 })
+  1187→  1187→        }}
+  1188→  1188→      >
+  1189→  1189→        <DialogContent className="max-h-[85vh] overflow-y-auto nice-scroll">
+  1190→  1190→          <DialogHeader>
+  1191→  1191→            <DialogTitle className="font-display text-xl">📖 {T.collection} — {caught.size}/12</DialogTitle>
+  1192→  1192→          </DialogHeader>
+  1193→  1193→          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+  1194→  1194→            {SPECIES.map((sp) => {
+  1195→  1195→              const has = caught.has(sp.id)
+  1196→  1196→              return (
+  1197→  1197→                <div
+  1198→  1198→                  key={sp.id}
+  1199→  1199→                  className={cn(
+  1200→  1200→                    'flex flex-col items-center gap-1 rounded-xl border p-2.5 text-center',
+  1201→  1201→                    has ? 'border-border bg-card' : 'border-dashed bg-card/50 opacity-70',
+  1202→  1202→                  )}
+  1203→  1203→                >
+  1204→  1204→                  <span className="text-3xl" aria-hidden="true">{has ? sp.emoji : '❓'}</span>
+  1205→  1205→                  <span className="text-[11px] font-bold leading-tight">{has ? sp.name[lang] : '???'}</span>
+  1206→  1206→                  {has ? (
+  1207→  1207→                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', rarityChip(sp.rarity))}>
+  1208→  1208→                      {T.rarity[sp.rarity]}
+  1209→  1209→                    </span>
+  1210→  1210→                  ) : (
+  1211→  1211→                    <span className="text-[10px] text-muted-foreground">{T.bands[sp.band]}</span>
+  1212→  1212→                  )}
+  1213→  1213→                </div>
+  1214→  1214→              )
+  1215→  1215→            })}
+  1216→  1216→          </div>
+  1217→  1217→          <p className="text-xs text-muted-foreground">
+  1218→  1218→            {hydrated && bestCatch > 0 ? `${T.catchBest} : ×${bestCatch} · ` : ''}❓ {T.unknown}
+  1219→  1219→          </p>
+  1220→  1220→          <p className="text-xs text-muted-foreground">
+  1221→  1221→            {T.bands[0]} · {T.bands[1]} · {T.bands[2]}
+  1222→  1222→          </p>
+  1223→  1223→        </DialogContent>
+  1224→  1224→      </Dialog>
+  1225→  1225→    </div>
+  1226→  1226→  )
+  1227→  1227→}
+  1228→  1228→

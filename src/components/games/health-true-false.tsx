@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, CalendarCheck, Zap, ArrowRight, Share2, Star, Trophy, Flame, CheckCircle2, XCircle, BookMarked, Home } from 'lucide-react'
+import { Play, CalendarCheck, Zap, ArrowRight, Share2, Star, Trophy, Flame, CheckCircle2, XCircle, BookMarked, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
@@ -13,6 +13,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { QUIZ_STATEMENTS, type QuizStatement } from '@/components/games/data/health-true-false-data'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { DifficultyDots } from '@/components/shared/ui-bits'
 import { toast } from 'sonner'
 
@@ -189,6 +190,7 @@ export default function HealthTrueFalseGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -203,6 +205,7 @@ export default function HealthTrueFalseGame() {
   const [streak, setStreak] = useState(0)
   const [end, setEnd] = useState<{ score: number; stars: number; isRecord: boolean; bestStreak: number; dailyFresh: boolean } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   /* Série de bonnes réponses persistante sur la session (chaîne de séries), remise à zéro sur erreur. */
   const streakRef = useRef(0)
@@ -243,6 +246,7 @@ export default function HealthTrueFalseGame() {
       menu: 'Menu',
       replay: 'Rejouer',
       replayDaily: 'Rejouer le défi',
+      retry: 'Réessayer',
       shareTitle: 'Granmed — Vrai ou Faux Santé',
       noteSources: 'Contenu informatif fondé sur les repères d’organismes de santé publique ; il ne remplace pas l’avis d’un professionnel de santé.',
       sourcesChip: 'Sources : OMS, NHS, Inserm, Harvard Health, ANSES…',
@@ -283,6 +287,7 @@ export default function HealthTrueFalseGame() {
       menu: 'Menu',
       replay: 'Play again',
       replayDaily: 'Replay the challenge',
+      retry: 'Try again',
       shareTitle: 'Granmed — True or False Health',
       noteSources: 'Informational content based on public-health agency guidance; it does not replace advice from a healthcare professional.',
       sourcesChip: 'Sources: WHO, NHS, Inserm, Harvard Health, ANSES…',
@@ -362,19 +367,21 @@ export default function HealthTrueFalseGame() {
     if (score >= 10) {
       addWin(gameId)
       sfx.play('win')
+      setConfettiKey((k) => k + 1)
+      setBurstKey((k) => k + 1)
     } else {
       sfx.play('sweep', { volume: 0.6 })
     }
     addXp(10 * score)
+    addGameXp(gameId, Math.round(10 + (score / SERIES_LEN) * 18))
     if (score === SERIES_LEN) {
       unlockBadge('quiz-perfect')
-      setConfettiKey((k) => k + 1)
       buzz([30, 40, 30])
     }
     if (dailyFresh) completeDaily(gameId)
     setEnd({ score, stars, isRecord, bestStreak: best, dailyFresh })
     setPhase('done')
-  }, [results, mode, setBest, addWin, addXp, unlockBadge, completeDaily])
+  }, [results, mode, setBest, addWin, addXp, addGameXp, unlockBadge, completeDaily])
 
   /* --- Question suivante --- */
   const next = useCallback(() => {
@@ -457,8 +464,9 @@ export default function HealthTrueFalseGame() {
 
   /* ================= Rendu ================= */
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 90} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={end ? Math.max(1, end.stars) : 3} sub={end ? `${end.score}/${SERIES_LEN}` : undefined} />
 
       {/* ---------- Menu : choix du mode (compact, 2 gros boutons immédiatement visibles) ---------- */}
       {phase === 'menu' ? (
@@ -773,11 +781,15 @@ export default function HealthTrueFalseGame() {
             ) : null}
           </div>
 
-          <div className="mt-3.5 flex flex-wrap justify-center gap-2">
-            <Button ref={replayBtnRef} size="lg" className="h-11 rounded-full px-5" onClick={() => startSeries(mode)}>
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {mode === 'daily' ? L.replayDaily : L.replay}
-            </Button>
+          <div className="mt-3.5">
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startSeries(mode)}
+              replayLabel={end && end.score >= 10 ? (mode === 'daily' ? L.replayDaily : L.replay) : L.retry}
+              primaryRef={replayBtnRef}
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
             <Button size="lg" variant="secondary" className="h-11 rounded-full px-5" onClick={quitToMenu}>
               {L.menu}
             </Button>

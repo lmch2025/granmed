@@ -10,6 +10,7 @@ import { useHydrated, useReducedMotion, clamp } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 
 export const gameId = 'pill-toss'
 
@@ -411,6 +412,7 @@ export default function PillTossGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const bestScore = useProfileStore((s) => s.profile.games[gameId]?.records?.['best-score']?.value ?? 0)
@@ -423,6 +425,7 @@ export default function PillTossGame() {
     roundScore: number; bonus: number; total: number; isRecord: boolean; bestStreak: number
   }>(null)
   const [confetti, setConfetti] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -433,10 +436,16 @@ export default function PillTossGame() {
   const rafRef = useRef(0)
   const pausedRef = useRef(false)
   const lastStartRef = useRef(0)
+  const nextBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { langRef.current = lang }, [lang])
+
+  /* Focus clavier sur « Manche suivante » dès le résumé de fin de manche. */
+  useEffect(() => {
+    if (phase === 'roundEnd') nextBtnRef.current?.focus({ preventScroll: true })
+  }, [phase])
 
   const pushHud = useCallback(() => {
     const w = worldRef.current
@@ -456,9 +465,12 @@ export default function PillTossGame() {
     if (w.cleared) {
       addWin(gameId)
       addXp(14 + w.roundHits * 4)
+      addGameXp(gameId, 22)
+      setBurstKey((k) => k + 1)
       sfx.play('levelup')
     } else {
       addXp(6 + w.roundHits * 4)
+      addGameXp(gameId, 10)
       sfx.play('lose', { volume: 0.45 })
     }
     if (isRecord) setConfetti((k) => k + 1)
@@ -468,7 +480,7 @@ export default function PillTossGame() {
       bestStreak: w.maxStreakSession,
     })
     setPhase('roundEnd')
-  }, [addWin, addXp, setBest, unlockBadge])
+  }, [addWin, addXp, addGameXp, setBest, unlockBadge])
 
   /* ---------- démarrage ---------- */
   /* Garde anti double-clic (double addPlay, saut de manche sur « Manche
@@ -975,13 +987,14 @@ export default function PillTossGame() {
 
   /* ================= Rendu React ================= */
   return (
-    <div className="relative select-none touch-manipulation">
-      <Confetti fire={confetti} count={reduce ? 0 : 90} />
+    <div className="relative select-none touch-manipulation my-auto w-full flex h-[var(--board-h,auto)] flex-col justify-center">
+      <Confetti fire={confetti} count={reduce ? 0 : 90} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={summary ? (summary.acc >= 80 ? 3 : summary.acc >= 50 ? 2 : 1) : 3} />
 
       {/* HUD compact sur une seule ligne (caché à l'accueil : le bouton Jouer
           arrive plus tôt à l'écran, sans le moindre scroll). */}
       {phase !== 'idle' ? (
-        <div className="mb-1.5 flex h-9 flex-wrap items-center gap-1.5 text-xs font-bold">
+        <div className="mb-1.5 flex h-9 shrink-0 flex-wrap items-center gap-1.5 text-xs font-bold">
           <div className="flex h-8 items-center gap-1 rounded-full bg-secondary/70 px-2" title={T.round}>
             <span aria-hidden="true">🎯</span>
             <span className="tabular-nums">{hud.round}</span>
@@ -1036,7 +1049,7 @@ export default function PillTossGame() {
           mobile portrait elle remplit ~90 % du budget vertical disponible. */}
       <div
         ref={wrapRef}
-        className="relative mx-auto aspect-[5/8] max-h-[calc(100dvh_-_290px)] w-full max-w-[560px] overflow-hidden rounded-2xl border shadow-inner"
+        className="relative mx-auto aspect-[5/8] max-h-[var(--board-maxh,calc(100dvh_-_290px))] w-full max-w-[560px] overflow-hidden rounded-2xl border shadow-inner"
       >
         <canvas
           ref={canvasRef}
@@ -1114,13 +1127,21 @@ export default function PillTossGame() {
               ) : null}
               {/* Empilés sur mobile : les libellés FR ne tiennent pas côte à
                   côte dans 288 px (whitespace-nowrap des boutons). */}
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-center">
-                <Button autoFocus className="h-10 w-full rounded-full px-5 text-sm sm:w-auto" onClick={handleNext}>
-                  <SkipForward className="h-4 w-4" aria-hidden="true" /> {T.next}
-                </Button>
-                <Button variant="secondary" className="h-10 w-full rounded-full px-4 text-sm sm:w-auto" onClick={handleEnd}>
-                  <Square className="h-3.5 w-3.5" aria-hidden="true" /> {T.end}
-                </Button>
+              <div className="mt-3">
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={handleNext}
+                  replayLabel={T.next}
+                  replayIcon={<SkipForward className="h-5 w-5" aria-hidden="true" />}
+                  primaryRef={nextBtnRef}
+                />
+                <button
+                  type="button"
+                  onClick={handleEnd}
+                  className="mx-auto mt-1.5 flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  <Square className="h-3 w-3" aria-hidden="true" /> {T.end}
+                </button>
               </div>
             </div>
           </div>
@@ -1136,10 +1157,8 @@ export default function PillTossGame() {
               <p className="mt-1.5 text-xs text-muted-foreground">
                 {T.bestStreak} : <span className="font-bold tabular-nums text-foreground">×{summary.bestStreak}</span>
               </p>
-              <div className="mt-3 flex justify-center">
-                <Button className="h-11 rounded-full px-6" onClick={handleStart}>
-                  <RotateCcw className="h-5 w-5" aria-hidden="true" /> {T.again}
-                </Button>
+              <div className="mt-3">
+                <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.again} />
               </div>
             </div>
           </div>

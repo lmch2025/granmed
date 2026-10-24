@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { STORIES, type Story } from '@/components/games/data/interactive-story-data'
 
 export const gameId = 'interactive-story'
@@ -250,6 +251,7 @@ export default function InteractiveStoryGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
 
@@ -260,6 +262,9 @@ export default function InteractiveStoryGame() {
   const [history, setHistory] = useState<ChoiceRef[]>([])
   const [runKey, setRunKey] = useState(0)
   const [confetti, setConfetti] = useState(0)
+  /* Célébration de victoire (fin inédite) — médaille + étoiles. */
+  const [burst, setBurst] = useState<{ emoji: string; title?: string } | null>(null)
+  const [burstKey, setBurstKey] = useState(0)
   const [pendingResume, setPendingResume] = useState<string | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   /** Nombre de caractères révélés par l'effet d'écriture. */
@@ -474,6 +479,10 @@ export default function InteractiveStoryGame() {
           // 20 XP (nouvelle fin) + 5 XP (lecture terminée) — rejouer une fin
           // déjà connue ne rapporte rien.
           addXp(ENDING_XP)
+          // XP du jeu : fin inédite 22, fin déjà connue 8.
+          addGameXp(gameId, 22)
+          setBurst({ emoji: nextNode.ending?.emoji ?? '📖', title: DICT[lang].newEnding })
+          setBurstKey((k) => k + 1)
           const total = STORIES.reduce((n, s) => n + (map[s.id]?.discovered.length ?? 0), 0)
           setBest(gameId, 'endings-found', total, false)
           unlockBadge('story-first')
@@ -481,6 +490,7 @@ export default function InteractiveStoryGame() {
         } else {
           sfx.play('levelup', { volume: 0.7 })
           navigator.vibrate?.(15)
+          addGameXp(gameId, 8)
         }
       } else {
         /* ----- Chapitre suivant ----- */
@@ -491,7 +501,7 @@ export default function InteractiveStoryGame() {
         commit(map)
       }
     },
-    [story, node, lang, nodeId, history, endingIds, addWin, addXp, setBest, unlockBadge, commit, setTypedBoth],
+    [story, node, lang, nodeId, history, endingIds, addWin, addXp, addGameXp, setBest, unlockBadge, commit, setTypedBoth],
   )
 
   /* --- Révéler tout le chapitre (tap sur le panneau ou Entrée) --- */
@@ -568,8 +578,9 @@ export default function InteractiveStoryGame() {
 
   /* ================= Rendu ================= */
   return (
-    <div className="relative select-none">
-      <Confetti fire={confetti} count={reduce ? 0 : 120} />
+    <div className="relative select-none my-auto w-full">
+      <Confetti fire={confetti} count={reduce ? 0 : 120} waves={2} gold />
+      <VictoryBurst fire={burstKey} stars={3} emoji={burst?.emoji ?? '📖'} title={burst?.title} />
 
       {screen === 'picker' || !story || !node ? (
         /* ---------- Bibliothèque ---------- */
@@ -833,15 +844,8 @@ export default function InteractiveStoryGame() {
                 })}
               </div>
 
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                <Button
-                  size="lg"
-                  className="h-12 rounded-full px-5"
-                  onClick={() => startStory(story.id)}
-                >
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                  {L.exploreAnother}
-                </Button>
+              <div className="mt-3 flex flex-col items-center gap-2.5">
+                <RoundEndActions gameId={gameId} onReplay={() => startStory(story.id)} replayLabel={L.exploreAnother} />
                 <Button
                   size="lg"
                   variant="secondary"

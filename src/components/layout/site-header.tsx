@@ -60,7 +60,7 @@ export function SiteHeader() {
   )
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md">
+    <header id="site-header" className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground">
         {t('misc.skipToContent')}
       </a>

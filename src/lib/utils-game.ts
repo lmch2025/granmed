@@ -105,6 +105,19 @@ export function useHydrated(): boolean {
   )
 }
 
+/** Media query réactive (SSR-safe : faux côté serveur). Ex. useMediaQuery('(max-width: 639px)'). */
+export function useMediaQuery(query: string): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(query)
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => window.matchMedia(query).matches,
+    () => false,
+  )
+}
+
 /** Minuteur à intervalle — propre et stable. */
 export function useInterval(cb: () => void, ms: number | null): void {
   useEffect(() => {

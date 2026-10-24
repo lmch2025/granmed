@@ -11,6 +11,7 @@ import { todayKey, mulberry32, seedFromString, shuffle, clamp, formatMs, useRedu
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
+import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
 
 export const gameId = 'sudoku'
@@ -380,6 +381,7 @@ export default function SudokuGame() {
   const addPlay = useProfileStore((s) => s.addPlay)
   const addWin = useProfileStore((s) => s.addWin)
   const addXp = useProfileStore((s) => s.addXp)
+  const addGameXp = useProfileStore((s) => s.addGameXp)
   const setBest = useProfileStore((s) => s.setBest)
   const unlockBadge = useProfileStore((s) => s.unlockBadge)
   const completeDaily = useProfileStore((s) => s.completeDaily)
@@ -403,6 +405,7 @@ export default function SudokuGame() {
   const [sessKey, setSessKey] = useState(0)
   const [restored, setRestored] = useState<SudokuSave | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
+  const [burstKey, setBurstKey] = useState(0)
   const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number; isRecord: boolean } | null>(null)
   const [confirmRestart, setConfirmRestart] = useState(false)
 
@@ -718,9 +721,12 @@ export default function SudokuGame() {
     setPhase('won')
     setWonInfo({ ms, xp, isRecord })
     setConfettiKey((k) => k + 1)
+    setBurstKey((k) => k + 1)
     sfx.play('win')
     addWin(gameId)
     addXp(xp)
+    /* Niveaux par jeu : 30 sans indice, léger malus par indice utilisé. */
+    addGameXp(gameId, Math.max(20, 30 - 4 * hu))
     if (diff === 'hard') unlockBadge('sudoku-hard')
     if (diff === 'expert' && hu === 0) unlockBadge('sudoku-expert-nohints')
     // Crédit du défi du jour uniquement si la grille a bien été lancée aujourd'hui
@@ -802,7 +808,7 @@ export default function SudokuGame() {
   /* --- Rendu : écran de choix (compact, boutons visibles immédiatement) --- */
   if (phase === 'menu') {
     return (
-      <div className="checkerboard flex min-h-[300px] select-none flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center sm:p-6">
+      <div className="checkerboard flex min-h-[300px] w-full select-none flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center sm:p-6 my-auto">
         <div className="flex gap-2" aria-hidden="true">
           {['🔢', '✏️', '🧘'].map((e, i) => (
             <span key={i} className={cn('text-3xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>
@@ -853,7 +859,7 @@ export default function SudokuGame() {
 
   if (phase === 'generating') {
     return (
-      <div className="flex min-h-[300px] select-none flex-col items-center justify-center gap-3 rounded-2xl border p-6 text-center" aria-busy="true">
+      <div className="flex min-h-[300px] w-full select-none flex-col items-center justify-center gap-3 rounded-2xl border p-6 text-center my-auto" aria-busy="true">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" role="status" aria-label={L.generating} />
         <p className="font-display text-base font-bold">{L.generating}</p>
         <p className="max-w-xs text-xs text-muted-foreground">{L.generatingSub}</p>
@@ -862,8 +868,13 @@ export default function SudokuGame() {
   }
 
   return (
-    <div className="relative select-none">
-      <Confetti fire={confettiKey} count={reduce ? 0 : 110} />
+    <div className="relative my-auto w-full select-none">
+      <Confetti fire={confettiKey} count={reduce ? 0 : 110} waves={2} gold />
+      <VictoryBurst
+        fire={burstKey}
+        stars={hintsUsed === 0 && mistakes === 0 ? 3 : hintsUsed <= 1 && mistakes <= 3 ? 2 : 1}
+        sub={phase === 'won' && wonInfo ? `${t(`common.${diff}`)} · ${formatMs(wonInfo.ms)}` : undefined}
+      />
 
       {/* HUD compact une ligne : temps, erreurs, difficulté + pause/recommencer */}
       <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
@@ -1005,7 +1016,7 @@ export default function SudokuGame() {
         {/* Victoire : overlay immédiat avec Rejouer */}
         {phase === 'won' && wonInfo ? (
           <div
-            className="anim-rise absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 bg-card/95 p-4 text-center backdrop-blur-md"
+            className="anim-rise nice-scroll absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 overflow-y-auto bg-card/95 p-4 text-center backdrop-blur-md"
             role="status"
           >
             <p className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">🎉 {t('common.victory')}</p>
@@ -1020,20 +1031,23 @@ export default function SudokuGame() {
               {mistakes > 0 ? <StatPill icon={<span className="text-xs" aria-hidden="true">✕</span>} label={L.errorsLabel} value={mistakes} /> : null}
               <StatPill icon={<span className="text-xs" aria-hidden="true">⭐</span>} label={L.xpEarned} value={`+${wonInfo.xp}`} />
             </div>
-            <div className="mt-1 flex flex-wrap justify-center gap-2">
-              <Button size="lg" className="rounded-full" onClick={() => newGame(diff)}>
-                <RotateCcw className="h-4 w-4" aria-hidden="true" /> {L.replay}
-              </Button>
+            <div className="mt-1 w-full">
+              <RoundEndActions
+                gameId={gameId}
+                onReplay={() => newGame(diff)}
+                replayLabel={L.replay}
+                replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              />
               <Button
-                size="lg"
-                variant="secondary"
-                className="rounded-full"
+                variant="ghost"
+                size="sm"
+                className="mt-1 h-9 w-full rounded-2xl text-xs font-semibold"
                 onClick={() => {
                   sfx.play('click')
                   setPhase('menu')
                 }}
               >
-                <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
+                <Play className="h-3.5 w-3.5" aria-hidden="true" /> {t('game.newGame')}
               </Button>
             </div>
           </div>
