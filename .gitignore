@@ -50,5 +50,11 @@ test
 prompt
 
 server.log
+
+# Protection de l'acquis (Task 14) : archives locales non versionnées.
+# Le manifeste, le garde-fou et le CHANGELOG SONT versionnés.
+/.backups/
+/tool-results/
+
 # Skills directory
 /skills/

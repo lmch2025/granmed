@@ -1,0 +1,1491 @@
+{
+  "manifestVersion": 1,
+  "generatedAt": "2026-10-25T22:34:02.953Z",
+  "reason": "Baseline finale Task 14 : garde-fou dédupliqué (signalement unique des jeux), charte, scripts npm",
+  "baselineCommit": "21b9825fca216db9541074beb20fd6071d233e10",
+  "stableTag": "v1.0-stable",
+  "games": [
+    {
+      "slug": "memory-match",
+      "file": "src/components/games/memory-match.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'memory-match'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "sequence-memory",
+      "file": "src/components/games/sequence-memory.tsx",
+      "daily": false,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'sequence-memory'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst"
+      ]
+    },
+    {
+      "slug": "schulte-table",
+      "file": "src/components/games/schulte-table.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'schulte-table'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "speed-math",
+      "file": "src/components/games/speed-math.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'speed-math'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "mini-crossword",
+      "file": "src/components/games/mini-crossword.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'mini-crossword'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "health-true-false",
+      "file": "src/components/games/health-true-false.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'health-true-false'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "merge-garden",
+      "file": "src/components/games/merge-garden.tsx",
+      "daily": false,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'merge-garden'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "VictoryBurst"
+      ]
+    },
+    {
+      "slug": "2048-nutrition",
+      "file": "src/components/games/2048-nutrition.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = '2048-nutrition'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "sudoku",
+      "file": "src/components/games/sudoku.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'sudoku'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "daily-word",
+      "file": "src/components/games/daily-word.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'daily-word'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "minesweeper",
+      "file": "src/components/games/minesweeper.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'minesweeper'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "block-puzzle",
+      "file": "src/components/games/block-puzzle.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'block-puzzle'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "jigsaw-puzzle",
+      "file": "src/components/games/jigsaw-puzzle.tsx",
+      "daily": false,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'jigsaw-puzzle'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst"
+      ]
+    },
+    {
+      "slug": "pill-toss",
+      "file": "src/components/games/pill-toss.tsx",
+      "daily": false,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'pill-toss'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst"
+      ]
+    },
+    {
+      "slug": "fire-escape",
+      "file": "src/components/games/fire-escape.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'fire-escape'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "zen-fishing",
+      "file": "src/components/games/zen-fishing.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'zen-fishing'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "fruit-slice",
+      "file": "src/components/games/fruit-slice.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'fruit-slice'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "guess-the-idiom",
+      "file": "src/components/games/guess-the-idiom.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'guess-the-idiom'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "longest-word",
+      "file": "src/components/games/longest-word.tsx",
+      "daily": true,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'longest-word'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst",
+        "completeDaily"
+      ]
+    },
+    {
+      "slug": "interactive-story",
+      "file": "src/components/games/interactive-story.tsx",
+      "daily": false,
+      "requires": [
+        "export default",
+        "export const content",
+        "export const gameId = 'interactive-story'",
+        "sfx.",
+        "my-auto",
+        "addGameXp",
+        "RoundEndActions",
+        "VictoryBurst"
+      ]
+    }
+  ],
+  "frozen": {
+    "src/hooks/use-mobile.ts": {
+      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
+      "bytes": 565
+    },
+    "src/hooks/use-toast.ts": {
+      "sha256": "12f8fcd1101acdd4a1cf6952d85aa8997d2a53aa9956d3cb77a85d441e54b1a9",
+      "bytes": 3917
+    },
+    "src/app/globals.css": {
+      "sha256": "af3aba6b71b3910a78e13fd9dc1df2c286331132df08b49f336fffc3cd2d081e",
+      "bytes": 22350
+    },
+    "src/app/layout.tsx": {
+      "sha256": "5f38a2ec6156d0995505e76b5c940765df1faec203797fef3349d3f586d76748",
+      "bytes": 3698
+    },
+    "src/app/api/route.ts": {
+      "sha256": "bb3323e70b608cf916b285f8942d8efabb02166f84f9e5a8aa6fe9e417344bce",
+      "bytes": 134
+    },
+    "src/app/page.tsx": {
+      "sha256": "fe933bbabe3044c861778bcab33dc9bd563bdb624df619a55ec400bbcf392239",
+      "bytes": 3225
+    },
+    "src/components/games/speed-math.tsx": {
+      "sha256": "b794381a30515371feecc60a2789b3b91b37268b3ef563194dc484273991c8f9",
+      "bytes": 37581
+    },
+    "src/components/games/daily-word.tsx": {
+      "sha256": "c347b3da7c7d83df3f6b97c30b6cc281e2f8c6113004521df083f4e4f6a78c52",
+      "bytes": 43801
+    },
+    "src/components/games/zen-fishing.tsx": {
+      "sha256": "7e09cfc7f054e457e974952a06a0b5a8bca0387f4df2d292697f528e131fda1b",
+      "bytes": 51425
+    },
+    "src/components/games/merge-garden.tsx": {
+      "sha256": "a8d0f28979784ce75f5471d1bd7645f9dc4a6e3aeb9f1788dc9622823aa472ad",
+      "bytes": 41497
+    },
+    "src/components/games/memory-match.tsx": {
+      "sha256": "03a82c5c4a541cfb94f6d9d10fea36cedc2b4cf3a9630938dde09f27d65eb0b5",
+      "bytes": 32972
+    },
+    "src/components/games/mini-crossword.tsx": {
+      "sha256": "ad1af9d8330f02a3db5f12437ffc405f694554ac69b2ce4147eeaa14ab254b9b",
+      "bytes": 53749
+    },
+    "src/components/games/pill-toss.tsx": {
+      "sha256": "08f1f3dec306afd4c73c215c6a0fd7d906d791dd9ff27deb1ffc9a4abc373cbc",
+      "bytes": 48818
+    },
+    "src/components/games/fire-escape.tsx": {
+      "sha256": "ebee709de2a7dffc19242f90f04b7a97d48b575ea8306cefb6c5bca96ed7327d",
+      "bytes": 45872
+    },
+    "src/components/games/longest-word.tsx": {
+      "sha256": "f27e21d9c9df25636c5595692501b15deac4b7623eacfe73973a1feeebe2d35d",
+      "bytes": 53989
+    },
+    "src/components/games/interactive-story.tsx": {
+      "sha256": "b8ebb2fcc4754189445855576bea0a3ade147e6508469ffa3b771608e94e378b",
+      "bytes": 44425
+    },
+    "src/components/games/fruit-slice.tsx": {
+      "sha256": "7dd7256e43d8b19be59c5650295ebd3ae6146e24066c3044280d50602cde43c1",
+      "bytes": 42302
+    },
+    "src/components/games/2048-nutrition.tsx": {
+      "sha256": "62f7603ac895c456d8e025389071d5d4209a8ea79fb71dd73e07b2c686f65149",
+      "bytes": 38233
+    },
+    "src/components/games/health-true-false.tsx": {
+      "sha256": "395ecf1dc9ef0021f565f4622d42c3112ed4eac1e44bdfe8f5f34826da003417",
+      "bytes": 41566
+    },
+    "src/components/games/data/mini-crossword-data.ts": {
+      "sha256": "a658183ee37dd116274011e8e5d95dcc7c0bc774232f242aceb66f9a9c27e7b4",
+      "bytes": 14035
+    },
+    "src/components/games/data/daily-word-data.ts": {
+      "sha256": "2eced3042000b14bb0a6c4a158fa8af76cfa2dbd7f68b0080505186fd85e305b",
+      "bytes": 20959
+    },
+    "src/components/games/data/guess-the-idiom-data.ts": {
+      "sha256": "f8f484251b5d27fedab9be3bda695f256309929ec875cda3e4ce7fe2e6861218",
+      "bytes": 60629
+    },
+    "src/components/games/data/health-true-false-data.ts": {
+      "sha256": "1a52c81f7e0d28d7014971b693ec475022740b4c064c5a1df6d428608dc4a65a",
+      "bytes": 46735
+    },
+    "src/components/games/data/interactive-story-data.ts": {
+      "sha256": "b54710697036efcc1ec2a7ce54fe00d1af2e752e02d0e08c59232bc1625f74d1",
+      "bytes": 50524
+    },
+    "src/components/games/data/longest-word-data.ts": {
+      "sha256": "2e2997ca59479b690d390ca9407fe5e27ef467e7327e625716bab8b5bdaba30f",
+      "bytes": 46769
+    },
+    "src/components/games/guess-the-idiom.tsx": {
+      "sha256": "950ccde6503ee6227436f757d89060cc3a4b1aae152b3924b5b085ad3c8eccc8",
+      "bytes": 61467
+    },
+    "src/components/games/sudoku.tsx": {
+      "sha256": "2d989f52ed74756f6ef3b61e87ad8fa05e23d14df38fce5eb8372de7b1fe69a2",
+      "bytes": 45803
+    },
+    "src/components/games/block-puzzle.tsx": {
+      "sha256": "25aa4cc94b29c216756093d8229c35d9a98f544870dc4303eba901f541c12fd6",
+      "bytes": 45402
+    },
+    "src/components/games/minesweeper.tsx": {
+      "sha256": "5020326284bba7c9482a8ed5a6b832638a6b7eb1a53223e6adbe846c8b926fa2",
+      "bytes": 46853
+    },
+    "src/components/games/sequence-memory.tsx": {
+      "sha256": "2c931191e7cf9de1712a306cb015fa514d624c3c6d834c337d147da467deda57",
+      "bytes": 29205
+    },
+    "src/components/games/schulte-table.tsx": {
+      "sha256": "affb4d5845b3b13590464aad4ea466e90338b60e4da3c108c19fab73d1f80a75",
+      "bytes": 34439
+    },
+    "src/components/games/jigsaw-puzzle.tsx": {
+      "sha256": "863ff774cf2bcc80c9f9c73e0035e09f9948df4ed46a64d37b22aafbfeda8ac7",
+      "bytes": 52773
+    },
+    "src/components/dashboard/dashboard-view.tsx": {
+      "sha256": "6278c6277ab347accae8635277987954ff6377a7e66286f1954960c98b194403",
+      "bytes": 14505
+    },
+    "src/components/pages/guides-view.tsx": {
+      "sha256": "e8cc7b20435f9622267aab0f05112f3364f50fa93f3305d3a628c3fe63e80f00",
+      "bytes": 6164
+    },
+    "src/components/pages/category-view.tsx": {
+      "sha256": "53e452a7ce6e421e1cc951796920c65f45ce097e23d5211a397bc30eb658f5be",
+      "bytes": 2012
+    },
+    "src/components/pages/static-views.tsx": {
+      "sha256": "d6bceb1e65083f56c0f5180de8a7b10366aa8bf3c495937e9dd7198268afe458",
+      "bytes": 13137
+    },
+    "src/components/game/game-page.tsx": {
+      "sha256": "47787a69cd83201fa98f9b6c0e58e458def1ee71ba4cca953a3c343baf03650a",
+      "bytes": 12422
+    },
+    "src/components/game/round-end.tsx": {
+      "sha256": "49de80d7c611d276e9710ef1eafd81ed9c51524027f49696df1ffbac591048ea",
+      "bytes": 8094
+    },
+    "src/components/game/game-shell.tsx": {
+      "sha256": "d7d80e7d1b88c2ec954809b3e0d36e573e5cd8b52e54b30e2c328e114449894e",
+      "bytes": 18932
+    },
+    "src/components/layout/site-header.tsx": {
+      "sha256": "a5bc1f86503a40addc065d4d0664bcbeecac3503bad0830bb5bf8223d8798685",
+      "bytes": 9736
+    },
+    "src/components/layout/site-footer.tsx": {
+      "sha256": "b1200b96ef463fab6bf48b9b5502b1110e4589747dec1d3ca0dd7f923377b8a4",
+      "bytes": 4532
+    },
+    "src/components/granmed-app.tsx": {
+      "sha256": "a1bf24aa6fae92cf54a3b4aabf50c8115cf3a5bed9bf8e54f776b2e377c41fcb",
+      "bytes": 4285
+    },
+    "src/components/home/home-view.tsx": {
+      "sha256": "87e1a3e5f8a29b5fc1b452bdf535ea30804a1851345735f9f2d53e44460dc8c1",
+      "bytes": 16442
+    },
+    "src/components/shared/confetti.tsx": {
+      "sha256": "18d232b4bb9419b2206130d50255a91a4bb83ee13ffc730422d622efb31255ee",
+      "bytes": 4184
+    },
+    "src/components/shared/game-preview.tsx": {
+      "sha256": "66e67f95e4351e046f4d1e121b06e80032e78f273b18cbe611a8587bb7e4c794",
+      "bytes": 27172
+    },
+    "src/components/shared/ui-bits.tsx": {
+      "sha256": "80ce288f6b078d3364633be4f09b77634a4fb0d0072be284bda05e02dd6dca52",
+      "bytes": 9297
+    },
+    "src/components/shared/error-boundary.tsx": {
+      "sha256": "24fba9653bbe97577394baa869115fb54ec510fb8300059d2422ac5eefa9437c",
+      "bytes": 1378
+    },
+    "src/components/ui/radio-group.tsx": {
+      "sha256": "b12ca5cef859dd75b274337234bae66e413b0f97845243254a1dedcb2d7a7237",
+      "bytes": 1466
+    },
+    "src/components/ui/alert-dialog.tsx": {
+      "sha256": "59967c334f56dd44100e49b1fc18db428e7f15f5a28b9c2c4f9a3b7dcb4db4b7",
+      "bytes": 3864
+    },
+    "src/components/ui/input.tsx": {
+      "sha256": "6628e8fde207857b9ba08910d386eeea8213d7d745b4e0ae8b95332b52730db9",
+      "bytes": 967
+    },
+    "src/components/ui/command.tsx": {
+      "sha256": "4fb4f8f95dfbe884ae598661b80e541d62eacdfe2101beab58819ab58b96c2ea",
+      "bytes": 4818
+    },
+    "src/components/ui/pagination.tsx": {
+      "sha256": "53ffa0474d07dbfe1fb67f043a0ad7e7d24feecf950e65da8b929a90179c6ad4",
+      "bytes": 2712
+    },
+    "src/components/ui/skeleton.tsx": {
+      "sha256": "f2aea81d8baf2b621945382aabac150e3db40f20d19ac1abea7aff805f1dc33c",
+      "bytes": 276
+    },
+    "src/components/ui/dialog.tsx": {
+      "sha256": "491a87bfae8f28773624d353bf56b9288d0852413e814d508e0d086dc7b06edb",
+      "bytes": 3982
+    },
+    "src/components/ui/switch.tsx": {
+      "sha256": "17f2390d98e8ce4d9e90155eac1918266914d6a9ada7c276b5d1c917cef0e969",
+      "bytes": 1177
+    },
+    "src/components/ui/popover.tsx": {
+      "sha256": "29a217781737bbf5c430859b3de46097a44ada81c4143c2d05543d2167de0ee1",
+      "bytes": 1635
+    },
+    "src/components/ui/toaster.tsx": {
+      "sha256": "e4957974d6393d08f8237e6660a522e4f314610c6743b21c28f256efdb7fff7c",
+      "bytes": 785
+    },
+    "src/components/ui/card.tsx": {
+      "sha256": "78cdb63dff3ec7ef074ada630ff20a5d8004768b6cbe24ed134a8bfba12bafbb",
+      "bytes": 1989
+    },
+    "src/components/ui/sheet.tsx": {
+      "sha256": "3d6a560c635fd91094e43191ecf73b124ccb2537e6060f85d5d31fcf68150e74",
+      "bytes": 4090
+    },
+    "src/components/ui/sonner.tsx": {
+      "sha256": "958d33cd8a85293728acad21c1f3881da56b805bc11a3ec862d6aa355c152d90",
+      "bytes": 564
+    },
+    "src/components/ui/form.tsx": {
+      "sha256": "b41b4b10f5e11b2acc1accb7b027eba0581b5cdd549d3ccef92e30d1f4efcf54",
+      "bytes": 3759
+    },
+    "src/components/ui/sidebar.tsx": {
+      "sha256": "73561977bb06800b7d7700d844e4219b8dc4d14ac732c7a448e807005286d9f7",
+      "bytes": 21633
+    },
+    "src/components/ui/menubar.tsx": {
+      "sha256": "d3c5b6060323b78aef1b32650e22d3d951d1b125404f76ffb967ed80446a3ddd",
+      "bytes": 8394
+    },
+    "src/components/ui/label.tsx": {
+      "sha256": "9ec42c8a57e82311118b794318409ee02b2cebfa49ba6cce8457cff6448cd471",
+      "bytes": 611
+    },
+    "src/components/ui/hover-card.tsx": {
+      "sha256": "031f6a309d87c8e42a2282fccc277dde75e373de8c93dad881582c9dc13e05d0",
+      "bytes": 1532
+    },
+    "src/components/ui/collapsible.tsx": {
+      "sha256": "c2c74dc3e99482d00a57de673b56920860c2ff4b330373d783843f505dc11dae",
+      "bytes": 800
+    },
+    "src/components/ui/navigation-menu.tsx": {
+      "sha256": "d71f57fe0f365541fbf5d00196b0b78a461d8c4f38d35293e5754680d93b9245",
+      "bytes": 6664
+    },
+    "src/components/ui/carousel.tsx": {
+      "sha256": "b7ea0dda3903d972c186f739e23da61f547bc83b5a0bf13b16856577846d5fc3",
+      "bytes": 5556
+    },
+    "src/components/ui/select.tsx": {
+      "sha256": "8795c9fac7c48d565ff6c47cbf4cca8bfefe25d8cb3d7e7aeba36855739a76ab",
+      "bytes": 6253
+    },
+    "src/components/ui/resizable.tsx": {
+      "sha256": "41043c0f3dec3a41e163fcfbba4ed8138eeafcedd1aa40c007c3e195f34d37df",
+      "bytes": 2028
+    },
+    "src/components/ui/calendar.tsx": {
+      "sha256": "fe832b1ba33bd42a41cd2b66c7e156f5f421af87f8ceb799eea5db48bab6d294",
+      "bytes": 7660
+    },
+    "src/components/ui/progress.tsx": {
+      "sha256": "e7a89220fb49e18d6613956781cfd5eb38d5da36379e93f5fc90ccec127dc871",
+      "bytes": 740
+    },
+    "src/components/ui/accordion.tsx": {
+      "sha256": "7251e973cc6896411e3348c1e9cd10bb359934b0e766055c9a3439b07b775edc",
+      "bytes": 2053
+    },
+    "src/components/ui/dropdown-menu.tsx": {
+      "sha256": "9b346378821ba06f9501e4571fd7678cd8819d6833f833daff72bec699565c06",
+      "bytes": 8284
+    },
+    "src/components/ui/textarea.tsx": {
+      "sha256": "de4e9fb0fd8e8ed10ea2e475ffe202a922ffe77e3f3edb2c517b0781447ad1b4",
+      "bytes": 759
+    },
+    "src/components/ui/toggle-group.tsx": {
+      "sha256": "09eebce0dcbac76f860d4b6df5261c4f385f5ba233f88a0cd8dde91b1772abeb",
+      "bytes": 1925
+    },
+    "src/components/ui/tabs.tsx": {
+      "sha256": "e8469e599381cf021ce751c27cca3d8cb06440a45665ca9c2ef2efb0acef1fd9",
+      "bytes": 1969
+    },
+    "src/components/ui/button.tsx": {
+      "sha256": "82403231e33fd3d45b111e5e819df194cdfa7cef9a726770185724a60bd20932",
+      "bytes": 2123
+    },
+    "src/components/ui/breadcrumb.tsx": {
+      "sha256": "22f3f4c13ed1085c4131379bfccc6fb173a474f861636bc2736506820153aa08",
+      "bytes": 2357
+    },
+    "src/components/ui/aspect-ratio.tsx": {
+      "sha256": "6a75117416aa89200cf31e8d61643b428e812f479caea857c80004b26d893e79",
+      "bytes": 280
+    },
+    "src/components/ui/input-otp.tsx": {
+      "sha256": "35d561c352fde4e34fc3481839649728300c01cfadac62aa84c375d6d812f4de",
+      "bytes": 2254
+    },
+    "src/components/ui/slider.tsx": {
+      "sha256": "55140ef92c201c82d530dede076603611fbfb2cdc899e4d8459b58f6cbb2b235",
+      "bytes": 2001
+    },
+    "src/components/ui/toast.tsx": {
+      "sha256": "45d3d86ddb0b098a2bbbdca8458369d4a1fb046f77d9e106b690727ff6658afd",
+      "bytes": 4829
+    },
+    "src/components/ui/scroll-area.tsx": {
+      "sha256": "1c5d0b242d0513848f4bfa9b57ba7f438d9b1120617029941bfaa137196ecead",
+      "bytes": 1645
+    },
+    "src/components/ui/avatar.tsx": {
+      "sha256": "e8672934f1c315f36cdae39380454ba8c2da62aca420dfb827d96693091419c4",
+      "bytes": 1097
+    },
+    "src/components/ui/badge.tsx": {
+      "sha256": "f41c11fc13e9a1f1b849349cb51b137ddd27de0a17c5339675c789d58f556cc4",
+      "bytes": 1631
+    },
+    "src/components/ui/table.tsx": {
+      "sha256": "7b8c7a952cf49e78aafe5f628c3bd90f7e01bd5602eb5d3650bef5727a8186d7",
+      "bytes": 2448
+    },
+    "src/components/ui/toggle.tsx": {
+      "sha256": "b201563ea8cdef3680a3d9bf272cfc5918a5ab6e1079d7ff8d6273df7fce2849",
+      "bytes": 1570
+    },
+    "src/components/ui/separator.tsx": {
+      "sha256": "e9dddbd8dbbc0eccd683306481b0f0bbc8e2b60ea97817416ebb9fe7fbbbdca8",
+      "bytes": 699
+    },
+    "src/components/ui/checkbox.tsx": {
+      "sha256": "4c395ef15549e46068eb3b32a2a10fb5bfdb01f6834a3c0231a218a529015c83",
+      "bytes": 1226
+    },
+    "src/components/ui/alert.tsx": {
+      "sha256": "49d8311589b810b106aada8ef7b13f70b2b1f68cfce4e1458b7f31a191f420e9",
+      "bytes": 1614
+    },
+    "src/components/ui/context-menu.tsx": {
+      "sha256": "6573f8ed4232ae9801a3098a5cd4549b43a1e0ac1fd2c495e552a862d81fba22",
+      "bytes": 8222
+    },
+    "src/components/ui/tooltip.tsx": {
+      "sha256": "8d8a3645f547334b759341daf94a20b12a8ba17e8de4ad6e4e1c64b38842c1e3",
+      "bytes": 1891
+    },
+    "src/components/ui/chart.tsx": {
+      "sha256": "670849399b33fecf7e46aa222c52f6a7c294faac079f5227f8c01c594822fd5d",
+      "bytes": 9781
+    },
+    "src/components/ui/drawer.tsx": {
+      "sha256": "0c9464ed4f95207ff6ec0b8f433f550388ea0fe57fecd36bbe100b084ee46a3e",
+      "bytes": 4255
+    },
+    "src/lib/db.ts": {
+      "sha256": "ce5d51390121a452bc0a4d5208deaff71c583177773bcbbcd15b0af8ab48e2fc",
+      "bytes": 299
+    },
+    "src/lib/game-session.ts": {
+      "sha256": "a6745c1af7108819363079346f09a0f532e19081031425a2e0f3d7108ffc4fd7",
+      "bytes": 828
+    },
+    "src/lib/content/guides.ts": {
+      "sha256": "898874240ed7c1032862c961de7bb29837851c02dab9d4b8b87c8fc1babefbe0",
+      "bytes": 18748
+    },
+    "src/lib/content/home-faq.ts": {
+      "sha256": "dc0d36fcbde1ab3c3f8cd33e6b75edfa808b04d66588134fa15feb1f26b76932",
+      "bytes": 4513
+    },
+    "src/lib/progress/levels.ts": {
+      "sha256": "864654ccc9dd7aad004f37b67f82d262adab9cd5dc74efc53bbecd1199b51a07",
+      "bytes": 2990
+    },
+    "src/lib/progress/store.ts": {
+      "sha256": "0ffddf0bd73c06aefc2c4bc61cafd0ad3296258a73ca5220d594b0875387ad1d",
+      "bytes": 10360
+    },
+    "src/lib/progress/badges.ts": {
+      "sha256": "3282c6f881c41cc86f6dede1938456561d5867f1b0835bbc6fc7b60d068545cc",
+      "bytes": 10703
+    },
+    "src/lib/app-store.ts": {
+      "sha256": "0a974292e5901f03abb3d8285e05e240be7a455f8672c34411554dd8a59c14be",
+      "bytes": 6483
+    },
+    "src/lib/games/types.ts": {
+      "sha256": "79c2cadcd64c8def0cc75d7a454453f296bf6aac19aad307ca68fbcac8cdae84",
+      "bytes": 1041
+    },
+    "src/lib/i18n.ts": {
+      "sha256": "096c97eb29e9973a974ffe0b73c149f4b0ba0feb49725c69760255537294bf2c",
+      "bytes": 14395
+    },
+    "src/lib/save.ts": {
+      "sha256": "497ca5f1294d605919548a8b83b575c06fae09b651a26d1c1cb8e997933fbce6",
+      "bytes": 744
+    },
+    "src/lib/sound/index.ts": {
+      "sha256": "4352a3f5d0bc657fa3b7f4845e28608aab80203a21b918aca068a208ed5755a6",
+      "bytes": 4096
+    },
+    "src/lib/utils-game.ts": {
+      "sha256": "6546961d6fd188c6afc91088382cbabcdf84e646f71cc7bfcece5e4bbe8734a9",
+      "bytes": 3769
+    },
+    "src/lib/utils.ts": {
+      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "bytes": 166
+    },
+    "public/robots.txt": {
+      "sha256": "83e5abfae5e480d85ef3bcc661df8d7edfd73b6fac30296371206b581fd961d1",
+      "bytes": 67
+    },
+    "public/llms.txt": {
+      "sha256": "08a571f325d2e7234e8511b79d6ebe89a35ee0144558854255539a208387f19d",
+      "bytes": 6051
+    },
+    "public/logo.svg": {
+      "sha256": "8506450e8ef647695d218c4b3245ef573f9c6473783f372eef87fdba9bd47eac",
+      "bytes": 1065
+    },
+    "public/sitemap.xml": {
+      "sha256": "cb37db0e647d5b9269025ff18358261f50d8d393224712388f0d3df64d6e415a",
+      "bytes": 263
+    },
+    "public/sounds/pair.mp3": {
+      "sha256": "7279dd712192dda27d8d5657a3c63cb016d59f9defc9a885af5d49cc973608d6",
+      "bytes": 14439
+    },
+    "public/sounds/slice.mp3": {
+      "sha256": "913513cedf8472eb430405aa1ffcabd2d1f82463c016d9a91a9c7cce717ca4ce",
+      "bytes": 12820
+    },
+    "public/sounds/tick.mp3": {
+      "sha256": "e08186dfb1fae811e32c87dce8fd43eb3efdbacb163866e396647eedf77e0913",
+      "bytes": 6037
+    },
+    "public/sounds/reveal.mp3": {
+      "sha256": "091a8847a019af80cb2d4b4871664e7914f69714b3d992e5bad342641eaa64ce",
+      "bytes": 15400
+    },
+    "public/sounds/drop.mp3": {
+      "sha256": "5846d697134149b52247c0989793c6b9b164d5713890827602fdf73524cdd30c",
+      "bytes": 5353
+    },
+    "public/sounds/flip.mp3": {
+      "sha256": "5a97d7c1f79cf0549fd246100be772cd7e215327902a02c00dd4f27d82a3944e",
+      "bytes": 8024
+    },
+    "public/sounds/pop.mp3": {
+      "sha256": "2387e5f03862a2759f28ec3659a5d65a37e67e4e96567064791895c78b8adecd",
+      "bytes": 7523
+    },
+    "public/sounds/win.mp3": {
+      "sha256": "2d27ade509a6fe7471304d5f819d6dee3fe1607ead0ad38efbb344404c322f5e",
+      "bytes": 38625
+    },
+    "public/sounds/levelup.mp3": {
+      "sha256": "769bb423e175984234c0fe89bda2d36efa8c503c25a682b1086fa2bab3ab8de2",
+      "bytes": 33285
+    },
+    "public/sounds/splash.mp3": {
+      "sha256": "414ef5b064107a96d777d540b4338b55110ac28f9e02816412dacf820b0e9a91",
+      "bytes": 25730
+    },
+    "public/sounds/merge.mp3": {
+      "sha256": "000b4b84f4f92afb699a07710dadcdf046344dd6fd59334193d19e4295ad65de",
+      "bytes": 24998
+    },
+    "public/sounds/coin.mp3": {
+      "sha256": "92bb3b680e3203c0dd0e0b2078ade9d5b9eab5f852481b023593036f23ce5a6e",
+      "bytes": 15454
+    },
+    "public/sounds/wrong.mp3": {
+      "sha256": "f01766666cf5c9f0f4597c26d1df7c1a0b49c8bdc9436659287898c75c63b454",
+      "bytes": 20849
+    },
+    "public/sounds/swish.mp3": {
+      "sha256": "e8116be2826d048586806364d7d6b1af112081da4de53e49fb8caab85de9ccdc",
+      "bytes": 7415
+    },
+    "public/sounds/LICENSE.md": {
+      "sha256": "41a94256e9b37db20995c867be397c9c4465850229769df236011d3128955da3",
+      "bytes": 2695
+    },
+    "public/sounds/click.mp3": {
+      "sha256": "06e28a44d8b781c398a542226a9695a3d7f733b355513ee16b7596c5c1afcf32",
+      "bytes": 3146
+    },
+    "public/sounds/lose.mp3": {
+      "sha256": "35cb4ea65fa5f85b4d460038dd75d006259bbd582fa23eb1f4c52a4dee661edb",
+      "bytes": 37877
+    },
+    "public/sounds/correct.mp3": {
+      "sha256": "c5246de9f6929c879679c617bcc985421e26ed588f8f4cd17fbbda5c59ab066d",
+      "bytes": 14527
+    },
+    "public/sounds/achievement.mp3": {
+      "sha256": "1512d36d6315f9194796baad623d143ec89e857f55ae5c5513b99a89c8cdd4ca",
+      "bytes": 18409
+    },
+    "public/sounds/sweep.mp3": {
+      "sha256": "8c270c4353f079a9ec76dbeae692ee6f68e1b1c4c167463145acb753e0b923fb",
+      "bytes": 26592
+    },
+    "public/images/jigsaw-kitchen.png": {
+      "sha256": "60805ff8ef431261a1016696aded0638b79904aed705f15a1f3c2b1f15e34bb3",
+      "bytes": 119498
+    },
+    "public/images/hero-granmed.png": {
+      "sha256": "6e22e727da89483ca6ba83968365f5cbd35b68825b14642463a234145a8db46a",
+      "bytes": 149725
+    },
+    "public/images/jigsaw-market.png": {
+      "sha256": "07a9b3a7f9bdb7e9ab6a1a26b40147b9bb690608f87a2d182d13ba3c37aee270",
+      "bytes": 173409
+    },
+    "public/images/jigsaw-cat.png": {
+      "sha256": "556475700e7b16c9590d89bcc7e8227dade6614a59f898f00945c9c2fdc86093",
+      "bytes": 168613
+    },
+    "public/images/jigsaw-lavender.png": {
+      "sha256": "de4be829df6b72aeeda3de404c98b70e5e7521213cad7672c5e84047777555bb",
+      "bytes": 170747
+    },
+    "public/images/og-granmed.png": {
+      "sha256": "3dfde721ee93743c8af280afde96937c89772f52121f4caa044f94bdf07bbc91",
+      "bytes": 114200
+    },
+    "public/images/jigsaw-lake.png": {
+      "sha256": "5bd66c303792f0606078f5f85b156cdf5ebd8a2faf2077cf784262f5076cf4d7",
+      "bytes": 158441
+    },
+    "public/images/jigsaw-garden.png": {
+      "sha256": "f6ecbecc0221119065af4f80637e67515658a8e7fc935bf1dc6774ae39fecc52",
+      "bytes": 193562
+    },
+    "protection/integrity.ts": {
+      "sha256": "7a80a7867d68cdbb8469d6ca60c79eea07459044e7dc068507d247bc459beffd",
+      "bytes": 25090
+    },
+    "PROTECTION.md": {
+      "sha256": "756ef5adea35b52fc70ab84f63df8e89bca08e9169c5523cbc56176b578248f4",
+      "bytes": 7613
+    },
+    "tailwind.config.ts": {
+      "sha256": "ade682235e52f45b1c1dfc020f0bdb9f27b94fcff60afaa3272fae22fe5c0c54",
+      "bytes": 1696
+    },
+    "next.config.ts": {
+      "sha256": "f36ebda2bb1f8a5925ebd6a936a8ad33a74962ec5c9b35b3fd0face21165ad02",
+      "bytes": 396
+    },
+    "tsconfig.json": {
+      "sha256": "5627b3f441adc62af9e6420045fa0452d7c02bfcea664ec5758db46504631609",
+      "bytes": 730
+    },
+    "components.json": {
+      "sha256": "b8be06c49cf44d97a973a6f7ad38a6bc78ab04f78a2614d407738de9aa900983",
+      "bytes": 430
+    },
+    "postcss.config.mjs": {
+      "sha256": "141ef24ca27a99d08962210fdf20212d3435fdcfa21b46cd88b44d22f751dfae",
+      "bytes": 81
+    },
+    "eslint.config.mjs": {
+      "sha256": "bd7adc9b35e2c723198ad87eb8166f3eae98517456773bf660343c04616a0f26",
+      "bytes": 1632
+    },
+    "Caddyfile": {
+      "sha256": "89b7a9c04929989fb5014e1b5032ecd58df9491a3e3d09d69d62d740f29b0a7b",
+      "bytes": 493
+    },
+    "prisma/schema.prisma": {
+      "sha256": "322dc78c4d890abc89497e75e095c627eda8fefcdf130e992b8a5cbbcd5d99fe",
+      "bytes": 794
+    }
+  },
+  "appendOnly": {
+    "src/lib/games/catalog.ts": {
+      "sha256": "338751eb64649a437518ea6d8f5f51e6f824cd1bfef564c3c895a35e9672c56c",
+      "bytes": 16845,
+      "games": [
+        {
+          "slug": "memory-match",
+          "paths": {
+            "fr": "jeu-memory",
+            "en": "memory-match"
+          },
+          "title": {
+            "fr": "Memory Match — Jeu de mémoire",
+            "en": "Memory Match — Pairs Memory Game"
+          },
+          "short": {
+            "fr": "Retrouvez les paires de cartes : fruits, nature, animaux et souvenirs rétro.",
+            "en": "Flip cards and find matching pairs: fruits, nature, animals and retro memories."
+          },
+          "icon": "🃏",
+          "category": "memory",
+          "difficulty": 1,
+          "popularity": 98,
+          "releasedAt": "2025-01-10",
+          "similar": [
+            "sequence-memory",
+            "schulte-table",
+            "jigsaw-puzzle"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "sequence-memory",
+          "paths": {
+            "fr": "memoire-sequences",
+            "en": "sequence-memory"
+          },
+          "title": {
+            "fr": "Gran' Mémoire — Séquences lumineuses",
+            "en": "Gran's Memory — Light Sequences"
+          },
+          "short": {
+            "fr": "Reproduisez des séquences de couleurs et de sons qui s’allongent à chaque tour.",
+            "en": "Repeat color and sound sequences that grow longer each round."
+          },
+          "icon": "🔔",
+          "category": "memory",
+          "difficulty": 1,
+          "popularity": 84,
+          "releasedAt": "2025-01-18",
+          "similar": [
+            "memory-match",
+            "schulte-table",
+            "speed-math"
+          ],
+          "daily": false
+        },
+        {
+          "slug": "schulte-table",
+          "paths": {
+            "fr": "table-schulte",
+            "en": "schulte-table"
+          },
+          "title": {
+            "fr": "Vision Active — Table de Schulte",
+            "en": "Vision Active — Schulte Table"
+          },
+          "short": {
+            "fr": "Trouvez les nombres dans l’ordre le plus vite possible, de la grille 3×3 à 7×7.",
+            "en": "Find numbers in order as fast as you can, from 3×3 up to 7×7 grids."
+          },
+          "icon": "👁️",
+          "category": "memory",
+          "difficulty": 2,
+          "popularity": 71,
+          "releasedAt": "2025-01-25",
+          "similar": [
+            "speed-math",
+            "sequence-memory",
+            "memory-match"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "speed-math",
+          "paths": {
+            "fr": "calcul-mental-rapide",
+            "en": "speed-math"
+          },
+          "title": {
+            "fr": "Calcul Éclair — Calcul mental",
+            "en": "Speed Math — Mental Arithmetic"
+          },
+          "short": {
+            "fr": "Résolvez un maximum d’opérations en 60 secondes, avec bonus de série.",
+            "en": "Solve as many operations as you can in 60 seconds, with streak bonuses."
+          },
+          "icon": "⚡",
+          "category": "memory",
+          "difficulty": 2,
+          "popularity": 90,
+          "releasedAt": "2025-02-02",
+          "similar": [
+            "schulte-table",
+            "sequence-memory",
+            "daily-word"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "mini-crossword",
+          "paths": {
+            "fr": "mots-croises",
+            "en": "mini-crossword"
+          },
+          "title": {
+            "fr": "Culture Gran — Mots croisés express",
+            "en": "Culture Gran — Mini Crossword"
+          },
+          "short": {
+            "fr": "Complétez de petites grilles construites à la main : nature, expressions, culture.",
+            "en": "Complete small hand-crafted grids: nature, idioms and general knowledge."
+          },
+          "icon": "✏️",
+          "category": "memory",
+          "difficulty": 2,
+          "popularity": 76,
+          "releasedAt": "2025-02-09",
+          "similar": [
+            "guess-the-idiom",
+            "longest-word",
+            "health-true-false"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "health-true-false",
+          "paths": {
+            "fr": "quiz-sante",
+            "en": "health-true-false"
+          },
+          "title": {
+            "fr": "Vrai ou Faux — Santé et connaissances",
+            "en": "True or False — Health & Knowledge"
+          },
+          "short": {
+            "fr": "Affirmations santé, nutrition et bien-être, avec explications sourcées.",
+            "en": "Health, nutrition and wellbeing statements, with sourced explanations."
+          },
+          "icon": "✅",
+          "category": "memory",
+          "difficulty": 1,
+          "popularity": 82,
+          "releasedAt": "2025-02-15",
+          "similar": [
+            "mini-crossword",
+            "daily-word",
+            "guess-the-idiom"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "merge-garden",
+          "paths": {
+            "fr": "jardin-merge",
+            "en": "merge-garden"
+          },
+          "title": {
+            "fr": "Jardin de Gran — Jeu de fusion",
+            "en": "Gran's Garden — Merge Game"
+          },
+          "short": {
+            "fr": "Fusionnez graines et plantes pour découvrir 16 espèces et faire fleurir le jardin.",
+            "en": "Merge seeds and plants to discover 16 species and make the garden bloom."
+          },
+          "icon": "🌱",
+          "category": "logic",
+          "difficulty": 1,
+          "popularity": 87,
+          "releasedAt": "2025-02-22",
+          "similar": [
+            "2048-nutrition",
+            "zen-fishing",
+            "jigsaw-puzzle"
+          ],
+          "daily": false
+        },
+        {
+          "slug": "2048-nutrition",
+          "paths": {
+            "fr": "2048-nutrition",
+            "en": "2048-nutrition"
+          },
+          "title": {
+            "fr": "2048 Nutrition",
+            "en": "2048 Nutrition"
+          },
+          "short": {
+            "fr": "Le 2048 classique revisité : fusionnez les aliments jusqu’au banquet complet.",
+            "en": "The classic 2048 with a food twist: merge foods up to the full banquet."
+          },
+          "icon": "🍎",
+          "category": "logic",
+          "difficulty": 2,
+          "popularity": 95,
+          "releasedAt": "2025-03-01",
+          "similar": [
+            "merge-garden",
+            "block-puzzle",
+            "sudoku"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "sudoku",
+          "paths": {
+            "fr": "sudoku",
+            "en": "sudoku"
+          },
+          "title": {
+            "fr": "Sudoku Zen",
+            "en": "Sudoku Zen"
+          },
+          "short": {
+            "fr": "Grilles à solution unique, notes, indices et quatre niveaux de difficulté.",
+            "en": "Unique-solution grids, pencil notes, hints and four difficulty levels."
+          },
+          "icon": "🔢",
+          "category": "logic",
+          "difficulty": 3,
+          "popularity": 93,
+          "releasedAt": "2025-03-08",
+          "similar": [
+            "2048-nutrition",
+            "minesweeper",
+            "mini-crossword"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "daily-word",
+          "paths": {
+            "fr": "mot-du-jour",
+            "en": "daily-word-game"
+          },
+          "title": {
+            "fr": "Mot du Jour Santé",
+            "en": "Daily Word Game"
+          },
+          "short": {
+            "fr": "Devinez le mot mystère en 6 tentatives. Un nouveau mot chaque jour !",
+            "en": "Guess the mystery word in 6 tries. A new word every day!"
+          },
+          "icon": "🟩",
+          "category": "logic",
+          "difficulty": 2,
+          "popularity": 97,
+          "releasedAt": "2025-03-15",
+          "similar": [
+            "longest-word",
+            "guess-the-idiom",
+            "health-true-false"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "minesweeper",
+          "paths": {
+            "fr": "demineur",
+            "en": "minesweeper"
+          },
+          "title": {
+            "fr": "Démineur Santé",
+            "en": "Minesweeper Health"
+          },
+          "short": {
+            "fr": "Le démineur classique : trois tailles de grille, marquage des mines et chrono.",
+            "en": "Classic minesweeper: three grid sizes, mine flags and a timer."
+          },
+          "icon": "💣",
+          "category": "logic",
+          "difficulty": 2,
+          "popularity": 88,
+          "releasedAt": "2025-03-22",
+          "similar": [
+            "sudoku",
+            "block-puzzle",
+            "2048-nutrition"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "block-puzzle",
+          "paths": {
+            "fr": "block-puzzle",
+            "en": "block-puzzle"
+          },
+          "title": {
+            "fr": "Block Puzzle Équilibre",
+            "en": "Block Puzzle Balance"
+          },
+          "short": {
+            "fr": "Placez les pièces pour compléter lignes et colonnes, et enchaînez les combos.",
+            "en": "Place pieces to complete rows and columns and chain combos."
+          },
+          "icon": "🧱",
+          "category": "logic",
+          "difficulty": 1,
+          "popularity": 91,
+          "releasedAt": "2025-03-29",
+          "similar": [
+            "2048-nutrition",
+            "merge-garden",
+            "minesweeper"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "jigsaw-puzzle",
+          "paths": {
+            "fr": "puzzle-images",
+            "en": "jigsaw-puzzle"
+          },
+          "title": {
+            "fr": "Souvenirs de Famille — Puzzle",
+            "en": "Family Memories — Jigsaw Puzzle"
+          },
+          "short": {
+            "fr": "Reconstituez des illustrations originales : jardins, animaux et scènes rétro.",
+            "en": "Reassemble original illustrations: gardens, animals and retro scenes."
+          },
+          "icon": "🖼️",
+          "category": "logic",
+          "difficulty": 1,
+          "popularity": 85,
+          "releasedAt": "2025-04-05",
+          "similar": [
+            "memory-match",
+            "merge-garden",
+            "block-puzzle"
+          ],
+          "daily": false
+        },
+        {
+          "slug": "pill-toss",
+          "paths": {
+            "fr": "lancer-de-pilules",
+            "en": "pill-toss"
+          },
+          "title": {
+            "fr": "Pill Toss — Lancer de pilules",
+            "en": "Pill Toss — Pill Throwing Game"
+          },
+          "short": {
+            "fr": "Visez et lancez des pilules fictives dans des fioles en mouvement.",
+            "en": "Aim and throw fictional pills into moving jars."
+          },
+          "icon": "💊",
+          "category": "reflex",
+          "difficulty": 2,
+          "popularity": 74,
+          "releasedAt": "2025-04-12",
+          "similar": [
+            "fruit-slice",
+            "fire-escape",
+            "zen-fishing"
+          ],
+          "daily": false
+        },
+        {
+          "slug": "fire-escape",
+          "paths": {
+            "fr": "pompier-de-gran",
+            "en": "fire-escape"
+          },
+          "title": {
+            "fr": "Le Pompier de Gran — Fire Escape",
+            "en": "Gran’s Firefighter — Fire Escape"
+          },
+          "short": {
+            "fr": "Guidez le pompier à travers les flammes, d’un seul geste.",
+            "en": "Guide the firefighter through the flames with a single gesture."
+          },
+          "icon": "🚒",
+          "category": "reflex",
+          "difficulty": 2,
+          "popularity": 79,
+          "releasedAt": "2025-04-19",
+          "similar": [
+            "pill-toss",
+            "fruit-slice",
+            "zen-fishing"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "zen-fishing",
+          "paths": {
+            "fr": "peche-zen",
+            "en": "zen-fishing"
+          },
+          "title": {
+            "fr": "Pêche Miraculeuse — Zen Fishing",
+            "en": "Miraculous Fishing — Zen Fishing"
+          },
+          "short": {
+            "fr": "Une pêche détendante : descendez, remontez, complétez votre collection.",
+            "en": "Relaxed fishing: drop your hook, reel up and complete your collection."
+          },
+          "icon": "🎣",
+          "category": "reflex",
+          "difficulty": 1,
+          "popularity": 83,
+          "releasedAt": "2025-04-26",
+          "similar": [
+            "merge-garden",
+            "pill-toss",
+            "fire-escape"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "fruit-slice",
+          "paths": {
+            "fr": "decoupe-de-fruits",
+            "en": "fruit-slice"
+          },
+          "title": {
+            "fr": "Le Verger de Gran — Fruit Slice",
+            "en": "Gran's Orchard — Fruit Slice"
+          },
+          "short": {
+            "fr": "Tranchez les fruits du verger au doigt et évitez les savons !",
+            "en": "Slice orchard fruits with your finger and avoid the soaps!"
+          },
+          "icon": "🍉",
+          "category": "reflex",
+          "difficulty": 2,
+          "popularity": 92,
+          "releasedAt": "2025-05-03",
+          "similar": [
+            "pill-toss",
+            "fire-escape",
+            "2048-nutrition"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "guess-the-idiom",
+          "paths": {
+            "fr": "devine-expression",
+            "en": "guess-the-idiom"
+          },
+          "title": {
+            "fr": "Devine l’Expression",
+            "en": "Guess the Idiom"
+          },
+          "short": {
+            "fr": "Retrouvez les expressions populaires à partir d’indices et de définitions.",
+            "en": "Find popular idioms from clues and definitions."
+          },
+          "icon": "💬",
+          "category": "words",
+          "difficulty": 2,
+          "popularity": 78,
+          "releasedAt": "2025-05-10",
+          "similar": [
+            "mini-crossword",
+            "longest-word",
+            "health-true-false"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "longest-word",
+          "paths": {
+            "fr": "mot-le-plus-long",
+            "en": "longest-word-game"
+          },
+          "title": {
+            "fr": "Le Mot le Plus Long",
+            "en": "The Longest Word"
+          },
+          "short": {
+            "fr": "Formez un maximum de mots avec 9 lettres, avant la fin du compte à rebours.",
+            "en": "Build as many words as you can from 9 letters before time runs out."
+          },
+          "icon": "🔤",
+          "category": "words",
+          "difficulty": 2,
+          "popularity": 75,
+          "releasedAt": "2025-05-17",
+          "similar": [
+            "daily-word",
+            "guess-the-idiom",
+            "mini-crossword"
+          ],
+          "daily": true
+        },
+        {
+          "slug": "interactive-story",
+          "paths": {
+            "fr": "histoire-interactive",
+            "en": "interactive-story"
+          },
+          "title": {
+            "fr": "Histoire Interactive",
+            "en": "Interactive Story"
+          },
+          "short": {
+            "fr": "Vos décisions changent le récit : plusieurs fins à découvrir.",
+            "en": "Your choices change the story: several endings to discover."
+          },
+          "icon": "📖",
+          "category": "words",
+          "difficulty": 1,
+          "popularity": 72,
+          "releasedAt": "2025-05-24",
+          "similar": [
+            "guess-the-idiom",
+            "merge-garden",
+            "mini-crossword"
+          ],
+          "daily": false
+        }
+      ]
+    },
+    "src/lib/games/registry.tsx": {
+      "sha256": "6f26c63d816af38f7a7d8e8dca4101e4512091a2c5ec8c44a47e35483f351883",
+      "bytes": 4495,
+      "loaders": {
+        "memory-match": "@/components/games/memory-match",
+        "sequence-memory": "@/components/games/sequence-memory",
+        "schulte-table": "@/components/games/schulte-table",
+        "speed-math": "@/components/games/speed-math",
+        "mini-crossword": "@/components/games/mini-crossword",
+        "health-true-false": "@/components/games/health-true-false",
+        "merge-garden": "@/components/games/merge-garden",
+        "2048-nutrition": "@/components/games/2048-nutrition",
+        "sudoku": "@/components/games/sudoku",
+        "daily-word": "@/components/games/daily-word",
+        "minesweeper": "@/components/games/minesweeper",
+        "block-puzzle": "@/components/games/block-puzzle",
+        "jigsaw-puzzle": "@/components/games/jigsaw-puzzle",
+        "pill-toss": "@/components/games/pill-toss",
+        "fire-escape": "@/components/games/fire-escape",
+        "zen-fishing": "@/components/games/zen-fishing",
+        "fruit-slice": "@/components/games/fruit-slice",
+        "guess-the-idiom": "@/components/games/guess-the-idiom",
+        "longest-word": "@/components/games/longest-word",
+        "interactive-story": "@/components/games/interactive-story"
+      }
+    }
+  },
+  "watched": {
+    "package.json": {
+      "sha256": "72f67be50d13d98bef6be32009c2331044d025840f64e4d1f0b77dd0fa68229b",
+      "bytes": 3325
+    }
+  },
+  "presenceOnly": [
+    "worklog.md",
+    "protection/CHANGELOG.md"
+  ]
+}
