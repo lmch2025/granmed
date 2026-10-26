@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-25T22:34:02.953Z",
-  "reason": "Baseline finale Task 14 : garde-fou dédupliqué (signalement unique des jeux), charte, scripts npm",
-  "baselineCommit": "21b9825fca216db9541074beb20fd6071d233e10",
+  "generatedAt": "2026-10-26T02:16:27.511Z",
+  "reason": "Task 15 (force majeure sanctionnée) : CTA partage incitatif en fin de manche dans RoundEndActions (prop shareResult), bouton partage dans la barre immersive, clés i18n shareScore/shareGame, câblage des 20 jeux + corrections d'audit (double addPlay, cibles tactiles, date localisée, garde de langue guess-the-idiom, anti-doublons partage)",
+  "baselineCommit": "3faabd0acf1b1b2fbb15ec996a348dcf50e00d75",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -344,56 +344,56 @@
       "bytes": 3225
     },
     "src/components/games/speed-math.tsx": {
-      "sha256": "b794381a30515371feecc60a2789b3b91b37268b3ef563194dc484273991c8f9",
-      "bytes": 37581
+      "sha256": "318d96045066bcd098b5a7b64a6c152202febfcc76bbf2f83b2300ee78392068",
+      "bytes": 37958
     },
     "src/components/games/daily-word.tsx": {
-      "sha256": "c347b3da7c7d83df3f6b97c30b6cc281e2f8c6113004521df083f4e4f6a78c52",
-      "bytes": 43801
+      "sha256": "ab8d591f537452529553fd4c75cf0dd433dbb6f03595ae7e54b1198e1d104f5a",
+      "bytes": 43578
     },
     "src/components/games/zen-fishing.tsx": {
-      "sha256": "7e09cfc7f054e457e974952a06a0b5a8bca0387f4df2d292697f528e131fda1b",
-      "bytes": 51425
+      "sha256": "fdfe270e1c1eaf9624035c2ff0c982028699bb360e8392ba35f8ef8a9e808659",
+      "bytes": 52845
     },
     "src/components/games/merge-garden.tsx": {
-      "sha256": "a8d0f28979784ce75f5471d1bd7645f9dc4a6e3aeb9f1788dc9622823aa472ad",
-      "bytes": 41497
+      "sha256": "3ad8eeb2f39b1d4602b0e620cc02fad81641a7146995f40ad32aaf21e84a65a8",
+      "bytes": 43066
     },
     "src/components/games/memory-match.tsx": {
-      "sha256": "03a82c5c4a541cfb94f6d9d10fea36cedc2b4cf3a9630938dde09f27d65eb0b5",
-      "bytes": 32972
+      "sha256": "4bb1f3d297de7a58bb1bfa37ea1bfe54fa3cba244e346129fbab05d5aa5411af",
+      "bytes": 32383
     },
     "src/components/games/mini-crossword.tsx": {
-      "sha256": "ad1af9d8330f02a3db5f12437ffc405f694554ac69b2ce4147eeaa14ab254b9b",
-      "bytes": 53749
+      "sha256": "92b71e8ea9a25165b3be0824505086b54a60b71126a1d90d04e68a89a2b96202",
+      "bytes": 54086
     },
     "src/components/games/pill-toss.tsx": {
-      "sha256": "08f1f3dec306afd4c73c215c6a0fd7d906d791dd9ff27deb1ffc9a4abc373cbc",
-      "bytes": 48818
+      "sha256": "85f4fed7179edcdbf73b46c5e199a483520c7a6034bde3b5d66367e5e2e57f36",
+      "bytes": 49642
     },
     "src/components/games/fire-escape.tsx": {
-      "sha256": "ebee709de2a7dffc19242f90f04b7a97d48b575ea8306cefb6c5bca96ed7327d",
-      "bytes": 45872
+      "sha256": "9286686e7a578db9b472a628226e82a322fe9f9c43af352a2f79e212a2e680dc",
+      "bytes": 46143
     },
     "src/components/games/longest-word.tsx": {
-      "sha256": "f27e21d9c9df25636c5595692501b15deac4b7623eacfe73973a1feeebe2d35d",
-      "bytes": 53989
+      "sha256": "cec8be38b60a1d941bc8fc0398de7a557228742275361be64b29afee10d4b843",
+      "bytes": 53073
     },
     "src/components/games/interactive-story.tsx": {
-      "sha256": "b8ebb2fcc4754189445855576bea0a3ade147e6508469ffa3b771608e94e378b",
-      "bytes": 44425
+      "sha256": "f3e373da2d4fe46cd0b4db28acce99d93693b896793c7f031f25c44dcd367efb",
+      "bytes": 44863
     },
     "src/components/games/fruit-slice.tsx": {
-      "sha256": "7dd7256e43d8b19be59c5650295ebd3ae6146e24066c3044280d50602cde43c1",
-      "bytes": 42302
+      "sha256": "8d6e6f3884ecb9e41a50baa7deb40485a4bd636bb36445304bba812ef08979a9",
+      "bytes": 42603
     },
     "src/components/games/2048-nutrition.tsx": {
-      "sha256": "62f7603ac895c456d8e025389071d5d4209a8ea79fb71dd73e07b2c686f65149",
-      "bytes": 38233
+      "sha256": "2b902bc0de98b820ac8ee09b3e2da9c31ad83ec78c90e9be38816d31a9853c8c",
+      "bytes": 38760
     },
     "src/components/games/health-true-false.tsx": {
-      "sha256": "395ecf1dc9ef0021f565f4622d42c3112ed4eac1e44bdfe8f5f34826da003417",
-      "bytes": 41566
+      "sha256": "987db497e730316931e01e5e28c79940a8f30936756d705dbf2144a55037620f",
+      "bytes": 40306
     },
     "src/components/games/data/mini-crossword-data.ts": {
       "sha256": "a658183ee37dd116274011e8e5d95dcc7c0bc774232f242aceb66f9a9c27e7b4",
@@ -420,32 +420,32 @@
       "bytes": 46769
     },
     "src/components/games/guess-the-idiom.tsx": {
-      "sha256": "950ccde6503ee6227436f757d89060cc3a4b1aae152b3924b5b085ad3c8eccc8",
-      "bytes": 61467
+      "sha256": "bb3d97bc48fc320f233424d9781fa90c7332e6a9c996fd95210cbc9bd0fcd6f1",
+      "bytes": 60865
     },
     "src/components/games/sudoku.tsx": {
-      "sha256": "2d989f52ed74756f6ef3b61e87ad8fa05e23d14df38fce5eb8372de7b1fe69a2",
-      "bytes": 45803
+      "sha256": "4738cd0f18fbdd477f3849a72fa301ade9482f3ef0dfc0912691d8d009529a85",
+      "bytes": 46195
     },
     "src/components/games/block-puzzle.tsx": {
-      "sha256": "25aa4cc94b29c216756093d8229c35d9a98f544870dc4303eba901f541c12fd6",
-      "bytes": 45402
+      "sha256": "efd54f61df169e28b31fc749d66d6b787946e30dc7682c34baa6837161e61b19",
+      "bytes": 45748
     },
     "src/components/games/minesweeper.tsx": {
-      "sha256": "5020326284bba7c9482a8ed5a6b832638a6b7eb1a53223e6adbe846c8b926fa2",
-      "bytes": 46853
+      "sha256": "e641d56f00ec294f2794718e10791268e153244974a98c4f5d3f086caedcc617",
+      "bytes": 47877
     },
     "src/components/games/sequence-memory.tsx": {
-      "sha256": "2c931191e7cf9de1712a306cb015fa514d624c3c6d834c337d147da467deda57",
-      "bytes": 29205
+      "sha256": "66b1b19135a3dd10e7b1425593eb82082e01baae09be07bacd506d52b9abdbb1",
+      "bytes": 29390
     },
     "src/components/games/schulte-table.tsx": {
-      "sha256": "affb4d5845b3b13590464aad4ea466e90338b60e4da3c108c19fab73d1f80a75",
-      "bytes": 34439
+      "sha256": "04dc6bf7bb9b553611a907e723c221785fe8399c26abe68631cdf1c99649db99",
+      "bytes": 35017
     },
     "src/components/games/jigsaw-puzzle.tsx": {
-      "sha256": "863ff774cf2bcc80c9f9c73e0035e09f9948df4ed46a64d37b22aafbfeda8ac7",
-      "bytes": 52773
+      "sha256": "d060a7abcea4f468569a6a5cb7141fbe83e4a244ed76abc5d6a7823961904a59",
+      "bytes": 53131
     },
     "src/components/dashboard/dashboard-view.tsx": {
       "sha256": "6278c6277ab347accae8635277987954ff6377a7e66286f1954960c98b194403",
@@ -468,12 +468,12 @@
       "bytes": 12422
     },
     "src/components/game/round-end.tsx": {
-      "sha256": "49de80d7c611d276e9710ef1eafd81ed9c51524027f49696df1ffbac591048ea",
-      "bytes": 8094
+      "sha256": "56fd1523e1782c6cd490b6862df9e6d5e875d1de1a00c21ebc8016a3ded822fc",
+      "bytes": 9760
     },
     "src/components/game/game-shell.tsx": {
-      "sha256": "d7d80e7d1b88c2ec954809b3e0d36e573e5cd8b52e54b30e2c328e114449894e",
-      "bytes": 18932
+      "sha256": "2be4e53f5de7dbbaca3b496dff5001695e653f04f0275c2944f3024362c42eec",
+      "bytes": 19329
     },
     "src/components/layout/site-header.tsx": {
       "sha256": "a5bc1f86503a40addc065d4d0664bcbeecac3503bad0830bb5bf8223d8798685",
@@ -736,8 +736,8 @@
       "bytes": 1041
     },
     "src/lib/i18n.ts": {
-      "sha256": "096c97eb29e9973a974ffe0b73c149f4b0ba0feb49725c69760255537294bf2c",
-      "bytes": 14395
+      "sha256": "6fd7449287fb69a3c00852a6bb8fe23a11382a441dfa8ca46d296e528eaff505",
+      "bytes": 14542
     },
     "src/lib/save.ts": {
       "sha256": "497ca5f1294d605919548a8b83b575c06fae09b651a26d1c1cb8e997933fbce6",

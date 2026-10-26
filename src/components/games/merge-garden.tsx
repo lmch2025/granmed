@@ -1,16 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, Sprout, CircleCheckBig, Circle } from 'lucide-react'
+import { BookOpen, Sprout, CircleCheckBig, Circle, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
-import { useLang, type Lang } from '@/lib/i18n'
+import { useLang, useT, type Lang } from '@/lib/i18n'
+import { buildHash } from '@/lib/app-store'
 import { useProfileStore } from '@/lib/progress/store'
 import { loadSave, saveSave } from '@/lib/save'
-import { useReducedMotion, clamp } from '@/lib/utils-game'
+import { useReducedMotion, clamp, shareText } from '@/lib/utils-game'
+import { getGame } from '@/lib/games/catalog'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
 import { toast } from 'sonner'
@@ -190,6 +192,8 @@ const STR = {
     tier: 'niveau',
     boardFull: 'Plateau complet — fusionnez des plantes identiques !',
     noSeeds: 'Plus de graines — patientez la recharge',
+    shareCollection: 'Partager ma collection',
+    shareLine: 'Jardin : {n}/{total} espèces découvertes · niveau max {tier}',
   },
   en: {
     seeds: 'Seeds',
@@ -214,6 +218,8 @@ const STR = {
     tier: 'tier',
     boardFull: 'Board full — merge identical plants!',
     noSeeds: 'No seeds left — wait for the refill',
+    shareCollection: 'Share my collection',
+    shareLine: 'Garden: {n}/{total} species discovered · top tier {tier}',
   },
 }
 
@@ -236,6 +242,7 @@ interface DragInfo {
 /* ================= Composant principal ================= */
 export default function MergeGardenGame() {
   const lang = useLang()
+  const t = useT()
   const reduce = useReducedMotion()
   const L = STR[lang]
   const addXp = useProfileStore((s) => s.addXp)
@@ -672,6 +679,24 @@ export default function MergeGardenGame() {
       : `${L.nextSeed} : ${Math.max(0, Math.ceil((SEED_MS - Math.max(0, now - seedState.last)) / 1000))} s`) +
     ` — ${L.dragSeed}`
 
+  /* --- Partage discret de la collection (jeu zen sans fin de manche : le
+         bouton « Partager ce jeu » de la barre immersive couvre le jeu
+         lui-même, celui-ci partage la progression du jardin). --- */
+  async function shareCollection() {
+    sfx.play('coin', { volume: 0.6 })
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
+        : ''
+    const title = getGame(gameId)?.title[lang] ?? 'Granmed'
+    const line = L.shareLine
+      .replace('{n}', String(discovered.length))
+      .replace('{total}', String(MAX_TIER))
+      .replace('{tier}', String(maxTier || 1))
+    const ok = await shareText(title, `${line}\n${title} — Granmed\n${url}`)
+    if (ok) toast.success(t('common.copied'))
+  }
+
   /* --- Rendu --- */
   return (
     <div className="relative my-auto w-full select-none">
@@ -899,9 +924,17 @@ export default function MergeGardenGame() {
           <DialogHeader>
             <DialogTitle className="font-display text-xl">📖 {L.bookTitle}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <DialogDescription className="text-sm text-muted-foreground">
             {L.bookSub} — {discovered.length}/{MAX_TIER} · {L.tier} max : {maxTier || '–'} · {L.plants} : {plants} · {L.merges} : {merges}
-          </p>
+          </DialogDescription>
+          <Button
+            variant="outline"
+            className="mt-2 h-11 w-full gap-2 rounded-full text-xs font-bold sm:text-sm"
+            onClick={shareCollection}
+          >
+            <Share2 className="h-4 w-4" aria-hidden="true" />
+            {L.shareCollection}
+          </Button>
           <div className="grid grid-cols-4 gap-2.5">
             {SPECIES.map((sp, i) => {
               const tier = i + 1

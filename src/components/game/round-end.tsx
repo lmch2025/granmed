@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { RotateCcw, LogOut, ChevronRight, Sparkles } from 'lucide-react'
+import { RotateCcw, LogOut, ChevronRight, Sparkles, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
+import { useAppStore, buildHash } from '@/lib/app-store'
 import { useGameSession } from '@/lib/game-session'
 import { getGame, GAMES, CATEGORY_STYLES } from '@/lib/games/catalog'
 import { useGameStats } from '@/lib/progress/store'
-import { useReducedMotion } from '@/lib/utils-game'
+import { useReducedMotion, shareText } from '@/lib/utils-game'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 /* ============================================================
  * FIN DE MANCHE — le cœur de la boucle de rétention :
@@ -18,7 +19,10 @@ import { Button } from '@/components/ui/button'
  *     suivante » (le jeu fournit son handler) ;
  *  2. un bouton « Quitter » bien visible (sortie de la surface
  *     de jeu + défilement vers les jeux similaires) ;
- *  3. une recommandation SUBTILE vers un autre jeu (chip
+ *  3. un CTA de PARTAGE incitatif (dégradé doré, halo) avec le
+ *     résultat de la manche — présent à CHAQUE fin de partie,
+ *     dans les deux langues (Task 15) ;
+ *  4. une recommandation SUBTILE vers un autre jeu (chip
  *     discrète, tournante selon le nombre de parties).
  * ============================================================ */
 
@@ -28,6 +32,7 @@ export function RoundEndActions({
   replayLabel,
   replayIcon,
   primaryRef,
+  shareResult,
   className,
 }: {
   gameId: string
@@ -38,10 +43,29 @@ export function RoundEndActions({
   replayIcon?: React.ReactNode
   /** Optionnel : focus clavier après la fin (ex. touche Entrée). */
   primaryRef?: React.RefObject<HTMLButtonElement | null>
+  /** Ligne de résultat localisée à partager (ex. « Score : 320 pts en 45 s »).
+   *  Sans elle, le CTA partage le jeu (titre + accroche + lien). */
+  shareResult?: string
   className?: string
 }) {
   const t = useT()
+  const lang = useLang()
   const requestExit = useGameSession((s) => s.requestExit)
+  const game = getGame(gameId)
+
+  async function onShare() {
+    sfx.play('coin', { volume: 0.6 })
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
+        : ''
+    const title = game?.title[lang] ?? 'Granmed'
+    const text = shareResult
+      ? `${shareResult}\n${title} — Granmed\n${url}`
+      : `${title}${game ? ` — ${game.short[lang]}` : ''}\n${url}`
+    const ok = await shareText(title, text)
+    if (ok) toast.success(t('common.copied'))
+  }
 
   return (
     <div className={cn('mx-auto flex w-full max-w-sm flex-col items-stretch gap-2.5', className)}>
@@ -73,6 +97,21 @@ export function RoundEndActions({
           <span className="hidden min-[380px]:inline">{t('game.exitShort')}</span>
         </Button>
       </div>
+
+      {/* CTA partage — incitatif : dégradé doré + halo doux, toujours présent */}
+      <Button
+        size="lg"
+        className={cn(
+          'anim-glow h-11 gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500',
+          'text-base font-bold text-white shadow-lg shadow-amber-500/25 transition-transform active:scale-[0.98]',
+        )}
+        aria-label={shareResult ? t('common.shareScore') : t('common.shareGame')}
+        onClick={onShare}
+      >
+        <Share2 className="h-5 w-5" aria-hidden="true" />
+        {shareResult ? t('common.shareScore') : t('common.shareGame')}
+      </Button>
+
       <NextGameChip gameId={gameId} />
     </div>
   )

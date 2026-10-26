@@ -250,6 +250,11 @@ export default function SpeedMathGame() {
   /* Défi du jour : calculé une seule fois par date (jamais à chaque rendu). */
   const dailyKey = todayKey()
   const dailyConfig = useMemo(() => dailySeries(), [dailyKey])
+  /* Date lisible et localisée pour la bannière du défi (jamais la clé ISO brute). */
+  const dailyDateLabel = useMemo(
+    () => new Date(`${dailyKey}T12:00:00`).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long' }),
+    [dailyKey, lang],
+  )
 
   const L = {
     fr: {
@@ -568,7 +573,7 @@ export default function SpeedMathGame() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">
-              {t('common.daily')} · {dailyKey}
+              {t('common.daily')} · {dailyDateLabel}
             </span>
             <span className="block text-xs text-muted-foreground">
               {L.dailyDiff} : {diffLabel(dailyConfig.diff)} · 60 s
@@ -765,6 +770,7 @@ export default function SpeedMathGame() {
               gameId={gameId}
               onReplay={() => start(inPlayDiff, dailyMode)}
               replayLabel={t('common.playAgain')}
+              shareResult={over ? `${over.score} pts · ${over.accuracy}%` : undefined}
             />
           </div>
           <div className="mt-2 flex justify-center">

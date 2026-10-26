@@ -127,6 +127,7 @@ const L = {
     combo: 'Combo', over: 'Verger terminé !', fruitsSliced: 'Fruits tranchés', bestCombo: 'Meilleur combo',
     daily: 'Défi du jour : atteindre {n} points', dailyDone: 'Défi du jour réussi !',
     newBest: 'Nouveau record !', hint: 'Balayez rapidement pour trancher — évitez les savons 🧼 !',
+    shareScore: '{n} points · combo ×{c}',
     lostLife: '−1 vie', title: 'Le Verger de Gran',
     area: 'Aire de jeu du Verger de Gran : tranchez les fruits d’un geste rapide et évitez les savons.',
   },
@@ -135,6 +136,7 @@ const L = {
     combo: 'Combo', over: 'Orchard over!', fruitsSliced: 'Fruits sliced', bestCombo: 'Best combo',
     daily: 'Daily challenge: reach {n} points', dailyDone: 'Daily challenge complete!',
     newBest: 'New record!', hint: 'Swipe fast to slice — avoid the soaps 🧼!',
+    shareScore: '{n} points · ×{c} combo',
     lostLife: '−1 life', title: 'Gran’s Orchard',
     area: 'Gran’s Orchard play area: slice the fruits with a fast swipe and avoid the soaps.',
   },
@@ -978,7 +980,13 @@ export default function FruitSliceGame() {
                 </p>
               )}
               <div className="mt-4">
-                <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.replay} primaryRef={replayBtnRef} />
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={handleStart}
+                  replayLabel={T.replay}
+                  primaryRef={replayBtnRef}
+                  shareResult={T.shareScore.replace('{n}', String(result.score)).replace('{c}', String(result.bestChain))}
+                />
               </div>
             </div>
           </div>

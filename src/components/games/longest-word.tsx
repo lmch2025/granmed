@@ -1,19 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Play, CalendarCheck, RotateCcw, Share2, Timer, Trophy, Zap, Home, Delete, Check, FastForward, Sparkles, Type } from 'lucide-react'
+import { Play, CalendarCheck, RotateCcw, Timer, Trophy, Zap, Home, Delete, Check, FastForward, Sparkles, Type } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
-import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle, shareText, useReducedMotion, useHydrated } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, shuffle, useReducedMotion, useHydrated } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { FR_WORDS, EN_WORDS, FR_LETTER_WEIGHTS, EN_LETTER_WEIGHTS } from '@/components/games/data/longest-word-data'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
-import { toast } from 'sonner'
 
 export const gameId = 'longest-word'
 
@@ -304,12 +302,12 @@ export default function LongestWordGame() {
       wordsFound: 'mots trouvés',
       playAgain: 'Rejouer',
       menu: 'Menu',
-      share: 'Partager',
+      shareScore: '{n} {m} · meilleur : {w} · {s} points',
+      shareDaily: 'Défi du jour — lettres : {l} · {n} {m} · {s} points',
+      wordUnitOne: 'mot', wordUnitMany: 'mots',
       newRecord: 'Nouveau record !',
       nineFlash: 'Toutes les lettres ! ×5',
       timeLeft: 'Temps restant',
-      shareTitle: 'Granmed — Le Mot le Plus Long',
-      copied: 'Copié !',
       play: 'Jouer',
       letters: 'Lettres du tirage',
       solutionTitle: 'Meilleur mot possible',
@@ -323,7 +321,6 @@ export default function LongestWordGame() {
       liveRecord: 'Record battu en direct !',
       xp: 'XP',
       lettersCount: 'lettres',
-      dailyLetters: 'Lettres',
     },
     en: {
       freeGame: 'Free game',
@@ -348,12 +345,12 @@ export default function LongestWordGame() {
       wordsFound: 'words found',
       playAgain: 'Play again',
       menu: 'Menu',
-      share: 'Share',
+      shareScore: '{n} {m} · best: {w} · {s} points',
+      shareDaily: 'Daily challenge — letters: {l} · {n} {m} · {s} points',
+      wordUnitOne: 'word', wordUnitMany: 'words',
       newRecord: 'New personal best!',
       nineFlash: 'All nine letters! ×5',
       timeLeft: 'Time left',
-      shareTitle: 'Granmed — The Longest Word',
-      copied: 'Copied!',
       play: 'Play',
       letters: 'Drawn letters',
       solutionTitle: 'Best possible word',
@@ -367,7 +364,6 @@ export default function LongestWordGame() {
       liveRecord: 'Personal best beaten live!',
       xp: 'XP',
       lettersCount: 'letters',
-      dailyLetters: 'Letters',
     },
   }[lang]
 
@@ -628,31 +624,6 @@ export default function LongestWordGame() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [phase, submitWord, removeLast, typeLetter])
-
-  async function onShare() {
-    sfx.play('click')
-    const url =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
-        : ''
-    const sc = endData?.score ?? score
-    let text: string
-    if (endData?.daily && letters.length > 0) {
-      text =
-        lang === 'fr'
-          ? `Défi du jour — Le Mot le Plus Long sur Granmed\n${L.dailyLetters} : ${letters.join(' ')}\nScore : ${sc} points. Peux-tu faire mieux ? ${url}`
-          : `Daily challenge — The Longest Word on Granmed\n${L.dailyLetters}: ${letters.join(' ')}\nScore: ${sc} points. Can you beat that? ${url}`
-    } else {
-      const count = endData?.count ?? found.length
-      const longest = endData?.longest ?? null
-      text =
-        lang === 'fr'
-          ? `J’ai trouvé ${count} mots (le plus long : ${longest ?? '—'}) pour ${sc} points au Mot le Plus Long sur Granmed ! ${url}`
-          : `I found ${count} words (longest: ${longest ?? '—'}) for ${sc} points in The Longest Word on Granmed! ${url}`
-    }
-    const ok = await shareText(L.shareTitle, text)
-    if (ok) toast.success(L.copied)
-  }
 
   const secondsLeft = Math.ceil(timeLeft / 1000)
   const lowTime = secondsLeft <= 10
@@ -997,13 +968,20 @@ export default function LongestWordGame() {
 
           {/* Rejouer immédiatement visible, récapitulatif scrollable ensuite */}
           <div className="mt-4 flex flex-col items-center gap-2.5">
-            <RoundEndActions gameId={gameId} onReplay={() => startGame(mode)} replayLabel={L.playAgain} />
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startGame(mode)}
+              replayLabel={L.playAgain}
+              shareResult={(endData.daily && letters.length > 0 ? L.shareDaily : L.shareScore)
+                .replace('{l}', letters.join(' '))
+                .replace('{n}', String(endData.count))
+                .replace('{m}', endData.count === 1 ? L.wordUnitOne : L.wordUnitMany)
+                .replace('{w}', endData.longest ?? '—')
+                .replace('{s}', String(endData.score))}
+            />
             <div className="flex flex-wrap justify-center gap-2.5">
               <Button size="lg" variant="secondary" className="rounded-full" onClick={() => { sfx.play('click'); setPhase('menu') }}>
                 <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
-              </Button>
-              <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
-                <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
               </Button>
             </div>
           </div>

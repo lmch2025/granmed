@@ -1,14 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Play, RotateCcw, CalendarCheck, Timer, Zap, Footprints, Trophy, Share2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { Play, RotateCcw, CalendarCheck, Timer, Zap, Footprints, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle, shareText } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, shuffle } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -243,6 +241,7 @@ export default function MemoryMatchGame() {
   const genRef = useRef(0)
   const startRef = useRef(0)
   const hiddenAtRef = useRef(0)
+  const lastStartRef = useRef(0)
   const replayBtnRef = useRef<HTMLButtonElement>(null)
 
   /* --- Défi du jour : thème + taille déterministes --- */
@@ -257,6 +256,9 @@ export default function MemoryMatchGame() {
          les timeouts en attente d'une partie précédente) --- */
   const startGame = useCallback(
     (opts?: { daily?: boolean }) => {
+      const now = Date.now()
+      if (now - lastStartRef.current < 350) return // anti double-tap (double addPlay)
+      lastStartRef.current = now
       const isDaily = opts?.daily ?? false
       const gTheme = isDaily ? dailyConfig.theme : theme
       const gSize = isDaily ? dailyConfig.size : size
@@ -402,22 +404,6 @@ export default function MemoryMatchGame() {
     containerType: 'inline-size',
   }
 
-  /* --- Partage du résultat --- */
-  const onShare = useCallback(async () => {
-    if (!won) return
-    sfx.play('click')
-    const url =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
-        : ''
-    const txt =
-      lang === 'fr'
-        ? `J’ai terminé la grille de ${pairsTotal} paires de Memory Match en ${won.moves} coups (${fmt(won.time)}) sur Granmed ! Peux-tu faire mieux ? ${url}`
-        : `I cleared the ${pairsTotal}-pair Memory Match grid in ${won.moves} moves (${fmt(won.time)}) on Granmed! Can you beat that? ${url}`
-    const ok = await shareText('Granmed — Memory Match', txt)
-    if (ok) toast.success(t('common.copied'))
-  }, [won, lang, pairsTotal, t])
-
   /* --- Rendu --- */
   const winStars = won ? (won.mistakes === 0 ? 3 : won.mistakes <= 2 ? 2 : 1) : 3
 
@@ -551,7 +537,7 @@ export default function MemoryMatchGame() {
             <Button
               variant="secondary"
               size="sm"
-              className="ms-auto h-9 shrink-0 gap-1.5 rounded-full px-3"
+              className="relative ms-auto h-9 shrink-0 gap-1.5 rounded-full px-3 after:absolute after:-inset-1.5 after:content-['']"
               aria-label={t('common.restart')}
               onClick={() => startGame({ daily: dailyMode })}
             >
@@ -640,14 +626,16 @@ export default function MemoryMatchGame() {
               onReplay={() => startGame({ daily: dailyMode })}
               replayLabel={t('common.playAgain')}
               primaryRef={replayBtnRef}
+              shareResult={
+                lang === 'fr'
+                  ? `${pairsTotal} paires en ${fmt(won.time)} · ${won.mistakes} fautes`
+                  : `${pairsTotal} pairs in ${fmt(won.time)} · ${won.mistakes} misses`
+              }
             />
           </div>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
             <Button size="lg" variant="secondary" className="rounded-full" onClick={goIdle}>
               <Play className="h-4 w-4" aria-hidden="true" /> {t('game.newGame')}
-            </Button>
-            <Button size="lg" variant="secondary" className="rounded-full" onClick={onShare}>
-              <Share2 className="h-4 w-4" aria-hidden="true" /> {t('common.share')}
             </Button>
           </div>
         </div>

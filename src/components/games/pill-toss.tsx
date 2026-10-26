@@ -135,6 +135,9 @@ const L = {
     bestStreak: 'Meilleure série', again: 'Nouvelle session', aimTitle: 'Visez les fioles !',
     canvasLabel: 'Aire de jeu Pill Toss : tirez la pilule vers l’arrière pour viser, relâchez pour lancer',
     bestScoreLabel: 'Meilleur score', bestStreakLabel: 'Meilleure série',
+    shareCleared: 'Manche nettoyée · {n} lancers',
+    shareMissed: '{hits} fioles touchées · {n} lancers',
+    shareSession: 'Session : {score} pts · série ×{streak}',
   },
   en: {
     play: 'Play', next: 'Next round', end: 'End session', restart: 'Restart session',
@@ -147,6 +150,9 @@ const L = {
     bestStreak: 'Best streak', again: 'New session', aimTitle: 'Aim for the jars!',
     canvasLabel: 'Pill Toss play area: drag the pill backwards to aim, release to throw',
     bestScoreLabel: 'Best score', bestStreakLabel: 'Best streak',
+    shareCleared: 'Round cleared · {n} throws',
+    shareMissed: '{hits} jars hit · {n} throws',
+    shareSession: 'Session: {score} pts · streak ×{streak}',
   },
 } as const
 
@@ -1134,6 +1140,11 @@ export default function PillTossGame() {
                   replayLabel={T.next}
                   replayIcon={<SkipForward className="h-5 w-5" aria-hidden="true" />}
                   primaryRef={nextBtnRef}
+                  shareResult={
+                    summary.cleared
+                      ? T.shareCleared.replace('{n}', String(summary.used))
+                      : T.shareMissed.replace('{hits}', String(summary.hits)).replace('{n}', String(summary.used))
+                  }
                 />
                 <button
                   type="button"
@@ -1158,7 +1169,12 @@ export default function PillTossGame() {
                 {T.bestStreak} : <span className="font-bold tabular-nums text-foreground">×{summary.bestStreak}</span>
               </p>
               <div className="mt-3">
-                <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.again} />
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={handleStart}
+                  replayLabel={T.again}
+                  shareResult={T.shareSession.replace('{score}', String(summary.total)).replace('{streak}', String(summary.bestStreak))}
+                />
               </div>
             </div>
           </div>

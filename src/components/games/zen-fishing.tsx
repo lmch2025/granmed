@@ -1,18 +1,20 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Play, BookOpen, CalendarCheck, Check, X } from 'lucide-react'
+import { Play, BookOpen, CalendarCheck, Check, Share2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
+import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { loadSave, saveSave } from '@/lib/save'
-import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString } from '@/lib/utils-game'
+import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString, shareText } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 
 export const gameId = 'zen-fishing'
 
@@ -161,6 +163,7 @@ const L = {
     goals: ['Attraper 5 poissons en une descente', 'Attraper un poisson des profondeurs', 'Attraper 10 poissons aujourd’hui'],
     best: 'Record', speciesBest: 'Espèces', catchBest: 'Plus grosse prise',
     unknown: 'Pas encore découvert',
+    shareCollection: 'Partager ma collection', shareLine: '{n}/12 espèces découvertes', copied: 'Copié !',
   },
   en: {
     play: 'Fish', collection: 'Collection', species: 'Species', onHook: 'Current descent catch',
@@ -174,6 +177,7 @@ const L = {
     goals: ['Catch 5 fish in one descent', 'Catch a deep-water fish', 'Catch 10 fish today'],
     best: 'Best', speciesBest: 'Species', catchBest: 'Biggest catch',
     unknown: 'Not discovered yet',
+    shareCollection: 'Share my collection', shareLine: '{n}/12 species discovered', copied: 'Copied!',
   },
 } as const
 
@@ -522,6 +526,21 @@ export default function ZenFishingGame() {
     worldRef.current.holding = false
     setBookOpen(true)
   }, [])
+
+  /* Partage discret du carnet de collection (jeu zen sans fin de manche :
+   * le CTA de résultat n'existe pas ici — la barre immersive propose déjà
+   * « Partager ce jeu », le carnet partage la progression de collection). */
+  const shareCollection = useCallback(async () => {
+    sfx.play('coin', { volume: 0.6 })
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
+        : ''
+    const title = `${T.title} — Granmed`
+    const line = T.shareLine.replace('{n}', String(caught.size))
+    const ok = await shareText(title, `${line}\n${title}\n${url}`)
+    if (ok) toast.success(T.copied)
+  }, [lang, caught.size, T])
 
   const handleStart = useCallback(() => {
     const now = performance.now()
@@ -1244,6 +1263,16 @@ export default function ZenFishingGame() {
           <p className="text-xs text-muted-foreground">
             {T.bands[0]} · {T.bands[1]} · {T.bands[2]}
           </p>
+          {caught.size > 0 ? (
+            <Button
+              variant="secondary"
+              className="mt-1 h-11 w-full gap-2 rounded-full"
+              onClick={() => void shareCollection()}
+            >
+              <Share2 className="h-4 w-4 text-primary" aria-hidden="true" />
+              {T.shareCollection}
+            </Button>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>

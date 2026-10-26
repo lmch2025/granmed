@@ -154,7 +154,7 @@ export function GameShell({
     if (ok) toast.success(t('common.copied'))
   }
 
-  /* ---------- Barre immersif : X · titre+niveau · règles · changeur · son ---------- */
+  /* ---------- Barre immersif : X · titre+niveau · règles · changeur · son · partage ---------- */
   const immersiveBar = (
     <div className="shrink-0 pt-[env(safe-area-inset-top)]">
       <div className="flex h-12 items-center gap-1.5 px-2 sm:h-14 sm:px-3">
@@ -228,6 +228,17 @@ export function GameShell({
           }}
         >
           {hydrated && soundOn ? <Volume2 className="h-4.5 w-4.5" /> : <VolumeX className="h-4.5 w-4.5 text-muted-foreground" />}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-10 w-10 shrink-0 rounded-full p-0 text-primary"
+          aria-label={t('common.shareGame')}
+          title={t('common.shareGame')}
+          onClick={onShare}
+        >
+          <Share2 className="h-4.5 w-4.5" aria-hidden="true" />
         </Button>
       </div>
       {/* Barre de progression du niveau du jeu — discrète et vivante */}
@@ -319,8 +330,8 @@ export function GameShell({
 
         <FavoriteHeart gameId={gameId} className="h-9 w-9" />
 
-        <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0" aria-label={t('common.share')} onClick={onShare}>
-          <Share2 className="h-4 w-4" />
+        <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0" aria-label={t('common.shareGame')} title={t('common.shareGame')} onClick={onShare}>
+          <Share2 className="h-4 w-4 text-primary" />
         </Button>
       </div>
     </div>

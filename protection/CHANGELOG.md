@@ -18,3 +18,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (1) : protection/integrity.ts
 - Suppressions (0) : aucune
 
+## 2026-10-26 02:16 — Task 15 (force majeure sanctionnée) : CTA partage incitatif en fin de manche dans RoundEndActions (prop shareResult), bouton partage dans la barre immersive, clés i18n shareScore/shareGame, câblage des 20 jeux + corrections d'audit (double addPlay, cibles tactiles, date localisée, garde de langue guess-the-idiom, anti-doublons partage)
+- Commit : `3faabd0acf1b`
+- Jeux protégés : 20
+- Ajouts (0) : aucun
+- Modifications (23) : src/components/games/speed-math.tsx, src/components/games/daily-word.tsx, src/components/games/zen-fishing.tsx, src/components/games/merge-garden.tsx, src/components/games/memory-match.tsx, src/components/games/mini-crossword.tsx, src/components/games/pill-toss.tsx, src/components/games/fire-escape.tsx, src/components/games/longest-word.tsx, src/components/games/interactive-story.tsx, src/components/games/fruit-slice.tsx, src/components/games/2048-nutrition.tsx, src/components/games/health-true-false.tsx, src/components/games/guess-the-idiom.tsx, src/components/games/sudoku.tsx, src/components/games/block-puzzle.tsx, src/components/games/minesweeper.tsx, src/components/games/sequence-memory.tsx, src/components/games/schulte-table.tsx, src/components/games/jigsaw-puzzle.tsx, src/components/game/round-end.tsx, src/components/game/game-shell.tsx, src/lib/i18n.ts
+- Suppressions (0) : aucune
+

@@ -476,7 +476,7 @@ export default function SequenceMemoryGame() {
             <Button
               variant="secondary"
               size="sm"
-              className="ms-auto h-8 w-8 rounded-full p-0"
+              className="relative ms-auto h-8 w-8 rounded-full p-0 after:absolute after:-inset-2 after:content-['']"
               aria-label={t('common.restart')}
               onClick={() => {
                 sfx.play('click')
@@ -584,6 +584,7 @@ export default function SequenceMemoryGame() {
                   gameId={gameId}
                   onReplay={() => start(mode)}
                   replayLabel={over && over.score >= 5 ? t('common.playAgain') : L.retry}
+                  shareResult={lang === 'fr' ? `Séquence de ${over.score} reproduite` : `Sequence of ${over.score} replayed`}
                 />
                 <Button
                   size="sm"

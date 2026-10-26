@@ -5,7 +5,6 @@ import {
   Play,
   CalendarCheck,
   RotateCcw,
-  Share2,
   SkipForward,
   Trophy,
   Zap,
@@ -20,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle, shareText, useReducedMotion } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, shuffle, useReducedMotion } from '@/lib/utils-game'
 import { loadSave, saveSave } from '@/lib/save'
 import type { GameSEOContent } from '@/lib/games/types'
 import { FR_IDIOMS, EN_IDIOMS } from '@/components/games/data/guess-the-idiom-data'
@@ -29,7 +28,6 @@ import { Button } from '@/components/ui/button'
 import { DifficultyDots } from '@/components/shared/ui-bits'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
-import { toast } from 'sonner'
 
 export const gameId = 'guess-the-idiom'
 
@@ -357,12 +355,10 @@ export default function GuessTheIdiomGame() {
       solvedCount: 'Expressions trouvées',
       playAgain: 'Rejouer',
       menu: 'Menu',
-      share: 'Partager',
+      shareScore: '{n}/{t} expressions devinées · {s} points',
       newRecord: 'Nouveau record !',
       fallbackOrigin:
         'Cette expression fait partie du langage courant depuis longtemps ; son origine exacte reste débattue par les spécialistes.',
-      shareTitle: 'Granmed — Devine l’Expression',
-      copied: 'Copié !',
       play: 'Jouer',
       lettersUnit: 'lettres',
       best: 'Meilleur score',
@@ -407,12 +403,10 @@ export default function GuessTheIdiomGame() {
       solvedCount: 'Idioms solved',
       playAgain: 'Play again',
       menu: 'Menu',
-      share: 'Share',
+      shareScore: '{n}/{t} idioms guessed · {s} points',
       newRecord: 'New personal best!',
       fallbackOrigin:
         'This idiom has been part of everyday language for a long time; its exact origin is still debated by specialists.',
-      shareTitle: 'Granmed — Guess the Idiom',
-      copied: 'Copied!',
       play: 'Play',
       lettersUnit: 'letters',
       best: 'Best score',
@@ -439,7 +433,10 @@ export default function GuessTheIdiomGame() {
       if (g.mode !== 'free' && g.mode !== 'daily') return
       if (!Array.isArray(g.roundIds) || g.roundIds.length === 0) return
       const entries = g.roundIds.map((id) => IDIOM_BY_ID.get(id))
-      if (entries.some((e) => !e)) return
+      // Langue cohérente : un snapshot pris en anglais ne doit jamais être
+      // restauré dans l'interface française (et inversement) — chaque langue
+      // joue avec son propre réservoir d'expressions.
+      if (entries.some((e) => !e || !e.id.startsWith(`${lang}-`))) return
       const restoredRounds = entries as IdiomEntry[]
       if (!Number.isInteger(g.roundIdx) || g.roundIdx < 0 || g.roundIdx >= restoredRounds.length) return
       if (!Array.isArray(g.results) || g.results.length !== g.roundIdx) return
@@ -705,23 +702,6 @@ export default function GuessTheIdiomGame() {
     setRoundIdx((i) => i + 1)
     resetRound()
     setPhase('playing')
-  }
-
-  async function onShare() {
-    sfx.play('click')
-    const url =
-      typeof window !== 'undefined'
-        ? `${window.location.href.split('#')[0]}#/${lang === 'fr' ? 'fr/devine-expression' : 'en/guess-the-idiom'}`
-        : ''
-    const solved = endData?.solved ?? solvedCount
-    const total = endData?.total ?? rounds.length
-    const sc = endData?.score ?? score
-    const text =
-      lang === 'fr'
-        ? `J’ai trouvé ${solved}/${total} expressions et marqué ${sc} points à Devine l’Expression sur Granmed ! Peux-tu faire mieux ? ${url}`
-        : `I guessed ${solved}/${total} idioms and scored ${sc} points on Guess the Idiom at Granmed! Can you beat that? ${url}`
-    const ok = await shareText(L.shareTitle, text)
-    if (ok) toast.success(L.copied)
   }
 
   /* --- Autosave (effet de pur side-effect : jamais de setState) --- */
@@ -1221,13 +1201,18 @@ export default function GuessTheIdiomGame() {
           {endData.dailyCredit ? <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">✅ {L.dailyCredit}</p> : null}
           {endData.practice ? <p className="mt-2 text-xs text-muted-foreground">{L.practiceNote}</p> : null}
           <div className="mt-4 flex flex-col items-center gap-2.5">
-            <RoundEndActions gameId={gameId} onReplay={() => startGame(mode)} replayLabel={L.playAgain} />
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => startGame(mode)}
+              replayLabel={L.playAgain}
+              shareResult={L.shareScore
+                .replace('{n}', String(endData.solved))
+                .replace('{t}', String(endData.total))
+                .replace('{s}', String(endData.score))}
+            />
             <div className="flex flex-wrap justify-center gap-2">
               <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={quitToMenu}>
                 <Home className="h-4 w-4" aria-hidden="true" /> {L.menu}
-              </Button>
-              <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={onShare}>
-                <Share2 className="h-4 w-4" aria-hidden="true" /> {L.share}
               </Button>
             </div>
           </div>

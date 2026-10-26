@@ -36,6 +36,8 @@ const DICT: Record<string, Record<Lang, string>> = {
   'common.close': { fr: 'Fermer', en: 'Close' },
   'common.back': { fr: 'Retour', en: 'Back' },
   'common.share': { fr: 'Partager', en: 'Share' },
+  'common.shareScore': { fr: 'Partager mon score', en: 'Share my score' },
+  'common.shareGame': { fr: 'Partager ce jeu', en: 'Share this game' },
   'common.copy': { fr: 'Copier', en: 'Copy' },
   'common.copied': { fr: 'Copié !', en: 'Copied!' },
   'common.next': { fr: 'Suivant', en: 'Next' },

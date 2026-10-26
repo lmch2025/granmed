@@ -905,7 +905,7 @@ export default function SudokuGame() {
           {phase === 'playing' ? (
             <Button
               variant="secondary"
-              className="h-9 w-9 rounded-full p-0"
+              className="h-11 w-11 rounded-full p-0"
               onClick={() => (running ? pause() : resumeTimer())}
               aria-label={running ? t('common.pause') : t('common.resume')}
               title={running ? t('common.pause') : t('common.resume')}
@@ -916,7 +916,7 @@ export default function SudokuGame() {
           {phase === 'playing' ? (
             <Button
               variant={confirmRestart ? 'destructive' : 'ghost'}
-              className="h-9 w-9 rounded-full p-0"
+              className="h-11 w-11 rounded-full p-0"
               onClick={onRestartClick}
               aria-label={confirmRestart ? L.confirm : t('common.restart')}
               title={confirmRestart ? L.confirm : t('common.restart')}
@@ -1037,6 +1037,11 @@ export default function SudokuGame() {
                 onReplay={() => newGame(diff)}
                 replayLabel={L.replay}
                 replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+                shareResult={
+                  lang === 'fr'
+                    ? `Grille ${t(`common.${diff}`)} résolue en ${formatMs(wonInfo.ms)}${hintsUsed === 0 ? ' sans indice' : ` · ${hintsUsed}/3 indices`}`
+                    : `${t(`common.${diff}`)} grid solved in ${formatMs(wonInfo.ms)}${hintsUsed === 0 ? ' with no hints' : ` · ${hintsUsed}/3 hints`}`
+                }
               />
               <Button
                 variant="ghost"
@@ -1091,7 +1096,7 @@ export default function SudokuGame() {
       <div className={cn('mx-auto mt-1.5 flex w-full flex-wrap items-center justify-center gap-1.5', BOARD_MAX)}>
         <Button
           variant={notesMode ? 'default' : 'secondary'}
-          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
+          className="h-11 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
           onClick={toggleNotesMode}
           disabled={!canAct}
           aria-pressed={notesMode}
@@ -1103,7 +1108,7 @@ export default function SudokuGame() {
         </Button>
         <Button
           variant="secondary"
-          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
+          className="h-11 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
           onClick={giveHint}
           disabled={!canAct || hintsUsed >= 3}
           aria-label={t('common.hint')}
@@ -1114,7 +1119,7 @@ export default function SudokuGame() {
         </Button>
         <Button
           variant="secondary"
-          className="h-10 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
+          className="h-11 touch-manipulation select-none rounded-full px-3 text-xs font-bold"
           onClick={verify}
           disabled={!canAct}
         >
@@ -1123,7 +1128,7 @@ export default function SudokuGame() {
         </Button>
         <Button
           variant={autoCheck ? 'default' : 'secondary'}
-          className="h-10 w-10 touch-manipulation select-none rounded-full p-0"
+          className="h-11 w-11 touch-manipulation select-none rounded-full p-0"
           onClick={() => {
             sfx.play('click', { volume: 0.4 })
             setAutoCheck((v) => !v)

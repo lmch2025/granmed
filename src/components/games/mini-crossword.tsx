@@ -1035,7 +1035,7 @@ export default function MiniCrosswordGame() {
                         typeLetter(k)
                         focusBoard()
                       }}
-                      className="h-10 min-w-0 flex-1 touch-manipulation select-none rounded-lg border bg-card text-sm font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:h-11 sm:text-base"
+                      className="h-11 min-w-0 flex-1 touch-manipulation select-none rounded-lg border bg-card text-sm font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:text-base"
                     >
                       {k}
                     </button>
@@ -1050,7 +1050,7 @@ export default function MiniCrosswordGame() {
                     focusBoard()
                   }}
                   title={L.erase}
-                  className="flex h-10 flex-[1.3] touch-manipulation select-none items-center justify-center gap-1.5 rounded-lg border bg-secondary/70 text-xs font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:h-11 sm:text-sm"
+                  className="flex h-11 flex-[1.3] touch-manipulation select-none items-center justify-center gap-1.5 rounded-lg border bg-secondary/70 text-xs font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:text-sm"
                 >
                   <Eraser className="h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{L.erase}</span>
@@ -1062,7 +1062,7 @@ export default function MiniCrosswordGame() {
                     focusBoard()
                   }}
                   title={dir === 'across' ? L.across : L.down}
-                  className="flex h-10 flex-[1.3] touch-manipulation select-none items-center justify-center gap-1.5 rounded-lg border bg-secondary/70 text-xs font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:h-11 sm:text-sm"
+                  className="flex h-11 flex-[1.3] touch-manipulation select-none items-center justify-center gap-1.5 rounded-lg border bg-secondary/70 text-xs font-bold shadow-sm transition-all hover:bg-accent active:scale-95 sm:text-sm"
                 >
                   {dir === 'across' ? (
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -1080,7 +1080,7 @@ export default function MiniCrosswordGame() {
                   disabled={hintsUsed >= HINTS_MAX}
                   title={`${L.hint} · ${Math.max(0, HINTS_MAX - hintsUsed)}/${HINTS_MAX}`}
                   aria-label={`${L.hint} · ${Math.max(0, HINTS_MAX - hintsUsed)}/${HINTS_MAX}`}
-                  className="flex h-10 flex-1 touch-manipulation select-none items-center justify-center gap-1 rounded-lg border bg-card text-sm font-bold shadow-sm transition-all hover:bg-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11"
+                  className="flex h-11 flex-1 touch-manipulation select-none items-center justify-center gap-1 rounded-lg border bg-card text-sm font-bold shadow-sm transition-all hover:bg-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Lightbulb className="h-4 w-4 text-amber-500" aria-hidden="true" />
                   {Math.max(0, HINTS_MAX - hintsUsed)}
@@ -1094,7 +1094,7 @@ export default function MiniCrosswordGame() {
                   disabled={hintsUsed >= HINTS_MAX || !activeWord}
                   title={L.revealHint}
                   aria-label={L.reveal}
-                  className="flex h-10 w-10 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-12"
+                  className="flex h-11 w-11 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:w-12"
                 >
                   <Eye className="h-4 w-4 text-primary" aria-hidden="true" />
                 </button>
@@ -1106,7 +1106,7 @@ export default function MiniCrosswordGame() {
                   }}
                   title={L.check}
                   aria-label={L.check}
-                  className="flex h-10 w-10 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 sm:h-11 sm:w-12"
+                  className="flex h-11 w-11 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 sm:w-12"
                 >
                   <CheckCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 </button>
@@ -1115,7 +1115,7 @@ export default function MiniCrosswordGame() {
                   onClick={backToPicker}
                   title={L.grids}
                   aria-label={L.grids}
-                  className="flex h-10 w-10 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 sm:h-11 sm:w-12"
+                  className="flex h-11 w-11 touch-manipulation select-none items-center justify-center rounded-lg border bg-card shadow-sm transition-all hover:bg-accent active:scale-95 sm:w-12"
                 >
                   <LayoutGrid className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </button>
@@ -1199,6 +1199,11 @@ export default function MiniCrosswordGame() {
               onReplay={() => startPuzzle(puzzle, isDaily)}
               replayLabel={t('common.playAgain')}
               replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              shareResult={
+                lang === 'fr'
+                  ? `Grille « ${puzzle.theme.fr} » résolue en ${formatMs(elapsed)}${hintsUsed === 0 ? ' · sans indice' : ` · ${hintsUsed}/${HINTS_MAX} indices`}`
+                  : `${puzzle.theme.en} grid solved in ${formatMs(elapsed)}${hintsUsed === 0 ? ' · no hints' : ` · ${hintsUsed}/${HINTS_MAX} hints`}`
+              }
             />
           </div>
         </div>

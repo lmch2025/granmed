@@ -252,6 +252,7 @@ export default function SchulteTableGame() {
   const accRef = useRef(0) // millisecondes accumulées avant le segment courant
   const nextRef = useRef(1)
   const timersRef = useRef<number[]>([])
+  const lastStartRef = useRef(0)
 
   const L = {
     fr: {
@@ -351,6 +352,9 @@ export default function SchulteTableGame() {
   }, [phase])
 
   function start(n: number, opts?: { daily?: boolean }) {
+    const now = Date.now()
+    if (now - lastStartRef.current < 350) return // anti double-tap (double addPlay)
+    lastStartRef.current = now
     const daily = opts?.daily ?? false
     const d = daily ? dailyToday() : null
     const gSize = d ? d.size : n
@@ -586,7 +590,7 @@ export default function SchulteTableGame() {
                 aria-label={`${L.changeDisplay} (${L[display]})`}
                 title={L[display]}
                 onClick={cycleDisplay}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95 after:absolute after:-inset-1.5 after:content-['']"
               >
                 <DisplayIcon className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -595,7 +599,7 @@ export default function SchulteTableGame() {
                 aria-label={L.quit}
                 title={L.quit}
                 onClick={goIdle}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95 after:absolute after:-inset-1.5 after:content-['']"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -607,7 +611,7 @@ export default function SchulteTableGame() {
                   sfx.play('click')
                   start(gridSize, { daily: dailyMode })
                 }}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground active:scale-95 after:absolute after:-inset-1.5 after:content-['']"
               >
                 <RotateCcw className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -681,7 +685,14 @@ export default function SchulteTableGame() {
             </span>
           ) : null}
           <div className="mt-1">
-            <RoundEndActions gameId={gameId} onReplay={() => start(won?.size ?? size)} replayLabel={t('common.playAgain')} />
+            <RoundEndActions
+              gameId={gameId}
+              onReplay={() => start(won?.size ?? size)}
+              replayLabel={t('common.playAgain')}
+              shareResult={
+                won ? `${won.size}×${won.size} ${lang === 'fr' ? 'en' : 'in'} ${fmtSecs(won.ms / 1000, lang)}` : undefined
+              }
+            />
           </div>
           <div className="flex justify-center">
             <Button size="lg" variant="secondary" className="h-11 rounded-full" onClick={goIdle}>

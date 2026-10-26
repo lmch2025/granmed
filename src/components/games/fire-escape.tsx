@@ -138,6 +138,7 @@ const L = {
     level: 'Niveau', milestone: 'Palier {n} m', elite: 'Honneur du feu !',
     waterBonus: 'Bonus gouttes', xpGained: 'XP gagnés',
     canvasLabel: 'Jeu du pompier : maintenez pour faire monter le pompier entre les flammes, relâchez pour descendre.',
+    shareRun: '{n} m parcourus',
   },
   en: {
     play: 'Climb!', replay: 'Play again', restart: 'Restart',
@@ -151,6 +152,7 @@ const L = {
     level: 'Level', milestone: '{n} m milestone', elite: 'Fire honor!',
     waterBonus: 'Drop bonus', xpGained: 'XP earned',
     canvasLabel: 'Firefighter game: hold to make the firefighter climb between the flames, release to fall.',
+    shareRun: '{n} m climbed',
   },
 } as const
 
@@ -1089,6 +1091,7 @@ export default function FireEscapeGame() {
           {/* Game over — toucher le fond relance immédiatement */}
           {phase === 'over' && result ? (
             <div
+              role="status"
               className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-[2px]"
               onClick={handleStart}
             >
@@ -1121,7 +1124,13 @@ export default function FireEscapeGame() {
                 <p className="mt-1 text-[11px] font-semibold text-muted-foreground">+{result.xp} XP · {T.xpGained}</p>
                 <p className="mt-2 text-[11px] text-muted-foreground">{T.tip}</p>
                 <div className="mt-4">
-                  <RoundEndActions gameId={gameId} onReplay={handleStart} replayLabel={T.replay} primaryRef={replayBtnRef} />
+                  <RoundEndActions
+                    gameId={gameId}
+                    onReplay={handleStart}
+                    replayLabel={T.replay}
+                    shareResult={T.shareRun.replace('{n}', String(result.dist))}
+                    primaryRef={replayBtnRef}
+                  />
                 </div>
               </div>
             </div>

@@ -297,6 +297,7 @@ const STR = {
     empty: 'Vide',
     hintDrag: 'Touchez une pièce ou glissez-la sur la grille',
     hintPlace: 'Touchez une case libre pour poser la pièce',
+    shareLine: '{n} lignes · {s} pts',
   },
   en: {
     board: '10×10 grid',
@@ -316,6 +317,7 @@ const STR = {
     empty: 'Empty',
     hintDrag: 'Tap a piece — or drag it onto the grid',
     hintPlace: 'Tap a free cell to place the piece',
+    shareLine: '{n} lines · {s} pts',
   },
 }
 
@@ -711,6 +713,9 @@ export default function BlockPuzzleGame() {
   const selectedShapeId = game && selected !== null ? (game.slots[selected] ?? null) : null
   const playing = game !== null && !game.over
   const xpGain = game ? Math.floor(game.score / 100) : 0
+  /* Ligne de résultat partageable (game-over) : lignes effacées + score final. */
+  const shareResult =
+    game && game.over ? L.shareLine.replace('{n}', String(game.lines)).replace('{s}', String(game.score)) : undefined
 
   return (
     <div className="relative no-select select-none my-auto w-full">
@@ -955,6 +960,7 @@ export default function BlockPuzzleGame() {
                 gameId={gameId}
                 onReplay={() => startGame(game.mode, false)}
                 replayLabel={t('common.playAgain')}
+                shareResult={shareResult}
                 className="mt-1"
               />
             </div>

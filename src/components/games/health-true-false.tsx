@@ -1,13 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Play, CalendarCheck, Zap, ArrowRight, Share2, Star, Trophy, Flame, CheckCircle2, XCircle, BookMarked, Home } from 'lucide-react'
+import { Play, CalendarCheck, Zap, ArrowRight, Star, Trophy, Flame, CheckCircle2, XCircle, BookMarked, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, mulberry32, seedFromString, shuffle, shareText, useReducedMotion } from '@/lib/utils-game'
+import { todayKey, mulberry32, seedFromString, shuffle, useReducedMotion } from '@/lib/utils-game'
 import { loadSave, saveSave } from '@/lib/save'
 import type { GameSEOContent } from '@/lib/games/types'
 import { QUIZ_STATEMENTS, type QuizStatement } from '@/components/games/data/health-true-false-data'
@@ -15,7 +14,6 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { DifficultyDots } from '@/components/shared/ui-bits'
-import { toast } from 'sonner'
 
 export const gameId = 'health-true-false'
 
@@ -247,7 +245,6 @@ export default function HealthTrueFalseGame() {
       replay: 'Rejouer',
       replayDaily: 'Rejouer le défi',
       retry: 'Réessayer',
-      shareTitle: 'Granmed — Vrai ou Faux Santé',
       noteSources: 'Contenu informatif fondé sur les repères d’organismes de santé publique ; il ne remplace pas l’avis d’un professionnel de santé.',
       sourcesChip: 'Sources : OMS, NHS, Inserm, Harvard Health, ANSES…',
       stars3: 'Excellent !',
@@ -256,9 +253,6 @@ export default function HealthTrueFalseGame() {
       stars0: 'Continuez !',
       xpGain: 'XP gagnés',
       dailyLogged: 'Défi du jour enregistré',
-      shareLine: 'Peux-tu faire mieux ?',
-      shareDaily: 'Série du jour',
-      shareQuick: 'Série rapide',
     },
     en: {
       dailyTitle: 'Daily series',
@@ -288,7 +282,6 @@ export default function HealthTrueFalseGame() {
       replay: 'Play again',
       replayDaily: 'Replay the challenge',
       retry: 'Try again',
-      shareTitle: 'Granmed — True or False Health',
       noteSources: 'Informational content based on public-health agency guidance; it does not replace advice from a healthcare professional.',
       sourcesChip: 'Sources: WHO, NHS, Inserm, Harvard Health, ANSES…',
       stars3: 'Excellent!',
@@ -297,9 +290,6 @@ export default function HealthTrueFalseGame() {
       stars0: 'Keep going!',
       xpGain: 'XP earned',
       dailyLogged: 'Daily challenge logged',
-      shareLine: 'Can you do better?',
-      shareDaily: 'Daily series',
-      shareQuick: 'Quick series',
     },
   }[lang]
 
@@ -447,21 +437,6 @@ export default function HealthTrueFalseGame() {
   const correctCount = results.filter(Boolean).length
   const isLast = series.length > 0 && idx + 1 >= series.length
 
-  /* --- Partage du bilan (emoji ✅❌) --- */
-  const shareResult = useCallback(async () => {
-    if (!end) return
-    sfx.play('click')
-    const line = results.map((r) => (r ? '✅' : '❌')).join('')
-    const url = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}` : ''
-    const modeLabel = mode === 'daily' ? L.shareDaily : L.shareQuick
-    const text =
-      lang === 'fr'
-        ? `Vrai ou Faux Santé — ${modeLabel} : ${end.score}/${SERIES_LEN}\n${line}\n${L.shareLine} ${url}`
-        : `True or False Health — ${modeLabel}: ${end.score}/${SERIES_LEN}\n${line}\n${L.shareLine} ${url}`
-    const ok = await shareText(L.shareTitle, text)
-    if (ok) toast.success(t('common.copied'))
-  }, [end, results, mode, lang, L, t])
-
   /* ================= Rendu ================= */
   return (
     <div className="relative my-auto w-full select-none">
@@ -600,7 +575,7 @@ export default function HealthTrueFalseGame() {
               onClick={quitToMenu}
               aria-label={L.quit}
               title={L.quit}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring after:absolute after:-inset-2 after:content-['']"
             >
               <Home className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -787,15 +762,14 @@ export default function HealthTrueFalseGame() {
               onReplay={() => startSeries(mode)}
               replayLabel={end && end.score >= 10 ? (mode === 'daily' ? L.replayDaily : L.replay) : L.retry}
               primaryRef={replayBtnRef}
+              shareResult={
+                end ? `${end.score}/${SERIES_LEN} · ${Math.round((end.score / SERIES_LEN) * 100)}%` : undefined
+              }
             />
           </div>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
             <Button size="lg" variant="secondary" className="h-11 rounded-full px-5" onClick={quitToMenu}>
               {L.menu}
-            </Button>
-            <Button size="lg" variant="secondary" className="h-11 rounded-full px-5" onClick={shareResult}>
-              <Share2 className="h-4 w-4" aria-hidden="true" />
-              {t('common.share')}
             </Button>
           </div>
         </div>

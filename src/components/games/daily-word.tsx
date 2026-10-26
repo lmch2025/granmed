@@ -1,20 +1,18 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BarChart3, CalendarCheck, Crosshair, Dumbbell, Flame, History, RotateCcw, Share2, Undo2 } from 'lucide-react'
+import { BarChart3, CalendarCheck, Crosshair, Dumbbell, Flame, History, RotateCcw, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
 import type { Lang } from '@/lib/i18n'
-import { buildHash } from '@/lib/app-store'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, dateKeyOffset, useReducedMotion, useHydrated, shareText } from '@/lib/utils-game'
+import { todayKey, dateKeyOffset, useReducedMotion, useHydrated } from '@/lib/utils-game'
 import { loadSave, saveSave } from '@/lib/save'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
-import { toast } from 'sonner'
 import {
   answersFor,
   buildDictionary,
@@ -214,8 +212,6 @@ const L_FR = {
   wonTitle: 'Bravo !',
   lostTitle: 'Le mot était :',
   dailyDone: 'Défi du jour réussi — revenez demain !',
-  share: 'Partager',
-  copied: 'Résultat copié !',
   statsTitle: 'Statistiques',
   gamesPlayed: 'Parties',
   wins: 'Victoires',
@@ -229,8 +225,9 @@ const L_FR = {
   boardLabel: 'Grille du Mot du Jour',
   enter: 'ENTRÉE',
   backspace: 'Effacer',
-  shareTitle: 'Mot du Jour Santé',
   winShare: 'Mot du Jour',
+  practiceShareLost: 'Mot non trouvé en 6 essais',
+  practiceShareTry: (n: number) => `Mot trouvé en ${n}/6 essais`,
 }
 
 const L_EN = {
@@ -249,8 +246,6 @@ const L_EN = {
   wonTitle: 'Well done!',
   lostTitle: 'The word was:',
   dailyDone: 'Daily challenge complete — come back tomorrow!',
-  share: 'Share',
-  copied: 'Result copied!',
   statsTitle: 'Statistics',
   gamesPlayed: 'Games',
   wins: 'Wins',
@@ -264,8 +259,9 @@ const L_EN = {
   boardLabel: 'Daily word grid',
   enter: 'ENTER',
   backspace: 'Delete',
-  shareTitle: 'Daily Word Game',
   winShare: 'Daily Word',
+  practiceShareLost: 'Word not found in 6 tries',
+  practiceShareTry: (n: number) => `Solved in ${n}/6 tries`,
 }
 
 interface DWDaily {
@@ -695,10 +691,16 @@ export default function DailyWordGame() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  /* --- Partage --- */
-  async function shareResult() {
-    sfx.play('click')
+  /* --- Lignes de résultat à partager : le CTA doré de RoundEndActions construit
+         lui-même le texte complet (résultat + titre du jeu + URL localisée). --- */
+  const shareResult = useMemo(() => {
     const score = phase === 'won' ? `${guesses.length}/6` : 'X/6'
+    const header =
+      mode === 'daily'
+        ? `${L.winShare} #${puzzleNumber(todayKey())} — ${score}`
+        : phase === 'won'
+          ? L.practiceShareTry(guesses.length)
+          : L.practiceShareLost
     const grid = guesses
       .map((g) =>
         evaluateGuess(g, answer)
@@ -706,15 +708,8 @@ export default function DailyWordGame() {
           .join(''),
       )
       .join('\n')
-    const header = `${L.winShare} #${puzzleNumber(todayKey())} — ${score}`
-    const url =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
-        : ''
-    const text = `${header}\n${grid}\n${url}`
-    const ok = await shareText(L.shareTitle, text)
-    if (ok) toast.success(L.copied)
-  }
+    return grid ? `${header}\n${grid}` : header
+  }, [phase, mode, guesses, answer, L])
 
   /* --- Données dérivées --- */
   const rowStatuses = useMemo(
@@ -946,17 +941,12 @@ export default function DailyWordGame() {
             </p>
           ) : null}
           <div className="mt-4 flex flex-col items-center gap-2.5">
-            {mode === 'daily' ? (
-              <Button size="lg" variant="secondary" className="rounded-full" onClick={shareResult}>
-                <Share2 className="h-4 w-4" aria-hidden="true" />
-                {L.share}
-              </Button>
-            ) : null}
             <RoundEndActions
               gameId={gameId}
               onReplay={() => startPractice()}
               replayLabel={mode === 'practice' ? L.newWord : L.practiceBtn}
               replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              shareResult={shareResult}
             />
           </div>
         </div>

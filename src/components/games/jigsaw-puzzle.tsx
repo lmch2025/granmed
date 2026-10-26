@@ -209,6 +209,7 @@ const STR = {
     tray: 'Bac des pièces — faites-les glisser sur le plateau',
     dragHint: 'Faites glisser les pièces : elles se collent quand elles sont proches de leur place.',
     boardLabel: 'Plateau du puzzle',
+    shareWin: 'Puzzle {n} pièces en {t}',
   },
   en: {
     selectHint: 'Pick an image, a piece count, then reassemble the memory.',
@@ -224,6 +225,7 @@ const STR = {
     tray: 'Piece tray — drag pieces onto the board',
     dragHint: 'Drag the pieces: they snap when close to their spot.',
     boardLabel: 'Puzzle board',
+    shareWin: '{n}-piece puzzle in {t}',
   },
 }
 
@@ -856,6 +858,9 @@ export default function JigsawPuzzleGame() {
   const lockedCount = game ? game.pieces.filter((p) => p.locked).length : 0
   const pct = game ? Math.round((lockedCount / game.count) * 100) : 0
   const doneTotal = COUNTS.reduce((n, c) => n + Object.keys(gallery).filter((k) => k.endsWith(`:${c}`)).length, 0)
+  /* Ligne de résultat partageable (victoire) : taille du puzzle + temps réel. */
+  const shareResult =
+    won != null && game ? L.shareWin.replace('{n}', String(game.count)).replace('{t}', fmtSec(won.seconds)) : undefined
 
   return (
     <div className="no-select relative select-none my-auto w-full">
@@ -1174,6 +1179,7 @@ export default function JigsawPuzzleGame() {
                       gameId={gameId}
                       onReplay={() => startGame(game.imageId, game.count)}
                       replayLabel={t('common.playAgain')}
+                      shareResult={shareResult}
                       primaryRef={replayBtnRef}
                     />
                     <div className="mt-2 flex justify-center">

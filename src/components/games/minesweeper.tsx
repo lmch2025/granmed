@@ -278,6 +278,8 @@ const L_FR = {
   mineCell: 'mine',
   emptyCell: 'case vide',
   adjCell: '{n} mines autour',
+  shareWin: 'Plateau déminé en {t}',
+  shareLose: 'Mine touchée après {t}',
 }
 
 const L_EN = {
@@ -314,6 +316,8 @@ const L_EN = {
   mineCell: 'mine',
   emptyCell: 'empty cell',
   adjCell: '{n} mines around',
+  shareWin: 'Board cleared in {t}',
+  shareLose: 'Hit a mine after {t}',
 }
 
 /* ================= Moteur de jeu ================= */
@@ -405,6 +409,11 @@ function buzz() {
       navigator.vibrate(10)
     } catch {}
   }
+}
+
+/** Durée compacte pour la ligne de résultat partageable (47 s / 2:14). */
+function fmtShareDur(seconds: number): string {
+  return seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 
 interface Press {
@@ -647,6 +656,8 @@ export default function MinesweeperGame() {
   }
 
   function finishLose(explodedIdx: number, cells: Cell[]) {
+    const ms = startRef.current > 0 ? Date.now() - startRef.current : 0
+    const seconds = Math.max(1, Math.round(ms / 1000))
     const next = cells.map((x) => ({ ...x }))
     for (const cell of next) {
       if (cell.mine) cell.revealed = true
@@ -654,6 +665,7 @@ export default function MinesweeperGame() {
     setBoard(next)
     setExploded(explodedIdx)
     setPhase('lost')
+    setFinalTime(seconds)
     addGameXp(gameId, 10)
     sfx.play('lose')
     buzz()
@@ -767,6 +779,14 @@ export default function MinesweeperGame() {
   const flags = board.reduce((n, c) => n + (c.flagged ? 1 : 0), 0)
   const minesLeft = cfg.mines - flags
   const popIn = reduce ? '' : 'anim-pop-in'
+
+  /* Ligne de résultat partageable (victoire ET défaite) : durée réelle + difficulté. */
+  const shareResult =
+    finalTime !== null && (phase === 'won' || phase === 'lost')
+      ? `${(phase === 'won' ? L.shareWin : L.shareLose).replace('{t}', fmtShareDur(finalTime))} — ${
+          diff === 'daily' ? L.dailyName : L[diff]
+        }`
+      : undefined
 
   const cells = board.map((cell, idx) => {
     const wrongFlag = phase === 'lost' && cell.flagged && !cell.mine
@@ -1052,7 +1072,12 @@ export default function MinesweeperGame() {
                 </p>
               ) : null}
               <div className="mt-3">
-                <RoundEndActions gameId={gameId} onReplay={() => startGame(diff)} replayLabel={L.playAgain} />
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={() => startGame(diff)}
+                  replayLabel={L.playAgain}
+                  shareResult={shareResult}
+                />
                 <div className="mt-2 flex justify-center">
                   <Button variant="secondary" className="h-10 rounded-full" onClick={backToLevels}>
                     <LayoutGrid className="h-4 w-4" aria-hidden="true" />

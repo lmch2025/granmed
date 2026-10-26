@@ -818,6 +818,11 @@ export default function Game2048() {
                 }}
                 replayLabel={t('common.continue')}
                 replayIcon={<Play className="h-5 w-5" aria-hidden="true" />}
+                shareResult={
+                  lang === 'fr'
+                    ? `2048 atteint ! Score : ${formatNum(game.score, lang)} points`
+                    : `2048 reached! Score: ${formatNum(game.score, lang)} points`
+                }
               />
               <Button
                 variant="ghost"
@@ -852,6 +857,11 @@ export default function Game2048() {
                 onReplay={() => startNew(game.daily)}
                 replayLabel={t('common.playAgain')}
                 replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+                shareResult={
+                  lang === 'fr'
+                    ? `Score final : ${formatNum(game.score, lang)} points · tuile max ${maxTile}`
+                    : `Final score: ${formatNum(game.score, lang)} points · best tile ${maxTile}`
+                }
               />
             </div>
           </div>

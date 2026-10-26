@@ -141,6 +141,8 @@ const DICT = {
     tapToSkip: 'Touchez pour tout afficher',
     kbdHint: 'Au clavier : touches 1, 2, 3 pour choisir · Entrée pour tout afficher',
     xpGain: (n: number) => `+${n} XP`,
+    shareResult: (name: string, found: number, total: number) =>
+      `Fin « ${name} » atteinte · ${found}/${total} fins découvertes`,
     resumeTitle: 'Reprendre la lecture ?',
     resumeCta: 'Reprendre le chapitre',
     restartCta: 'Recommencer',
@@ -166,6 +168,8 @@ const DICT = {
     tapToSkip: 'Tap to reveal all',
     kbdHint: 'Keyboard: 1, 2, 3 to choose · Enter to reveal all',
     xpGain: (n: number) => `+${n} XP`,
+    shareResult: (name: string, found: number, total: number) =>
+      `Ending “${name}” reached · ${found}/${total} endings found`,
     resumeTitle: 'Resume reading?',
     resumeCta: 'Resume chapter',
     restartCta: 'Start over',
@@ -845,7 +849,12 @@ export default function InteractiveStoryGame() {
               </div>
 
               <div className="mt-3 flex flex-col items-center gap-2.5">
-                <RoundEndActions gameId={gameId} onReplay={() => startStory(story.id)} replayLabel={L.exploreAnother} />
+                <RoundEndActions
+                  gameId={gameId}
+                  onReplay={() => startStory(story.id)}
+                  replayLabel={L.exploreAnother}
+                  shareResult={L.shareResult(currentEnding.name, storyFound, storyTotal)}
+                />
                 <Button
                   size="lg"
                   variant="secondary"
