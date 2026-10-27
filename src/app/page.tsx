@@ -18,10 +18,10 @@ function websiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Granmed",
-    alternateName: "Granmed Games",
+    alternateName: ["Granmed Games", "Granmed IQ Games"],
     url: SITE_URL,
     description:
-      "Portail international de 20 jeux gratuits sur navigateur : mémoire, puzzles, mots, réflexes. Bilingue français/anglais, sans inscription.",
+      "Portail international de 20 jeux de QI gratuits sur navigateur : mémoire, logique, calcul mental, mots et réflexes. Chaque partie révèle un QI estimé et un niveau d'intelligence. Bilingue français/anglais, sans inscription.",
     inLanguage: ["fr", "en"],
     isAccessibleForFree: true,
   };
@@ -35,8 +35,8 @@ function organizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/images/og-granmed.png`,
     description:
-      "Granmed édite un portail de jeux gratuits en ligne consacré au divertissement, à l'entraînement cérébral et à la détente, disponible en français et en anglais.",
-    slogan: "Play · Challenge · Relax",
+      "Granmed édite un portail de jeux de QI et d'entraînement cérébral gratuits en ligne : chaque partie produit un QI estimé ludique (échelle classique, moyenne 100) et un niveau d'intelligence du Novice au Génie. Disponible en français et en anglais.",
+    slogan: "Élevez votre QI en jouant · Raise your IQ by playing",
   };
 }
 
@@ -44,8 +44,9 @@ function gamesJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Les 20 jeux gratuits de Granmed",
-    description: "Catalogue complet des jeux gratuits du portail Granmed, en français et en anglais.",
+    name: "Les 20 jeux de QI gratuits de Granmed",
+    description:
+      "Catalogue complet des jeux de QI et d'entraînement cérébral gratuits du portail Granmed : chaque jeu estime votre QI en fin de partie, en français et en anglais.",
     numberOfItems: GAMES.length,
     itemListElement: GAMES.map((g, i) => ({
       "@type": "ListItem",

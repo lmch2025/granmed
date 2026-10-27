@@ -8,6 +8,7 @@ import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 import { todayKey, mulberry32, seedFromString, shuffle, clamp, formatMs, useReducedMotion } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -19,18 +20,18 @@ export const gameId = 'sudoku'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Des grilles à solution unique garantie, quatre niveaux, notes au crayon et chrono : le sudoku zen de Granmed.',
-    en: 'Uniquely solvable grids, four levels, pencil notes and a timer: Granmed’s zen sudoku.',
+    fr: 'Des grilles à solution unique garantie, quatre niveaux, notes au crayon, chrono et QI estimé : le sudoku zen de Granmed.',
+    en: 'Uniquely solvable grids, four levels, pencil notes, a timer and an estimated IQ: Granmed’s zen sudoku.',
   },
   description: {
     fr: [
       'Sudoku Zen est un jeu de sudoku gratuit en ligne dans lequel vous complétez une grille 9×9 avec les chiffres 1 à 9, sans jamais répéter un chiffre dans une ligne, une colonne ou un bloc de 3×3.',
-      'Chaque grille est générée sur mesure et vérifie une propriété essentielle : elle admet exactement une seule solution. Quatre niveaux de difficulté — de 40 indices en Facile à 24 en Expert — s’adaptent aux débutants comme aux vétérans, et un défi du jour identique pour tous renouvelle l’intérêt chaque matin.',
+      'Chaque grille est générée sur mesure et vérifie une propriété essentielle : elle admet exactement une seule solution. Quatre niveaux de difficulté — de 40 indices en Facile à 24 en Expert — s’adaptent aux débutants comme aux vétérans, et un défi du jour identique pour tous renouvelle l’intérêt chaque matin. Chaque grille résolue révèle aussi un QI estimé — fonction de votre précision (indices et erreurs), de votre rapidité et de la difficulté — qui vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.',
       'Notes au crayon nettoyées automatiquement, contrôle des erreurs, compteur de fautes, trois indices par grille et chronomètre avec pause : tout est pensé pour une partie calme et rigoureuse, sauvegardée automatiquement pour être reprise à tout moment.',
     ],
     en: [
       'Sudoku Zen is a free online sudoku game in which you complete a 9×9 grid with the digits 1 to 9, never repeating a digit within a row, a column or a 3×3 box.',
-      'Every grid is generated on the fly and verified for one essential property: it admits exactly one solution. Four difficulty levels — from 40 givens in Easy down to 24 in Expert — suit beginners and veterans alike, and a daily challenge, identical for everyone, renews the fun every morning.',
+      'Every grid is generated on the fly and verified for one essential property: it admits exactly one solution. Four difficulty levels — from 40 givens in Easy down to 24 in Expert — suit beginners and veterans alike, and a daily challenge, identical for everyone, renews the fun every morning. Every solved grid also reveals an estimated IQ — based on your accuracy (hints and mistakes), your speed and the difficulty — which assigns you an intelligence level, from Novice to Genius, to raise as you replay.',
       'Self-cleaning pencil notes, error checking, a mistake counter, three hints per grid and a pausable timer: everything is designed for a calm, rigorous game, saved automatically so you can resume at any time.',
     ],
   },
@@ -64,6 +65,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Générateur à solution unique vérifiée pour chaque grille',
       '4 difficultés : Facile (40 indices), Moyen (34), Difficile (28), Expert (24)',
       'Notes crayon 3×3 et surbrillance ligne/colonne/bloc',
@@ -73,6 +75,7 @@ export const content: GameSEOContent = {
       'Records de temps par difficulté et défi du jour quotidien',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Generator with a verified unique solution for every grid',
       '4 difficulties: Easy (40 givens), Medium (34), Hard (28), Expert (24)',
       '3×3 pencil notes and row/column/box highlighting',
@@ -103,6 +106,7 @@ export const content: GameSEOContent = {
       { q: 'À quoi servent les indices ?', a: 'Un indice remplit correctement la case sélectionnée (ou une case utile choisie au hasard). Vous en avez 3 par grille ; chaque indice utilisé réduit l’expérience gagnée.' },
       { q: 'Puis-je reprendre une grille en cours ?', a: 'Oui : la grille, les notes, le chrono, les erreurs et les indices restants sont sauvegardés automatiquement ; la page vous proposera de reprendre au retour.' },
       { q: 'Quelle est la différence entre les difficultés ?', a: 'Le nombre de chiffres donnés au départ : 40 en Facile, 34 en Moyen, 28 en Difficile, 24 en Expert. Moins d’indices signifie des déductions plus longues.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé combine trois dimensions mesurées à la victoire : la précision (chaque indice utilisé coûte 0,12 et chaque erreur 0,05), la rapidité (votre temps réel comparé au temps « par » du niveau : 6 min en Facile, 10 min en Moyen, 15 min en Difficile, 24 min en Expert) et la difficulté de la grille. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce sudoku — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer, avec moins d’indices et plus de verve.' },
     ],
     en: [
       { q: 'Do the grids really have a unique solution?', a: 'Yes. Every time the generator attempts to remove a digit, a solver counts the grid’s solutions (stopping at the second): if uniqueness would be lost, the digit is put back.' },
@@ -110,9 +114,11 @@ export const content: GameSEOContent = {
       { q: 'What are hints for?', a: 'A hint fills the selected cell (or a useful random cell) correctly. You get 3 per grid; each hint used reduces the experience earned.' },
       { q: 'Can I resume a grid in progress?', a: 'Yes: the grid, notes, timer, mistakes and remaining hints are saved automatically; the page will offer to resume when you come back.' },
       { q: 'What is the difference between difficulties?', a: 'The number of starting givens: 40 in Easy, 34 in Medium, 28 in Hard, 24 in Expert. Fewer givens mean longer deductions.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ combines three dimensions measured at the win: accuracy (each hint used costs 0.12 and each mistake 0.05), speed (your actual time compared to the level’s par time: 6 min in Easy, 10 min in Medium, 15 min in Hard, 24 min in Expert) and the grid difficulty. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this sudoku — not a clinical IQ test — and the best way to raise it is to keep playing, with fewer hints and more flair.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-time-easy': { fr: 'Meilleur temps — Facile', en: 'Best time — Easy' },
     'best-time-medium': { fr: 'Meilleur temps — Moyen', en: 'Best time — Medium' },
     'best-time-hard': { fr: 'Meilleur temps — Difficile', en: 'Best time — Hard' },
@@ -406,7 +412,7 @@ export default function SudokuGame() {
   const [restored, setRestored] = useState<SudokuSave | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
   const [burstKey, setBurstKey] = useState(0)
-  const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number; isRecord: boolean } | null>(null)
+  const [wonInfo, setWonInfo] = useState<{ ms: number; xp: number; isRecord: boolean; iq: number } | null>(null)
   const [confirmRestart, setConfirmRestart] = useState(false)
 
   const baseRef = useRef(0)
@@ -715,11 +721,18 @@ export default function SudokuGame() {
     const ms = currentElapsed()
     const hu = hintsOverride ?? hintsUsed
     const xp = Math.max(0, (DIFFS.find((x) => x.id === diff)?.xp ?? 30) - 10 * hu)
+    /* QI estimé (Task 18) : précision = 1 − 0,12/indice − 0,05/erreur (plancher
+     * 0,3) ; rapidité = temps par ÷ temps réel (par : Facile 6 min, Moyen
+     * 10 min, Difficile 15 min, Expert 24 min) ; difficulté : 1/2/3. */
+    const par = diff === 'easy' ? 360 : diff === 'medium' ? 600 : diff === 'hard' ? 900 : 1440
+    const difficulty: 1 | 2 | 3 = diff === 'easy' ? 1 : diff === 'medium' ? 2 : 3
+    const accuracy = clamp(1 - hu * 0.12 - mistakes * 0.05, 0.3, 1)
+    const iq = computeIq(gameId, { accuracy, speed: par / (ms / 1000), difficulty })
     const isRecord = setBest(gameId, `best-time-${diff}`, Math.round(ms / 100) / 10, true)
     setRunning(false)
     setElapsed(ms)
     setPhase('won')
-    setWonInfo({ ms, xp, isRecord })
+    setWonInfo({ ms, xp, isRecord, iq })
     setConfettiKey((k) => k + 1)
     setBurstKey((k) => k + 1)
     sfx.play('win')
@@ -1037,6 +1050,7 @@ export default function SudokuGame() {
                 onReplay={() => newGame(diff)}
                 replayLabel={L.replay}
                 replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+                iq={wonInfo.iq}
                 shareResult={
                   lang === 'fr'
                     ? `Grille ${t(`common.${diff}`)} résolue en ${formatMs(wonInfo.ms)}${hintsUsed === 0 ? ' sans indice' : ` · ${hintsUsed}/3 indices`}`

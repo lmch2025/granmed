@@ -7,6 +7,7 @@ import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
 import { useProfileStore } from '@/lib/progress/store'
 import { useHydrated, useReducedMotion, clamp } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -17,18 +18,18 @@ export const gameId = 'pill-toss'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Tendez l’élastique, visez les fioles glissantes et lancez vos pilules fictives dans cette pharmacie chaleureuse.',
-    en: 'Stretch the sling, aim at the sliding jars and toss your fictional pills in this cozy pharmacy.',
+    fr: 'Tendez l’élastique, visez les fioles glissantes et lancez vos pilules fictives — chaque manche révèle votre QI estimé — dans cette pharmacie chaleureuse.',
+    en: 'Stretch the sling, aim at the sliding jars and toss your fictional pills — every round reveals your estimated IQ — in this cozy pharmacy.',
   },
   description: {
     fr: [
       'Pill Toss est un jeu d’adresse et de réflexes gratuit dans lequel vous lancez des pilules fictives à l’aide d’un élastique pour toucher des fioles en mouvement sur les étagères d’une pharmacie. Tirez la pilule vers l’arrière, suivez la trajectoire prévue en pointillés, puis relâchez : la gravité fait le reste.',
-      'Chaque manche offre 10 pilules. Au fil des manches, les fioles glissent plus vite, rétrécissent et se multiplient jusqu’à dix, sur trois étagères. Un touché rapporte 100 points, majorés de 50 points par touché consécutif ; un lancer raté remet la série à zéro. Nettoyer toutes les étagères avant d’épuiser vos pilules rapporte un bonus de 150 points par pilule restante.',
+      'Chaque manche offre 10 pilules. Au fil des manches, les fioles glissent plus vite, rétrécissent et se multiplient jusqu’à dix, sur trois étagères. Un touché rapporte 100 points, majorés de 50 points par touché consécutif ; un lancer raté remet la série à zéro. Nettoyer toutes les étagères avant d’épuiser vos pilules rapporte un bonus de 150 points par pilule restante. En fin de manche, un QI estimé — fonction de votre précision de lancer — vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.',
       'Les pilules sont entièrement fictives : ce jeu est une pure fiction ludique, sans référence à un vrai médicament. Les records de score et de série sont sauvegardés sur votre appareil et les manches s’enchaînent sans fin, pour des sessions aussi courtes ou longues que vous le souhaitez.',
     ],
     en: [
       'Pill Toss is a free skill and reflex game in which you fling fictional pills with a slingshot to hit moving jars on pharmacy shelves. Drag the pill backwards, follow the dotted trajectory preview, then release: gravity does the rest.',
-      'Each round hands you 10 pills. As rounds go by, the jars slide faster, shrink and multiply up to ten across three shelves. A hit is worth 100 points plus 50 extra for every consecutive hit; a missed throw resets the streak. Clearing every shelf before running out of pills earns a bonus of 150 points per unused pill.',
+      'Each round hands you 10 pills. As rounds go by, the jars slide faster, shrink and multiply up to ten across three shelves. A hit is worth 100 points plus 50 extra for every consecutive hit; a missed throw resets the streak. Clearing every shelf before running out of pills earns a bonus of 150 points per unused pill. At the end of each round, an estimated IQ — based on your throwing accuracy — assigns you an intelligence level, from Novice to Genius, to raise as you replay.',
       'The pills are entirely fictional: this game is pure playful fiction with no reference to any real medication. Score and streak records are saved on your device, and rounds chain endlessly for sessions as short or long as you like.',
     ],
   },
@@ -68,6 +69,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Physique de lance-pierre avec trajectoire prédictive en pointillés',
       'Fioles animées sur 1 à 3 étagères selon la manche',
       'Bonus de série : +50 points par touché consécutif',
@@ -77,6 +79,7 @@ export const content: GameSEOContent = {
       'Pilules 100 % fictives — aucune référence médicale',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Slingshot physics with a dotted trajectory preview',
       'Animated jars on 1 to 3 shelves depending on the round',
       'Streak bonus: +50 points per consecutive hit',
@@ -104,6 +107,7 @@ export const content: GameSEOContent = {
     fr: [
       { q: 'Les pilules de ce jeu sont-elles réelles ?', a: 'Non, absolument pas. Toutes les pilules et fioles sont des dessins fictifs créés pour le jeu. Pill Toss est un simple jeu d’adresse, sans aucun lien avec un médicament réel.' },
       { q: 'Comment fonctionne le bonus de série ?', a: 'Chaque touché rapporte 100 points, et chaque touché consécutif ajoute 50 points de plus (150, 200, 250…). Dès qu’une pilule rate les fioles, la série retombe à zéro.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé repose sur votre précision de lancer : le nombre de fioles touchées est rapporté au nombre de pilules lancées pendant la manche — la statistique « Précision » affichée dans le résumé. Ni chronomètre ni temps de référence : la rapidité n’entre pas en compte. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu d’adresse — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour affûter votre visée.' },
       { q: 'Le jeu s’arrête-t-il un jour ?', a: 'Non : les manches s’enchaînent sans fin et deviennent progressivement plus difficiles. Vous pouvez terminer la session quand vous le souhaitez — vos records sont sauvegardés à chaque fin de manche.' },
       { q: 'Comment atteindre 3 000 points en une manche ?', a: 'À partir de la manche 5, dix fioles traversent trois étagères : enchaînez dix touchés d’affilée (100, 150, 200… jusqu’à 550 points par touché) pour dépasser 3 250 points. Sur les premières manches, le bonus de 150 points par pilule restante fait aussi grimper le score.' },
       { q: 'Puis-je jouer sur mon téléphone ?', a: 'Oui : le jeu est conçu pour le tactile, en portrait comme en paysage. La zone de saisie de la pilule est volontairement très large pour une visée confortable.' },
@@ -111,12 +115,14 @@ export const content: GameSEOContent = {
     en: [
       { q: 'Are the pills in this game real?', a: 'No, not at all. Every pill and jar is a fictional drawing made for the game. Pill Toss is purely a skill game with no connection to any real medication.' },
       { q: 'How does the streak bonus work?', a: 'Each hit is worth 100 points, and every consecutive hit adds 50 more (150, 200, 250…). As soon as a pill misses the jars, the streak falls back to zero.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ rests on your throwing accuracy: the number of jars hit is compared with the number of pills thrown during the round — the very “Accuracy” stat shown in the summary. There is no clock and no reference time, so speed does not come into it. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this skill game — not a clinical IQ test — and the best way to raise it is to keep playing to sharpen your aim.' },
       { q: 'Does the game ever end?', a: 'No: rounds chain endlessly and get progressively harder. You can end your session whenever you like — your records are saved at the end of every round.' },
       { q: 'How do I reach 3,000 points in a single round?', a: 'From round 5, ten jars span three shelves: land ten hits in a row (100, 150, 200… up to 550 points per hit) to pass 3,250 points. In earlier rounds, the 150-point bonus per unused pill also lifts your score.' },
       { q: 'Can I play on my phone?', a: 'Yes: the game is touch-first, in portrait or landscape. The pill’s grab zone is deliberately very large for comfortable aiming.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-score': { fr: 'Meilleur score total', en: 'Best total score' },
     'best-combo': { fr: 'Plus longue série de touchés', en: 'Longest hit streak' },
   },
@@ -428,7 +434,7 @@ export default function PillTossGame() {
   const [hud, setHud] = useState({ score: 0, round: 1, pills: 10, streak: 0 })
   const [summary, setSummary] = useState<null | {
     round: number; hits: number; used: number; acc: number; cleared: boolean
-    roundScore: number; bonus: number; total: number; isRecord: boolean; bestStreak: number
+    roundScore: number; bonus: number; total: number; isRecord: boolean; bestStreak: number; iq: number
   }>(null)
   const [confetti, setConfetti] = useState(0)
   const [burstKey, setBurstKey] = useState(0)
@@ -463,6 +469,10 @@ export default function PillTossGame() {
     const w = worldRef.current
     const used = Math.max(0, 10 - w.pillsLeft)
     const acc = used > 0 ? Math.round((w.roundHits / used) * 100) : 0
+    /* QI estimé (Task 18) : précision = touchés/lancers (la « Précision » du
+     * résumé), clampée [0,15 ; 1]. Pas de chrono : rapidité omise ;
+     * difficulté 2 (manches standard du lance-pierre). */
+    const iq = computeIq(gameId, { accuracy: clamp(w.roundHits / Math.max(used, 1), 0.15, 1), difficulty: 2 })
     // Les deux records sont évalués séparément (l'un ne doit pas masquer l'autre).
     const recScore = w.totalScore > 0 && setBest(gameId, 'best-score', w.totalScore)
     const recCombo = w.maxStreakSession > 0 && setBest(gameId, 'best-combo', w.maxStreakSession)
@@ -483,7 +493,7 @@ export default function PillTossGame() {
     setSummary({
       round: w.round, hits: w.roundHits, used, acc, cleared: w.cleared,
       roundScore: w.roundScore, bonus: w.bonusGiven, total: w.totalScore, isRecord,
-      bestStreak: w.maxStreakSession,
+      bestStreak: w.maxStreakSession, iq,
     })
     setPhase('roundEnd')
   }, [addWin, addXp, addGameXp, setBest, unlockBadge])
@@ -1140,6 +1150,7 @@ export default function PillTossGame() {
                   replayLabel={T.next}
                   replayIcon={<SkipForward className="h-5 w-5" aria-hidden="true" />}
                   primaryRef={nextBtnRef}
+                  iq={summary.iq}
                   shareResult={
                     summary.cleared
                       ? T.shareCleared.replace('{n}', String(summary.used))
@@ -1173,6 +1184,7 @@ export default function PillTossGame() {
                   gameId={gameId}
                   onReplay={handleStart}
                   replayLabel={T.again}
+                  iq={summary.iq}
                   shareResult={T.shareSession.replace('{score}', String(summary.total)).replace('{streak}', String(summary.bestStreak))}
                 />
               </div>

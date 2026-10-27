@@ -9,6 +9,7 @@ import { useProfileStore } from '@/lib/progress/store'
 import { loadSave, saveSave } from '@/lib/save'
 import { useReducedMotion } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
+import { computeIq } from '@/lib/games/iq'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -21,19 +22,19 @@ export const gameId = 'interactive-story'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Deux récits à embranchements où vos décisions mènent à six fins différentes : lisez, choisissez, recommencez.',
-    en: 'Two branching tales where your choices lead to six different endings: read, decide, start again.',
+    fr: 'Deux récits à embranchements où vos décisions mènent à six fins différentes — et dessinent votre QI estimé.',
+    en: 'Two branching tales where your choices lead to six different endings — and shape your estimated IQ.',
   },
   description: {
     fr: [
       "Histoire Interactive est un jeu de narration à choix multiples dans lequel vous lisez un récit court, chapitre par chapitre, et décidez à chaque étape de ce que fait le personnage. Vos choix orientent l'intrigue et mènent à l'une des trois fins de chaque histoire.",
       "Le jeu propose deux récits chaleureux — « Le Jardin de Grand-Mère » et « La Lettre au Fond du Tiroir » — écrits en chapitres courts, avec des personnages attachants et des décisions qui mènent vraiment à des chemins différents.",
-      "Chaque chapitre s'écrit sous vos yeux dans un panneau de lecture confortable — un simple toucher révèle le texte en entier. Votre progression est sauvegardée automatiquement : reprenez votre chapitre en cours, relisez l'historique de vos décisions et collectionnez les six fins à découvrir (trois par histoire).",
+      "Chaque chapitre s'écrit sous vos yeux dans un panneau de lecture confortable — un simple toucher révèle le texte en entier. Votre progression est sauvegardée automatiquement : reprenez votre chapitre en cours, relisez l'historique de vos décisions et collectionnez les six fins à découvrir (trois par histoire). À chaque fin atteinte, un QI estimé — fonction de la qualité de vos choix — vous attribue un niveau d'intelligence, du Novice au Génie, à élever en explorant d'autres chemins.",
     ],
     en: [
       'Interactive Story is a choose-your-own-adventure game in which you read a short tale chapter by chapter and decide, at every step, what the hero does next. Your choices steer the plot toward one of three endings per story.',
       'The game offers two warm tales — “Grandma\u2019s Garden” and “The Letter at the Bottom of the Drawer” — written in short chapters, with endearing characters and decisions that genuinely branch the narrative.',
-      'Each chapter types itself before your eyes in a comfortable reading panel — a single tap reveals the full text. Your progress is saved automatically: resume your current chapter, review the history of your decisions, and collect all six endings to discover (three per story).',
+      'Each chapter types itself before your eyes in a comfortable reading panel — a single tap reveals the full text. Your progress is saved automatically: resume your current chapter, review the history of your decisions, and collect all six endings to discover (three per story). At every ending you reach, an estimated IQ — a function of the quality of your choices — assigns you an intelligence level, from Novice to Genius, to raise by exploring other paths.',
     ],
   },
   rules: {
@@ -66,6 +67,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       '2 histoires complètes à embranchements (19 et 16 chapitres)',
       '6 fins à découvrir — 3 par histoire',
       'Reprise automatique du chapitre en cours',
@@ -74,6 +76,7 @@ export const content: GameSEOContent = {
       'Véritables adaptations culturelles FR/EN (mêmes embranchements, écriture localisée)',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       '2 complete branching tales (19 and 16 chapters)',
       '6 endings to discover — 3 per story',
       'Automatic resume of your current chapter',
@@ -101,6 +104,7 @@ export const content: GameSEOContent = {
       { q: 'Histoire Interactive est-elle adaptée aux enfants ?', a: 'Oui : les deux récits sont doux, sans violence ni moment effrayant, avec des personnages bienveillants et des chapitres très courts.' },
       { q: 'Combien de temps dure une lecture ?', a: 'Un chemin complet se lit en trois à cinq minutes. Comptez une vingtaine de minutes pour explorer les six fins des deux histoires.' },
       { q: 'Mes choix ont-ils vraiment un impact ?', a: 'Oui : chaque histoire est un vrai graphe à embranchements, et chaque fin n\u2019est accessible que par certains chemins. Deux lectures diffèrent réellement.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'À chaque fin atteinte, votre QI estimé récompense la qualité de votre lecture : une base pour avoir mené le récit à son terme, un bonus si la fin est une découverte (vous avez su trouver un chemin inédit) et un autre au prorata de la profondeur de votre cheminement (le nombre de décisions prises). Le résultat est ramené sur l\u2019échelle classique du QI (moyenne 100, écart-type 15) et vous attribue un niveau, du Novice au Génie. C\u2019est une estimation ludique de la finesse de vos choix narratifs — pas un test de QI clinique — et le meilleur moyen de l\u2019élever reste de relire les histoires pour explorer des chemins plus riches et de nouvelles fins.' },
       { q: 'Le texte s’affiche lettre par lettre, puis-je le voir en entier ?', a: 'Oui : touchez le panneau de lecture (ou appuyez sur Entrée au clavier) pour afficher instantanément le chapitre complet. L’effet d’écriture est aussi désactivé automatiquement quand votre appareil demande une réduction des animations.' },
       { q: 'Puis-je reprendre une histoire en cours ?', a: 'Oui : votre chapitre et vos décisions sont sauvegardés automatiquement sur votre appareil. Un bandeau « Reprendre » s\u2019affiche sur la couverture concernée.' },
       { q: 'Les histoires sont-elles les mêmes en français et en anglais ?', a: 'Elles partagent la même structure et les mêmes embranchements, mais chaque version est une véritable adaptation culturelle : noms, lieux et détails changent.' },
@@ -109,12 +113,14 @@ export const content: GameSEOContent = {
       { q: 'Is Interactive Story suitable for children?', a: 'Yes: both tales are gentle, with no violence or scary moments, kind-hearted characters and very short chapters.' },
       { q: 'How long is one read-through?', a: 'A full path takes three to five minutes. Allow about twenty minutes to explore all six endings across both tales.' },
       { q: 'Do my choices really matter?', a: 'Yes: each story is a true branching graph, and each ending is reachable only through certain paths. Two playthroughs genuinely differ.' },
+      { q: 'How is my estimated IQ calculated?', a: 'At every ending you reach, your estimated IQ rewards the quality of your reading: a base for carrying the tale through to its end, a bonus if the ending is a first discovery (you managed to find an unseen path) and another proportional to the depth of your journey (the number of decisions you made). The result maps onto the classic IQ scale (mean 100, standard deviation 15) and assigns you a level, from Novice to Genius. It is a playful estimate of how finely you choose your narrative paths — not a clinical IQ test — and the best way to raise it is to reread the tales to explore richer paths and new endings.' },
       { q: 'The text appears letter by letter — can I see it all at once?', a: 'Yes: tap the reading panel (or press Enter on a keyboard) to display the whole chapter instantly. The writing effect is also turned off automatically when your device requests reduced motion.' },
       { q: 'Can I resume a story in progress?', a: 'Yes: your chapter and decisions are saved automatically on your device. A “Resume” badge appears on the relevant cover.' },
       { q: 'Are the stories the same in French and English?', a: 'They share the same structure and branching, but each version is a genuine cultural adaptation: names, places and details change.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'endings-found': { fr: 'Fins découvertes (cumul des 2 histoires)', en: 'Endings found (both tales combined)' },
   },
 }
@@ -275,6 +281,9 @@ export default function InteractiveStoryGame() {
   const [typed, setTyped] = useState(0)
   /** Vrai lorsque l'écran de fin actuel est une fin pas encore découverte. */
   const [endingIsNew, setEndingIsNew] = useState(false)
+  /** QI estimé de la fin atteinte (Task 18) — calculé une seule fois dans le
+   *  handler de décision qui mène à la fin, jamais pendant le rendu. */
+  const [endingIq, setEndingIq] = useState<number | null>(null)
 
   const saveRef = useRef<SaveMap>({})
   const nodeIdRef = useRef('')
@@ -401,6 +410,7 @@ export default function InteractiveStoryGame() {
       setScreen('read')
       setHistoryOpen(false)
       setEndingIsNew(false)
+      setEndingIq(null)
       setTypedBoth(0)
       if (panelRef.current) panelRef.current.scrollTop = 0
       addPlay(gameId)
@@ -433,6 +443,7 @@ export default function InteractiveStoryGame() {
       setScreen('read')
       setHistoryOpen(false)
       setEndingIsNew(false)
+      setEndingIq(null)
       setTypedBoth(0)
       if (panelRef.current) panelRef.current.scrollTop = 0
       addPlay(gameId)
@@ -474,6 +485,12 @@ export default function InteractiveStoryGame() {
         commit(map)
 
         setEndingIsNew(isNew)
+        /* QI estimé (Task 18) : métrique narrative — base 0,55 pour une
+         * lecture menée à son terme, + 0,25 si la fin est une découverte
+         * (chemin inédit déniché), + 0,2 au prorata de la profondeur du
+         * cheminement (décisions prises / 8) ; borné [0,3, 1], difficulté 1. */
+        const accuracy = Math.min(1, Math.max(0.3, 0.55 + (isNew ? 0.25 : 0) + Math.min(newHistory.length / 8, 1) * 0.2))
+        setEndingIq(computeIq(gameId, { accuracy, difficulty: 1 }))
         if (isNew) {
           /* Confettis et fanfare uniquement pour une fin pas encore vue. */
           setConfetti((k) => k + 1)
@@ -524,6 +541,7 @@ export default function InteractiveStoryGame() {
     setHistory([])
     setHistoryOpen(false)
     setEndingIsNew(false)
+    setEndingIq(null)
     setTypedBoth(0)
   }, [setTypedBoth])
 
@@ -853,6 +871,7 @@ export default function InteractiveStoryGame() {
                   gameId={gameId}
                   onReplay={() => startStory(story.id)}
                   replayLabel={L.exploreAnother}
+                  iq={endingIq ?? undefined}
                   shareResult={L.shareResult(currentEnding.name, storyFound, storyTotal)}
                 />
                 <Button

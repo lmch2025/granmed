@@ -7,6 +7,7 @@ import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore } from '@/lib/progress/store'
 import { mulberry32, seedFromString, formatMs, clamp, useReducedMotion } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -18,18 +19,18 @@ export const gameId = 'jigsaw-puzzle'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Reconstituez six illustrations originales — lavande, cuisine, chat, marché, jardin, lac — en 12, 24 ou 48 pièces, au doigt ou à la souris.',
-    en: 'Reassemble six original illustrations — lavender, kitchen, cat, market, garden, lake — in 12, 24 or 48 pieces, by touch or mouse.',
+    fr: 'Reconstituez six illustrations originales en 12, 24 ou 48 pièces — chaque puzzle terminé révèle votre QI estimé — au doigt ou à la souris.',
+    en: 'Reassemble six original illustrations in 12, 24 or 48 pieces — every finished puzzle reveals your estimated IQ — by touch or mouse.',
   },
   description: {
     fr: [
       "Souvenirs de Famille est un jeu de puzzle (jigsaw) gratuit en ligne dans lequel vous reconstituez des illustrations originales en faisant glisser les pièces une par une sur le plateau. Six images inédites — champ de lavande, cuisine rustique, chat à la fenêtre, marché de village, jardin fleuri et lac de montagne — vous attendent en 12, 24 ou 48 pièces.",
-      'Chaque pièce est découpée dans l’image complète et dispersée dans le bac situé sous le plateau. Faites-la glisser : si elle est lâchée proche de sa case correcte, elle s’y aimante et s’y verrouille définitivement ; sinon, elle reste exactement là où vous l’avez déposée, sur le plateau ou dans le bac.',
+      'Chaque pièce est découpée dans l’image complète et dispersée dans le bac situé sous le plateau. Faites-la glisser : si elle est lâchée proche de sa case correcte, elle s’y aimante et s’y verrouille définitivement ; sinon, elle reste exactement là où vous l’avez déposée, sur le plateau ou dans le bac. En fin de puzzle, un QI estimé — fonction de votre précision, de votre rapidité et de la taille du puzzle — vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.',
       'Un bouton œil affiche l’image complète en transparence pour vous guider, un bouton Mélanger redisperse les pièces non posées, un bouton Recommencer relance la même image en un geste, et une barre de progression avec chronomètre suit votre avancée. Sur mobile, plateau et bac à pièces tiennent ensemble à l’écran, sans le moindre défilement. Vos meilleurs temps par taille sont sauvegardés, la galerie des puzzles terminés est conservée, et une partie en cours est automatiquement reprise.',
     ],
     en: [
       "Family Memories is a free online jigsaw puzzle game in which you reassemble original illustrations by dragging pieces one by one onto the board. Six exclusive images — lavender field, rustic kitchen, cat by the window, village market, blooming garden and mountain lake — await you in 12, 24 or 48 pieces.",
-      'Each piece is cut from the complete image and scattered in the tray below the board. Drag it around: if you drop it near its correct cell it snaps and locks into place for good; otherwise it stays exactly where you left it, on the board or in the tray.',
+      'Each piece is cut from the complete image and scattered in the tray below the board. Drag it around: if you drop it near its correct cell it snaps and locks into place for good; otherwise it stays exactly where you left it, on the board or in the tray. When you finish a puzzle, an estimated IQ — based on your accuracy, speed and puzzle size — assigns you an intelligence level, from Novice to Genius, to raise as you replay.',
       'An eye button shows the full image as a translucent guide, a Shuffle button rescatters the unplaced pieces, a Restart button relaunches the same image in one tap, and a progress bar with a timer tracks your run. On mobile, board and piece tray fit together on screen with zero scrolling. Your best times per size are saved, the gallery of finished puzzles is kept, and a game in progress is automatically resumed.',
     ],
   },
@@ -67,6 +68,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Six illustrations originales 1024×1024 créées pour Granmed, sans rotation de pièces.',
       'Trois tailles par image : 12, 24 ou 48 pièces, avec meilleurs temps conservés séparément.',
       'Aimantation généreuse : la pièce se colle dès qu’elle est lâchée à moins de la moitié d’une pièce d’écart, avec transition douce et bref anneau vert de confirmation.',
@@ -76,6 +78,7 @@ export const content: GameSEOContent = {
       'Galerie persistante des puzzles terminés (✅ + meilleur temps) et reprise automatique de la partie en cours.',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Six original 1024×1024 illustrations created for Granmed, with no piece rotation.',
       'Three sizes per image: 12, 24 or 48 pieces, each with its own saved best time.',
       'Generous snapping: a piece locks as soon as it is dropped within half a piece of its cell, with a smooth transition and a brief green ring.',
@@ -104,6 +107,7 @@ export const content: GameSEOContent = {
   faq: {
     fr: [
       { q: 'Faut-il faire tourner les pièces ?', a: 'Non, aucune rotation n’est nécessaire : chaque pièce est déjà dans le bon sens, il suffit de la placer au bon endroit.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé combine trois dimensions mesurées pendant le puzzle : la précision (un puzzle reconstitué sans jamais utiliser l’aperçu de l’image vaut la note parfaite, chaque recours à cette aide la réduit légèrement), la rapidité (temps réel comparé au temps attendu, environ 14 secondes par pièce) et la difficulté (12, 24 ou 48 pièces). Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce puzzle — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour gagner en vitesse et en repérage.' },
       { q: 'Comment une pièce sait-elle où se coller ?', a: 'Quand vous relâchez une pièce, sa position est comparée à celle de sa case correcte : à moins de la moitié de la largeur d’une pièce, elle s’y aimante et s’y verrouille — un rayon qui s’adapte à la taille des pièces et reste confortable au doigt.' },
       { q: 'Puis-je revoir l’image complète ?', a: 'Oui, le bouton œil affiche l’image en transparence (40 % d’opacité) sur le plateau, autant de fois que vous le souhaitez.' },
       { q: 'Que fait le bouton Mélanger ?', a: 'Il redisperse uniquement les pièces non verrouillées dans le bac — les pièces déjà placées ne bougent jamais.' },
@@ -111,6 +115,7 @@ export const content: GameSEOContent = {
     ],
     en: [
       { q: 'Do I need to rotate pieces?', a: 'No, no rotation is ever required: every piece is already facing the right way, you only need to place it correctly.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ combines three dimensions measured during the puzzle: accuracy (a puzzle rebuilt without ever using the image preview earns a perfect score, and each use of that help slightly lowers it), speed (actual time compared with the expected time, roughly 14 seconds per piece) and difficulty (12, 24 or 48 pieces). The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this puzzle — not a clinical IQ test — and the best way to raise it is to keep playing to get faster and sharper at spotting pieces.' },
       { q: 'How does a piece know where to snap?', a: 'When you release a piece, its position is compared with its correct cell’s: within half a piece’s width, it snaps and locks there — a radius that adapts to the piece size and stays comfortable for fingers.' },
       { q: 'Can I see the full image again?', a: 'Yes, the eye button shows the image faintly (40% opacity) over the board, as often as you like.' },
       { q: 'What does the Shuffle button do?', a: 'It only rescatters the unplaced pieces into the tray — locked pieces never move.' },
@@ -118,6 +123,7 @@ export const content: GameSEOContent = {
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-time-12': { fr: 'Meilleur temps — 12 pièces', en: 'Best time — 12 pieces' },
     'best-time-24': { fr: 'Meilleur temps — 24 pièces', en: 'Best time — 24 pieces' },
     'best-time-48': { fr: 'Meilleur temps — 48 pièces', en: 'Best time — 48 pieces' },
@@ -289,7 +295,7 @@ export default function JigsawPuzzleGame() {
   const [game, setGame] = useState<PlayState | null>(null)
   const [restored, setRestored] = useState<Progress | null>(null)
   const [gallery, setGallery] = useState<Record<string, number>>({})
-  const [won, setWon] = useState<{ seconds: number; isRecord: boolean; xp: number; stars: number } | null>(null)
+  const [won, setWon] = useState<{ seconds: number; isRecord: boolean; xp: number; stars: number; iq: number } | null>(null)
   const [areaW, setAreaW] = useState(0)
   const [trayH, setTrayH] = useState(0)
   const [showPreview, setShowPreview] = useState(false)
@@ -694,6 +700,14 @@ export default function JigsawPuzzleGame() {
     setElapsedMs(ms)
     const seconds = Math.max(1, Math.round(ms / 1000))
     const isRecord = setBest(gameId, `best-time-${g.count}`, seconds, true)
+    /* QI estimé (Task 18) : précision = 1 sans aperçu de l'image, 0,9 si l'aide
+     * a servi (compteur booléen : −0,1 par usage) ; rapidité = par (≈ 14 s/pièce)
+     * ÷ temps réel ; difficulté = 12 pièces 1, 24 pièces 2, 48 pièces 3. */
+    const iq = computeIq(gameId, {
+      accuracy: usedPreviewRef.current ? 0.9 : 1,
+      speed: (g.count * 14) / seconds,
+      difficulty: g.count === 48 ? 3 : g.count === 24 ? 2 : 1,
+    })
     const xp = g.count === 12 ? 30 : g.count === 24 ? 60 : 120
     // Niveau de jeu : victoire 25-30 XP selon la taille du puzzle.
     addGameXp(gameId, g.count === 48 ? 30 : g.count === 24 ? 28 : 25)
@@ -713,7 +727,7 @@ export default function JigsawPuzzleGame() {
     galleryRef.current = nextGallery
     setGallery(nextGallery)
     saveSave(gameId, { gallery: nextGallery, progress: null })
-    setWon({ seconds, isRecord, xp, stars })
+    setWon({ seconds, isRecord, xp, stars, iq })
   }
 
   /* --- Glisser-déposer (Pointer Events + capture, position impérative) --- */
@@ -1181,6 +1195,7 @@ export default function JigsawPuzzleGame() {
                       replayLabel={t('common.playAgain')}
                       shareResult={shareResult}
                       primaryRef={replayBtnRef}
+                      iq={won.iq}
                     />
                     <div className="mt-2 flex justify-center">
                       <Button size="lg" variant="secondary" className="rounded-full" onClick={backToSelection}>

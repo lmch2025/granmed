@@ -320,6 +320,96 @@ export const GUIDES: Guide[] = [
       ],
     },
   },
+  {
+    slug: 'augmenter-son-qi',
+    icon: '🧠',
+    date: '2026-10-27',
+    readMinutes: 7,
+    title: {
+      fr: 'Comment augmenter son QI ? Ce que dit la science (et le rôle des jeux)',
+      en: 'How to increase your IQ: what science says (and the role of games)',
+    },
+    description: {
+      fr: 'QI moyen, échelle de Wechsler, transfert d’apprentissage, sommeil et entraînement cérébral : les leviers réels pour améliorer ses performances cognitives — et comment les jeux de QI de Granmed rendent la progression mesurable.',
+      en: 'Average IQ, the Wechsler scale, learning transfer, sleep and brain training: the levers that really improve cognitive performance — and how Granmed’s IQ games make progress measurable.',
+    },
+    sections: {
+      fr: [
+        {
+          h: 'Ce que signifie vraiment le QI',
+          p: [
+            "Le quotient intellectuel mesure une performance à des tests standardisés de raisonnement : logique, mémoire de travail, vitesse de traitement, compréhension verbale. Sur l'échelle de Wechsler, la moyenne est fixée à 100 par construction, avec un écart-type de 15 : environ 68 % des personnes obtiennent un score entre 85 et 115, et environ 95 % entre 70 et 130.",
+            "Un Qi n'est pas une valeur fixée à vie : les performances varient avec la fatigue, le stress, la motivation… et l'entraînement. C'est précisément cette variabilité qui rend l'exercice intéressant.",
+          ],
+        },
+        {
+          h: 'Peut-on vraiment augmenter son QI ?',
+          p: [
+            "La réponse honnête de la recherche : s'entraîner à une tâche améliore surtout la performance à cette tâche (le « transfert proche »). Les effets sur des capacités éloignées (le « transfert lointain ») sont plus modestes et débattus. En clair : jouer à des jeux de calcul mental rend excellent en calcul mental, sans transformer du jour au lendemain l'intelligence générale.",
+            "En revanche, plusieurs leviers aux effets cognitifs réels et bien documentés existent : l'apprentissage continu (une langue, un instrument), le sommeil, l'activité physique régulière, une alimentation équilibrée et la gestion du stress. Le cerveau reste plastique à tout âge.",
+          ],
+        },
+        {
+          h: 'Le rôle des jeux de QI',
+          p: [
+            "Les jeux cérébraux ont un vrai atout : ils rendent l'entraînement régulier agréable. Mémoire de travail (Memory Match, Gran' Mémoire), vitesse de traitement (table de Schulte), calcul mental (Calcul Éclair), logique déductive (Sudoku, Démineur), vocabulaire (Mot du Jour, Le Mot le Plus Long) : chaque mécanique sollicite un angle différent.",
+            "Sur Granmed, chaque partie produit un QI estimé — fonction de votre précision, de votre rapidité et de la difficulté — qui rend la progression visible et motivante. C'est une estimation ludique de votre performance au jeu, pas un test clinique ; mais suivre son meilleur QI estimé semaine après semaine reste un excellent indicateur d'entraînement.",
+          ],
+        },
+        {
+          h: 'Votre plan d’entraînement Granmed',
+          p: [
+            "10 à 15 minutes par jour suffisent. Commencez par le défi du jour (un jeu différent chaque matin), enchaînez sur un jeu mémoire puis un jeu de logique : la variété d'angles vaut mieux que la répétition d'une seule mécanique.",
+            "Suivez vos records de QI estimé dans « Mon parcours » : viser le niveau Supérieur (125+) dans trois jeux différents est un objectif concret et atteignable. La régularité bat l'intensité — mieux vaut quinze minutes quotidiennes qu'une session de deux heures le dimanche.",
+          ],
+        },
+        {
+          h: 'Les habitudes qui comptent vraiment',
+          p: [
+            "Le sommeil consolide les apprentissages : une bonne nuit avant une session de jeux fait souvent plus de différence qu'une heure de jeu supplémentaire. L'activité physique améliore la circulation cérébrale et l'humeur, deux facteurs directs de performance.",
+            "Enfin, variez : lecture, conversations, cuisine, jardinage, musique… Les jeux de QI sont un complément stimulant et mesurable, pas un substitut à une vie intellectuelle riche.",
+          ],
+        },
+      ],
+      en: [
+        {
+          h: 'What IQ really means',
+          p: [
+            "The intelligence quotient measures performance on standardized reasoning tests: logic, working memory, processing speed, verbal comprehension. On the Wechsler scale, the mean is set at 100 by construction, with a standard deviation of 15: about 68% of people score between 85 and 115, and about 95% between 70 and 130.",
+            "An IQ is not a lifelong constant: performance varies with fatigue, stress, motivation… and training. That very variability is what makes practice worthwhile.",
+          ],
+        },
+        {
+          h: 'Can you really increase your IQ?',
+          p: [
+            "The research's honest answer: training at a task mostly improves performance at that task (“near transfer”). Effects on distant capacities (“far transfer”) are more modest and debated. In plain terms: playing mental-math games makes you excellent at mental math, without overnight transforming general intelligence.",
+            "That said, several levers with real, well-documented cognitive effects exist: continuous learning (a language, an instrument), sleep, regular physical exercise, a balanced diet and stress management. The brain stays plastic at every age.",
+          ],
+        },
+        {
+          h: 'The role of IQ games',
+          p: [
+            "Brain games have one genuine strength: they make regular training enjoyable. Working memory (Memory Match, Gran's Memory), processing speed (Schulte table), mental arithmetic (Speed Math), deductive logic (Sudoku, Minesweeper), vocabulary (Daily Word, The Longest Word): each mechanic engages a different angle.",
+            "On Granmed, every round produces an estimated IQ — a function of your accuracy, speed and difficulty — making progress visible and motivating. It is a playful estimate of your performance at the game, not a clinical test; yet tracking your best estimated IQ week after week remains an excellent training indicator.",
+          ],
+        },
+        {
+          h: 'Your Granmed training plan',
+          p: [
+            "Ten to fifteen minutes a day is enough. Start with the daily challenge (a different game every morning), follow with one memory game then one logic game: varying the angles beats repeating a single mechanic.",
+            "Track your best estimated IQ records in “My journey”: aiming for the Superior level (125+) in three different games is a concrete, reachable goal. Consistency beats intensity — fifteen daily minutes work better than a two-hour Sunday session.",
+          ],
+        },
+        {
+          h: 'The habits that really count',
+          p: [
+            "Sleep consolidates learning: a good night before a gaming session often makes more difference than an extra hour of play. Physical exercise improves brain circulation and mood, two direct performance factors.",
+            "Finally, vary your diet of activities: reading, conversations, cooking, gardening, music… IQ games are a stimulating, measurable supplement — not a substitute for a rich intellectual life.",
+          ],
+        },
+      ],
+    },
+  },
 ]
 
 export const GUIDES_BY_SLUG: Record<string, Guide> = Object.fromEntries(GUIDES.map((g) => [g.slug, g]))

@@ -8,6 +8,7 @@ import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { todayKey, mulberry32, seedFromString, shuffle, useReducedMotion } from '@/lib/utils-game'
 import { loadSave, saveSave } from '@/lib/save'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { QUIZ_STATEMENTS, type QuizStatement } from '@/components/games/data/health-true-false-data'
 import { Button } from '@/components/ui/button'
@@ -20,18 +21,18 @@ export const gameId = 'health-true-false'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: '48 affirmations santé sourcées à juger Vrai ou Faux : nutrition, sommeil, hydratation, activité, hygiène.',
-    en: 'Judge 48 sourced health statements true or false: nutrition, sleep, hydration, activity and hygiene.',
+    fr: '48 affirmations santé sourcées à juger Vrai ou Faux : nutrition, sommeil, hydratation, activité, hygiène — et un QI estimé au bilan.',
+    en: 'Judge 48 sourced health statements true or false: nutrition, sleep, hydration, activity and hygiene — plus an estimated IQ at the results screen.',
   },
   description: {
     fr: [
       'Vrai ou Faux — Santé est un jeu de quiz gratuit en ligne qui vous demande de juger des affirmations sur la santé : chaque phrase, tirée d’un corpus de 48 affirmations vérifiées, doit être marquée vraie ou fausse. Nutrition, sommeil, hydratation, activité physique, hygiène et idées reçues y passent au peigne fin.',
-      'Chaque réponse déclenche une explication pédagogique de deux à trois phrases, appuyée par une source institutionnelle (OMS, NHS, Inserm, Harvard Health, ANSES…). Le jeu propose une série du jour identique pour tous les joueurs et une série rapide mélangée, sans chronomètre, pour apprendre à son rythme.',
+      'Chaque réponse déclenche une explication pédagogique de deux à trois phrases, appuyée par une source institutionnelle (OMS, NHS, Inserm, Harvard Health, ANSES…). Le jeu propose une série du jour identique pour tous les joueurs et une série rapide mélangée, sans chronomètre, pour apprendre à son rythme. Au bilan, un QI estimé — calculé à partir de votre précision sur la série — vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.',
       'Les scores, séries de bonnes réponses et étoiles alimentent votre parcours Granmed : XP, records personnels et succès viennent récompenser votre culture santé, au fil d’une série de 12 affirmations par partie.',
     ],
     en: [
       'True or False — Health is a free online quiz game that asks you to judge health statements: each sentence, drawn from a corpus of 48 fact-checked statements, must be marked true or false. Nutrition, sleep, hydration, physical activity, hygiene and common myths all come under scrutiny.',
-      'Every answer unlocks a two-to-three sentence educational explanation, backed by an institutional source (WHO, NHS, Inserm, Harvard Health, ANSES…). The game offers a daily series that is identical for every player, plus a shuffled quick series, with no timer — learn at your own pace.',
+      'Every answer unlocks a two-to-three sentence educational explanation, backed by an institutional source (WHO, NHS, Inserm, Harvard Health, ANSES…). The game offers a daily series that is identical for every player, plus a shuffled quick series, with no timer — learn at your own pace. At the results screen, an estimated IQ — computed from your accuracy across the series — assigns you an intelligence level, from Novice to Genius, to raise as you replay.',
       'Scores, correct-answer streaks and stars feed your Granmed journey: XP, personal bests and achievements reward your health knowledge over a 12-statement series per game.',
     ],
   },
@@ -69,6 +70,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       '48 affirmations bilingues fondées sur les repères des agences de santé publiques',
       'Explications pédagogiques avec source (OMS, NHS, Inserm, Harvard Health, ANSES…)',
       'Série du jour déterministe, identique pour tous les joueurs',
@@ -78,6 +80,7 @@ export const content: GameSEOContent = {
       'Jeu sans chronomètre, pensé pour apprendre tranquillement',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       '48 bilingual statements grounded in public-health agency guidance',
       'Educational explanations with sources (WHO, NHS, Inserm, Harvard Health, ANSES…)',
       'Deterministic daily series, identical for every player',
@@ -110,6 +113,7 @@ export const content: GameSEOContent = {
       { q: 'Combien de temps dure une partie ?', a: 'Une série compte 12 affirmations sans chronomètre : comptez environ 3 à 5 minutes, le temps de lire les explications.' },
       { q: 'Comment gagner les 3 étoiles ?', a: 'Il faut au moins 10 bonnes réponses sur 12. À 8, vous obtenez 2 étoiles ; à 6, 1 étoile. Un sans-faute déclenche en plus les confettis.' },
       { q: 'Ce jeu peut-il remplacer un conseil médical ?', a: 'Non. C’est un jeu de culture générale santé : pour toute question personnelle, adressez-vous à un professionnel de santé.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé reflète avant tout votre précision : les bonnes réponses sur les 12 affirmations de la série. Le jeu étant volontairement sans chronomètre, la rapidité n’entre pas en compte, et la difficulté de référence est celle du quiz de culture santé. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour ancrer les repères santé.' },
     ],
     en: [
       { q: 'Are the statements reliable?', a: 'Yes: each one builds on guidance from public-health institutions (WHO, NHS, Inserm, Harvard Health, ANSES…). The game is informational and does not replace medical advice.' },
@@ -117,9 +121,11 @@ export const content: GameSEOContent = {
       { q: 'How long does a game last?', a: 'A series has 12 untimed statements: expect about 3 to 5 minutes, including time to read the explanations.' },
       { q: 'How do I earn 3 stars?', a: 'You need at least 10 correct answers out of 12. At 8 you get 2 stars; at 6, 1 star. A flawless run also triggers the confetti.' },
       { q: 'Can this game replace medical advice?', a: 'No. It is a health general-knowledge game: for any personal question, please see a healthcare professional.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ primarily reflects your accuracy: the correct answers across the 12 statements of the series. Since the game is deliberately untimed, speed does not come into play, and the reference difficulty is that of the health-knowledge quiz. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this game — not a clinical IQ test — and the best way to raise it is to keep playing to anchor the health guidelines.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-score': { fr: 'Meilleur score — série de 12', en: 'Best score — 12-question series' },
     'best-streak': { fr: 'Plus longue série de bonnes réponses', en: 'Longest correct-answer streak' },
   },
@@ -201,7 +207,7 @@ export default function HealthTrueFalseGame() {
   const [correct, setCorrect] = useState<boolean | null>(null)
   const [results, setResults] = useState<boolean[]>([])
   const [streak, setStreak] = useState(0)
-  const [end, setEnd] = useState<{ score: number; stars: number; isRecord: boolean; bestStreak: number; dailyFresh: boolean } | null>(null)
+  const [end, setEnd] = useState<{ score: number; stars: number; isRecord: boolean; bestStreak: number; dailyFresh: boolean; iq: number } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
   const [burstKey, setBurstKey] = useState(0)
 
@@ -350,6 +356,10 @@ export default function HealthTrueFalseGame() {
     const score = results.filter(Boolean).length
     const stars = score >= 10 ? 3 : score >= 8 ? 2 : score >= 6 ? 1 : 0
     const best = maxStreakRef.current
+    /* QI estimé (Task 18) : précision = bonnes réponses / total de la série.
+     * Jeu sans chronomètre → pas de dimension rapidité ; difficulté 1 (série
+     * de culture santé, sans mode difficile). */
+    const iq = computeIq(gameId, { accuracy: score / SERIES_LEN, difficulty: 1 })
     const rec1 = setBest(gameId, 'best-score', score, false)
     const rec2 = setBest(gameId, 'best-streak', best, false)
     const isRecord = rec1 || rec2
@@ -369,7 +379,7 @@ export default function HealthTrueFalseGame() {
       buzz([30, 40, 30])
     }
     if (dailyFresh) completeDaily(gameId)
-    setEnd({ score, stars, isRecord, bestStreak: best, dailyFresh })
+    setEnd({ score, stars, isRecord, bestStreak: best, dailyFresh, iq })
     setPhase('done')
   }, [results, mode, setBest, addWin, addXp, addGameXp, unlockBadge, completeDaily])
 
@@ -762,6 +772,7 @@ export default function HealthTrueFalseGame() {
               onReplay={() => startSeries(mode)}
               replayLabel={end && end.score >= 10 ? (mode === 'daily' ? L.replayDaily : L.replay) : L.retry}
               primaryRef={replayBtnRef}
+              iq={end.iq}
               shareResult={
                 end ? `${end.score}/${SERIES_LEN} · ${Math.round((end.score / SERIES_LEN) * 100)}%` : undefined
               }

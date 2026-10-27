@@ -7,6 +7,7 @@ import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { todayKey, mulberry32, seedFromString, formatMs, useReducedMotion } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -17,18 +18,18 @@ export const gameId = 'minesweeper'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Le Démineur classique : trois niveaux, des drapeaux et un chrono — sans jamais toucher une mine.',
-    en: 'The classic Minesweeper: three levels, flags and a timer — without ever touching a mine.',
+    fr: 'Le Démineur classique : trois niveaux, des drapeaux, un chrono et un QI estimé — sans jamais toucher une mine.',
+    en: 'The classic Minesweeper: three levels, flags, a timer and an estimated IQ — without ever touching a mine.',
   },
   description: {
     fr: [
       "Le Démineur Santé est un jeu de logique gratuit en ligne dans lequel vous devez révéler toutes les cases d’une grille sans jamais déclencher une mine. Chaque case découverte affiche le nombre de mines présentes dans ses huit cases voisines : à vous d’en déduire où se cachent les explosifs et de les marquer d’un drapeau.",
-      "Trois difficultés sont au programme : Facile (9×9, 10 mines), Intermédiaire (16×16, 40 mines) et Expert (24×16, 99 mines). Les mines ne sont placées qu’après votre premier clic : la case choisie et son voisinage immédiat sont toujours sans danger, et les zones vides se découvrent automatiquement en cascade.",
+      "Trois difficultés sont au programme : Facile (9×9, 10 mines), Intermédiaire (16×16, 40 mines) et Expert (24×16, 99 mines). Les mines ne sont placées qu’après votre premier clic : la case choisie et son voisinage immédiat sont toujours sans danger, et les zones vides se découvrent automatiquement en cascade. En fin de partie, un QI estimé — fonction de votre précision, de votre rapidité et de la difficulté de la grille — vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.",
       "Un défi du jour de taille Facile, identique pour tous les joueurs, est renouvelé chaque jour. Chronomètre avec pause automatique, chording (clic sur un chiffre complet pour ouvrir ses voisines), records de temps par difficulté et une petite astuce bien-être après chaque partie : le classique du raisonnement déductif, jouable partout sans installation.",
     ],
     en: [
       "Minesweeper Health is a free online logic game in which you must reveal every cell of a grid without ever triggering a mine. Each uncovered cell shows how many mines hide in its eight neighbouring cells: deduce where the explosives are and flag them.",
-      "Three difficulties are on offer: Easy (9×9, 10 mines), Intermediate (16×16, 40 mines) and Expert (24×16, 99 mines). Mines are only placed after your first click — the chosen cell and its immediate neighbourhood are always safe — and empty areas reveal themselves automatically in a cascade.",
+      "Three difficulties are on offer: Easy (9×9, 10 mines), Intermediate (16×16, 40 mines) and Expert (24×16, 99 mines). Mines are only placed after your first click — the chosen cell and its immediate neighbourhood are always safe — and empty areas reveal themselves automatically in a cascade. At the end of each game, an estimated IQ — based on your accuracy, speed and grid difficulty — assigns you an intelligence level, from Novice to Genius, to raise as you replay.",
       "A daily challenge in Easy size, identical for every player, is refreshed each day. A timer with automatic pause, chording (click a satisfied number to open its neighbours), best times per difficulty and a small well-being tip after each game: the deductive-reasoning classic, playable anywhere with no download.",
     ],
   },
@@ -68,6 +69,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Trois difficultés : Facile 9×9, Intermédiaire 16×16, Expert 24×16 avec défilement horizontal contenu.',
       'Premier clic garanti sans mine et révélation en cascade des zones vides.',
       'Chording : un clic sur un chiffre complet révèle toutes ses voisines d’un coup.',
@@ -77,6 +79,7 @@ export const content: GameSEOContent = {
       'Une astuce bien-être discrète et masquable après chaque partie.',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Three difficulties: Easy 9×9, Intermediate 16×16, Expert 24×16 with contained horizontal scrolling.',
       'Guaranteed-safe first click and cascading reveal of empty areas.',
       'Chording: click a satisfied number to open all its neighbours at once.',
@@ -123,6 +126,10 @@ export const content: GameSEOContent = {
         a: '1 est vert, 2 ambre, 3 orange, 4 rose, et 5 ou plus en rouge — pour lire les densités de mines d’un coup d’œil.',
       },
       {
+        q: 'Comment est calculé mon QI estimé ?',
+        a: 'Votre QI estimé combine trois dimensions mesurées pendant la partie : la précision (part des cases sûres révélées, une grille complètement déminée valant la note parfaite), la rapidité (temps réel comparé au temps attendu de la grille, environ 1,4 seconde par case) et la difficulté (Facile, Intermédiaire ou Expert). Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu de logique — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour affûter votre raisonnement déductif.',
+      },
+      {
         q: 'Mes records sont-ils sauvegardés ?',
         a: 'Oui, localement sur votre appareil, sans inscription : le meilleur temps est conservé séparément pour chaque difficulté.',
       },
@@ -145,12 +152,17 @@ export const content: GameSEOContent = {
         a: '1 is green, 2 amber, 3 orange, 4 rose, and 5 or more red — so you can read mine density at a glance.',
       },
       {
+        q: 'How is my estimated IQ calculated?',
+        a: 'Your estimated IQ combines three dimensions measured during the game: accuracy (the share of safe cells revealed — a fully cleared grid earns a perfect score), speed (actual time compared with the grid’s expected time, roughly 1.4 seconds per cell) and difficulty (Easy, Intermediate or Expert). The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this logic game — not a clinical IQ test — and the best way to raise it is to keep playing to sharpen your deductive reasoning.',
+      },
+      {
         q: 'Are my records saved?',
         a: 'Yes, locally on your device with no sign-up: your best time is kept separately for each difficulty.',
       },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-time-easy': { fr: 'Meilleur temps — Facile', en: 'Best time — Easy' },
     'best-time-medium': { fr: 'Meilleur temps — Intermédiaire', en: 'Best time — Intermediate' },
     'best-time-expert': { fr: 'Meilleur temps — Expert', en: 'Best time — Expert' },
@@ -455,6 +467,7 @@ export default function MinesweeperGame() {
   const [newRecord, setNewRecord] = useState(false)
   const [finalTime, setFinalTime] = useState<number | null>(null)
   const [finalXp, setFinalXp] = useState<number | null>(null)
+  const [finalIq, setFinalIq] = useState<number | null>(null)
   const [tipIdx, setTipIdx] = useState(0)
   const [tipOpen, setTipOpen] = useState(false)
 
@@ -530,6 +543,7 @@ export default function MinesweeperGame() {
     setPaused(false)
     setFinalTime(null)
     setFinalXp(null)
+    setFinalIq(null)
     setNewRecord(false)
     setTipOpen(false)
     addPlay(gameId)
@@ -628,6 +642,13 @@ export default function MinesweeperGame() {
     const seconds = Math.max(1, Math.round(ms / 1000))
     // Drapeaux gaspillés avant l'auto-marquage des mines (3 étoiles si aucun).
     const wrongFlags = cells.reduce((n, cell) => n + (cell.flagged && !cell.mine ? 1 : 0), 0)
+    /* QI estimé (Task 18) : victoire = précision parfaite ; rapidité = par (≈ 1,4 s/case) ÷ temps réel ; difficulté = taille de grille (Facile/daily 1, Intermédiaire 2, Expert 3). */
+    const iq = computeIq(gameId, {
+      accuracy: 1,
+      speed: (c.w * c.h * 1.4) / seconds,
+      difficulty: d === 'expert' ? 3 : d === 'medium' ? 2 : 1,
+    })
+    setFinalIq(iq)
     const next = cells.map((x) => ({ ...x }))
     for (const cell of next) {
       if (cell.mine) cell.flagged = true
@@ -656,8 +677,18 @@ export default function MinesweeperGame() {
   }
 
   function finishLose(explodedIdx: number, cells: Cell[]) {
+    const d = diffRef.current
+    const c = DIFFS[d]
     const ms = startRef.current > 0 ? Date.now() - startRef.current : 0
     const seconds = Math.max(1, Math.round(ms / 1000))
+    /* QI estimé (Task 18) : précision = cases sûres révélées / total (clampée 0,15–0,85 ; la mine explosée, révélée, est déduite) ; rapidité et difficulté comme en victoire. */
+    const safeRevealed = Math.max(0, countRevealed(cells) - 1)
+    const iq = computeIq(gameId, {
+      accuracy: Math.min(0.85, Math.max(0.15, safeRevealed / (cells.length - c.mines))),
+      speed: (c.w * c.h * 1.4) / seconds,
+      difficulty: d === 'expert' ? 3 : d === 'medium' ? 2 : 1,
+    })
+    setFinalIq(iq)
     const next = cells.map((x) => ({ ...x }))
     for (const cell of next) {
       if (cell.mine) cell.revealed = true
@@ -1077,6 +1108,7 @@ export default function MinesweeperGame() {
                   onReplay={() => startGame(diff)}
                   replayLabel={L.playAgain}
                   shareResult={shareResult}
+                  iq={finalIq ?? undefined}
                 />
                 <div className="mt-2 flex justify-center">
                   <Button variant="secondary" className="h-10 rounded-full" onClick={backToLevels}>

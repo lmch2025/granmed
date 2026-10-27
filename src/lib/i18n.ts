@@ -10,7 +10,7 @@ export const LANGS: Lang[] = ['fr', 'en']
 const DICT: Record<string, Record<Lang, string>> = {
   // --- Marque & navigation
   'brand.name': { fr: 'Granmed', en: 'Granmed' },
-  'brand.tagline': { fr: 'Jouez, defyiez votre esprit, détendez-vous', en: 'Play, challenge your mind, relax' },
+  'brand.tagline': { fr: 'Élevez votre QI en jouant', en: 'Raise your IQ by playing' },
   'nav.home': { fr: 'Accueil', en: 'Home' },
   'nav.games': { fr: 'Jeux', en: 'Games' },
   'nav.dashboard': { fr: 'Mon parcours', en: 'My journey' },
@@ -97,6 +97,16 @@ const DICT: Record<string, Record<Lang, string>> = {
   'common.noDownload': { fr: 'Sans téléchargement', en: 'No download' },
   'common.noSignup': { fr: 'Sans inscription', en: 'No sign-up' },
 
+  // --- QI et intelligence (Task 18 : chaque partie révèle un QI estimé)
+  'iq.estimated': { fr: 'QI estimé', en: 'Estimated IQ' },
+  'iq.level': { fr: 'Niveau d’intelligence', en: 'Intelligence level' },
+  'iq.topPercent': { fr: 'Top {n} %', en: 'Top {n}%' },
+  'iq.best': { fr: 'Record QI : {n}', en: 'IQ best: {n}' },
+  'iq.newBest': { fr: 'Nouveau record de QI !', en: 'New IQ record!' },
+  'iq.replay': { fr: 'Rejouez pour élever votre QI', en: 'Replay to raise your IQ' },
+  'iq.nextTier': { fr: '+{n} pts → {level}', en: '{n} pts to {level}' },
+  'iq.maxLevel': { fr: 'Niveau maximal atteint', en: 'Highest level reached' },
+
   // --- Page jeu
   'game.favoriteAdd': { fr: 'Ajouter aux favoris', en: 'Add to favorites' },
   'game.favoriteRemove': { fr: 'Retirer des favoris', en: 'Remove from favorites' },
@@ -128,14 +138,14 @@ const DICT: Record<string, Record<Lang, string>> = {
 
   // --- Accueil
   'home.heroTitle': {
-    fr: '20 jeux gratuits pour jouer, entraîner votre esprit et vous détendre',
-    en: '20 free games to play, train your mind and relax',
+    fr: '20 jeux de QI gratuits pour tester et entraîner votre intelligence',
+    en: '20 free IQ games to test and train your intelligence',
   },
   'home.heroSub': {
-    fr: 'Mémoire, sudoku, mots, réflexes, puzzles… Des jeux immédiatement jouables dans votre navigateur, sans inscription ni téléchargement. Défis quotidiens, succès et records personnels.',
-    en: 'Memory, sudoku, words, reflexes, puzzles… Instantly playable in your browser, no sign-up, no download. Daily challenges, achievements and personal bests.',
+    fr: 'Jeux de QI, mémoire, logique, calcul mental et réflexes : chaque partie révèle votre QI estimé et votre niveau d’intelligence, du Novice au Génie. Jouez gratuitement dans votre navigateur, sans inscription — et rejouez pour élever votre QI.',
+    en: 'IQ games, memory, logic, mental math and reflexes: every round reveals your estimated IQ and intelligence level, from Novice to Genius. Play free in your browser, no sign-up — and replay to raise your IQ.',
   },
-  'home.heroCta': { fr: 'Jouer maintenant', en: 'Play now' },
+  'home.heroCta': { fr: 'Tester mon QI', en: 'Test my IQ' },
   'home.heroCta2': { fr: 'Voir les 20 jeux', en: 'Browse all 20 games' },
   'home.statGames': { fr: 'jeux gratuits', en: 'free games' },
   'home.statLangs': { fr: 'langues', en: 'languages' },

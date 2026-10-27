@@ -23,12 +23,13 @@ function useDocumentMeta() {
   const t = useT()
 
   useEffect(() => {
-    let title = 'Granmed — Jeux gratuits en ligne : mémoire, puzzles, mots et réflexes'
+    let title = 'Granmed — Jeux de QI gratuits : testez et entraînez votre intelligence'
     let desc =
-      '20 jeux gratuits sans téléchargement : mémoire, sudoku, 2048, mots, quiz santé et réflexes. Défis quotidiens, succès et records. Jouez en français ou en anglais.'
+      "20 jeux de QI gratuits en ligne : mémoire, logique, calcul mental, mots et réflexes. Chaque partie révèle votre QI estimé et votre niveau d'intelligence — rejouez pour l'élever. FR/EN."
     if (lang === 'en') {
-      title = 'Granmed — Free Online Games: Memory, Puzzles, Words & Reflexes'
-      desc = '20 free games, no download: memory, sudoku, 2048, words, health quiz and reflexes. Daily challenges, achievements and records. Play in French or English.'
+      title = 'Granmed — Free IQ Games: Test & Train Your Intelligence'
+      desc =
+        '20 free IQ games online: memory, logic, mental math, words and reflexes. Every round reveals your estimated IQ and intelligence level — replay to raise it. FR/EN.'
     }
     switch (view.type) {
       case 'game': {

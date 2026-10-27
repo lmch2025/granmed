@@ -7,6 +7,7 @@ import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { todayKey, mulberry32, seedFromString, shuffle } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -19,18 +20,18 @@ export const gameId = 'memory-match'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Retrouvez toutes les paires de cartes le plus efficacement possible, sur 5 thèmes et 4 tailles de grille.',
-    en: 'Find every matching pair as efficiently as you can, across 5 themes and 4 grid sizes.',
+    fr: 'Retrouvez toutes les paires de cartes le plus efficacement possible : chaque grille révèle votre QI estimé, sur 5 thèmes et 4 tailles.',
+    en: 'Find every matching pair as efficiently as you can: each grid reveals your estimated IQ, across 5 themes and 4 grid sizes.',
   },
   description: {
     fr: [
       "Memory Match est un jeu de mémoire gratuit en ligne dans lequel vous retournez des cartes face cachée pour retrouver les paires identiques. Chaque carte révèle un fruit, une fleur, un animal ou un souvenir rétro ; à vous de mémoriser leurs positions pour les apparier en un minimum de coups.",
-      "Le jeu propose cinq thèmes (fruits, nature, nutrition, animaux et souvenirs rétro) et quatre grilles de difficulté croissante, de 6 paires (4×3) à 15 paires (6×5). Un chronomètre facultatif, un compteur de coups et des records personnels sauvegardés permettent de mesurer vos progrès.",
+      "Le jeu propose cinq thèmes (fruits, nature, nutrition, animaux et souvenirs rétro) et quatre grilles de difficulté croissante, de 6 paires (4×3) à 15 paires (6×5). Un chronomètre facultatif, un compteur de coups et des records personnels sauvegardés permettent de mesurer vos progrès. En fin de partie, un QI estimé — calculé à partir de votre précision, de votre rapidité et de la taille de la grille — vous attribue un niveau d'intelligence, du Novice au Génie, à élever en rejouant.",
       "Chaque matin, une grille spéciale attend les joueurs réguliers : le défi du jour de Memory Match, identique pour tous, qui alimente votre série de jours consécutifs et rapporte un bonus d'XP à votre parcours Granmed.",
     ],
     en: [
       "Memory Match is a free online memory game where you flip face-down cards to find identical pairs. Each card reveals a fruit, a flower, an animal or a retro memory; your job is to memorize their positions and match them in as few moves as possible.",
-      "The game offers five themes (fruits, nature, nutrition, animals and retro memories) and four grids of increasing difficulty, from 6 pairs (4×3) up to 15 pairs (6×5). An optional timer, a move counter and saved personal bests let you track your progress.",
+      "The game offers five themes (fruits, nature, nutrition, animals and retro memories) and four grids of increasing difficulty, from 6 pairs (4×3) up to 15 pairs (6×5). An optional timer, a move counter and saved personal bests let you track your progress. At the end of each round, an estimated IQ — computed from your accuracy, speed and grid size — assigns you an intelligence level, from Novice to Genius, to raise as you replay.",
       "Every morning, a special grid awaits regular players: the Memory Match daily challenge, identical for everyone, which feeds your consecutive-day streak and earns bonus XP for your Granmed journey.",
     ],
   },
@@ -66,6 +67,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       '5 thèmes : fruits, nature, nutrition, animaux et souvenirs rétro',
       '4 tailles de grille : 6, 8, 12 ou 15 paires',
       'Chronomètre facultatif et compteur de coups',
@@ -74,6 +76,7 @@ export const content: GameSEOContent = {
       'Animations fluides et sons satisfaisants',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       '5 themes: fruits, nature, nutrition, animals and retro memories',
       '4 grid sizes: 6, 8, 12 or 15 pairs',
       'Optional timer and move counter',
@@ -101,6 +104,7 @@ export const content: GameSEOContent = {
       { q: 'Memory Match est-il vraiment gratuit ?', a: 'Oui : toutes les grilles, tous les thèmes et le défi quotidien sont accessibles gratuitement, sans inscription ni téléchargement.' },
       { q: 'Comment le score est-il calculé ?', a: 'Il n’y a pas de score à proprement parler : vos performances se mesurent en nombre de coups et en temps. Vos records par taille de grille sont sauvegardés sur votre appareil.' },
       { q: 'Quelle est la meilleure technique pour gagner ?', a: 'La technique la plus efficace consiste à toujours retourner une nouvelle carte dont vous cherchez la jumelle, plutôt que deux cartes inconnues : vous maximisez les informations à chaque coup.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé combine trois dimensions mesurées pendant la partie : la précision (paires trouvées par rapport aux coups joués), la rapidité (temps réel comparé au temps attendu de la grille) et la difficulté (taille de la grille). Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu de mémoire — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour affûter votre mémoire.' },
       { q: 'La grille du défi du jour est-elle la même pour tous ?', a: 'Oui. La grille du jour est générée de façon déterministe à partir de la date : tous les joueurs affrontent exactement la même disposition jusqu’au lendemain matin.' },
       { q: 'Puis-je jouer sur mon téléphone ?', a: 'Oui, le jeu est conçu pour le tactile : les cartes sont dimensionnées pour être touchées facilement, en portrait comme en paysage.' },
     ],
@@ -108,11 +112,13 @@ export const content: GameSEOContent = {
       { q: 'Is Memory Match really free?', a: 'Yes: every grid, every theme and the daily challenge are free to play, with no sign-up and no download.' },
       { q: 'How is the score calculated?', a: 'There is no score as such: your performance is measured in moves and time. Your best results per grid size are saved on your device.' },
       { q: 'What is the best technique to win?', a: 'The most effective technique is to always flip one new card whose twin you are looking for, rather than two unknown cards: you maximize information with every move.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ combines three dimensions measured during the round: accuracy (pairs found relative to moves played), speed (actual time compared to the expected grid time) and difficulty (grid size). The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this memory game — not a clinical IQ test — and the best way to raise it is to keep playing to sharpen your memory.' },
       { q: 'Is the daily grid the same for everyone?', a: 'Yes. The daily grid is generated deterministically from the date: every player faces exactly the same layout until the next morning.' },
       { q: 'Can I play on my phone?', a: 'Yes, the game is touch-first: cards are sized for easy tapping, in portrait or landscape.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-moves-6': { fr: 'Coups — 6 paires', en: 'Moves — 6 pairs' },
     'best-moves-8': { fr: 'Coups — 8 paires', en: 'Moves — 8 pairs' },
     'best-moves-12': { fr: 'Coups — 12 paires', en: 'Moves — 12 pairs' },
@@ -233,7 +239,7 @@ export default function MemoryMatchGame() {
   const [moves, setMoves] = useState(0)
   const [mistakes, setMistakes] = useState(0)
   const [elapsed, setElapsed] = useState(0)
-  const [won, setWon] = useState<{ time: number; moves: number; mistakes: number; isRecord: boolean; xp: number } | null>(null)
+  const [won, setWon] = useState<{ time: number; moves: number; mistakes: number; isRecord: boolean; xp: number; iq: number } | null>(null)
   const [confettiKey, setConfettiKey] = useState(0)
   const [burstKey, setBurstKey] = useState(0)
   const [deal, setDeal] = useState(0)
@@ -296,12 +302,18 @@ export default function MemoryMatchGame() {
     (finalMoves: number, finalMistakes: number) => {
       const time = Date.now() - startRef.current
       const pairs = SIZES[dailyMode ? dailyConfig.size : size].pairs
+      /* QI estimé (Task 18) : précision = paires/coups, rapidité = par/temps,
+       * difficulté = taille de grille. Par : ≈ 4,2 s/paire + 6 s d’échauffement. */
+      const difficulty: 1 | 2 | 3 = pairs <= 6 ? 1 : pairs <= 12 ? 2 : 3
+      const accuracy = Math.min(1, pairs / Math.max(finalMoves, pairs))
+      const speed = (pairs * 4.2 + 6) / (time / 1000)
+      const iq = computeIq(gameId, { accuracy, speed, difficulty })
       const rec1 = setBest(gameId, `best-moves-${pairs}`, finalMoves, true)
       const rec2 = setBest(gameId, `best-time-${pairs}`, Math.round(time / 100) / 10, true)
       const isRecord = rec1 || rec2
       const xp = 15 + pairs * 2 + (isRecord ? 10 : 0)
       setPhase('won')
-      setWon({ time, moves: finalMoves, mistakes: finalMistakes, isRecord, xp })
+      setWon({ time, moves: finalMoves, mistakes: finalMistakes, isRecord, xp, iq })
       setConfettiKey((k) => k + 1)
       setBurstKey((k) => k + 1)
       sfx.play('win')
@@ -626,6 +638,7 @@ export default function MemoryMatchGame() {
               onReplay={() => startGame({ daily: dailyMode })}
               replayLabel={t('common.playAgain')}
               primaryRef={replayBtnRef}
+              iq={won.iq}
               shareResult={
                 lang === 'fr'
                   ? `${pairsTotal} paires en ${fmt(won.time)} · ${won.mistakes} fautes`

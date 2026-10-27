@@ -7,8 +7,9 @@ import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
 import type { Lang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
-import { todayKey, dateKeyOffset, useReducedMotion, useHydrated } from '@/lib/utils-game'
+import { todayKey, dateKeyOffset, clamp, useReducedMotion, useHydrated } from '@/lib/utils-game'
 import { loadSave, saveSave } from '@/lib/save'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -27,18 +28,18 @@ export const gameId = 'daily-word'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Un mot mystère de cinq lettres par jour : six tentatives, des indices couleur et une série à entretenir.',
-    en: 'One mystery five-letter word a day: six tries, colour clues and a streak to keep alive.',
+    fr: 'Un mot mystère de cinq lettres par jour : six tentatives, des indices couleur, une série à entretenir — et un QI estimé qui suit vos essais.',
+    en: 'One mystery five-letter word a day: six tries, colour clues, a streak to keep alive — and an estimated IQ that tracks your guesses.',
   },
   description: {
     fr: [
       "Mot du Jour Santé est un jeu de mots gratuit en ligne, inspiré du Wordle, dans lequel vous devez découvrir un mot mystère de cinq lettres en six tentatives maximum. Après chaque essai, les lettres prennent une couleur : verte si la lettre est à la bonne place, orange si elle figure ailleurs dans le mot, grise si elle en est absente.",
-      "Un nouveau mot est proposé chaque jour, différent en français et en anglais mais identique pour tous les joueurs d'une même langue : vous pouvez donc comparer vos résultats sans dévoiler le mot. Vos statistiques — parties jouées, victoires, séries consécutives, répartition du nombre d'essais — sont sauvegardées localement sur votre appareil, sans inscription.",
+      "Un nouveau mot est proposé chaque jour, différent en français et en anglais mais identique pour tous les joueurs d'une même langue : vous pouvez donc comparer vos résultats sans dévoiler le mot. Vos statistiques — parties jouées, victoires, séries consécutives, répartition du nombre d'essais — sont sauvegardées localement sur votre appareil, sans inscription. En fin de partie, un QI estimé — calculé à partir de votre précision (le nombre d'essais utilisés) et de la difficulté — vous attribue un niveau d'intelligence, du Novice au Génie, à élever au fil des mots.",
       "Un mode entraînement illimité, les archives des sept derniers jours et un partage du résultat en grille d'emojis complètent l'expérience : un rendez-vous quotidien de quelques minutes pour entretenir vocabulaire et logique.",
     ],
     en: [
       "Daily Word Game is a free online word game, inspired by Wordle, in which you must uncover a mystery five-letter word in six tries or fewer. After each guess, the letters change colour: green when the letter sits in the right spot, orange when it appears elsewhere in the word, grey when it is absent.",
-      "A new word is offered every day — different in French and in English, but identical for every player of a given language — so you can compare results without spoiling the word. Your statistics (games played, wins, consecutive streaks, guess distribution) are saved locally on your device, with no sign-up.",
+      "A new word is offered every day — different in French and in English, but identical for every player of a given language — so you can compare results without spoiling the word. Your statistics (games played, wins, consecutive streaks, guess distribution) are saved locally on your device, with no sign-up. At the end of each game, an estimated IQ — computed from your accuracy (the number of guesses used) and the difficulty — assigns you an intelligence level, from Novice to Genius, to raise word after word.",
       "An unlimited practice mode, an archive of the last seven days and emoji-grid sharing round off the experience: a few daily minutes to keep your vocabulary and logic sharp.",
     ],
   },
@@ -76,6 +77,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Défi quotidien déterministe : le même mot pour tous les joueurs d’une même langue, renouvelé chaque jour.',
       'Mode entraînement illimité avec des mots tirés au hasard parmi les réponses.',
       'Clavier AZERTY (français) ou QWERTY (anglais) à l’écran + clavier physique, accents acceptés.',
@@ -84,6 +86,7 @@ export const content: GameSEOContent = {
       'Partage du résultat en grille d’emojis 🟩🟨⬜, sans jamais révéler le mot.',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Deterministic daily challenge: the same word for every player of a given language, refreshed daily.',
       'Unlimited practice mode with random words drawn from the answer list.',
       'On-screen AZERTY (French) or QWERTY (English) keyboard + physical keyboard, accents accepted.',
@@ -130,6 +133,10 @@ export const content: GameSEOContent = {
         q: 'Comment partager mon résultat sans spoiler ?',
         a: 'Après la partie, le bouton de partage copie une grille d’emojis 🟩🟨⬜ accompagnée de votre score (ex. « Mot du Jour #42 — 3/6 »). Le mot n’apparaît jamais.',
       },
+      {
+        q: 'Comment est calculé mon QI estimé ?',
+        a: 'Votre QI estimé combine trois dimensions mesurées à la fin de la partie : la précision (le nombre d’essais utilisés pour trouver le mot — trouvé du premier coup, elle est maximale ; en six essais, elle chute), la difficulté de référence (mots de cinq lettres) et l’absence de pression de rapidité — un mot par jour, sans chronomètre. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu de mots — pas un test de QI clinique — et le meilleur moyen de l’élever reste de s’entraîner en mode libre pour affûter vos premières tentatives.',
+      },
     ],
     en: [
       {
@@ -152,9 +159,14 @@ export const content: GameSEOContent = {
         q: 'How can I share my result without spoiling?',
         a: 'After the game, the share button copies an emoji grid 🟩🟨⬜ with your score (e.g. “Daily Word #42 — 3/6”). The word never appears.',
       },
+      {
+        q: 'How is my estimated IQ calculated?',
+        a: 'Your estimated IQ combines three dimensions measured at the end of the game: accuracy (the number of guesses used to find the word — solved on the first try, it is maximal; in six guesses, it drops), the reference difficulty (five-letter words) and no time pressure — one word a day, with no timer. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this word game — not a clinical IQ test — and the best way to raise it is to practise in free mode to sharpen your opening guesses.',
+      },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     wins: { fr: 'Victoires au défi du jour', en: 'Daily challenge wins' },
     'max-streak': { fr: 'Meilleure série de jours gagnés', en: 'Best winning day streak' },
   },
@@ -407,6 +419,13 @@ function inOverlay(e: Event): boolean {
   )
 }
 
+/** QI estimé d'une partie (Task 18) : précision = (7 − essais)/6 si le mot est
+ *  trouvé (en 1 essai → 1,0 ; en 6 → 0,17 ; plancher 0,2), sinon 0,2 ;
+ *  difficulté 2 ; pas de dimension rapidité (un mot par jour, sans chrono). */
+function estimateWordIq(won: boolean, tries: number): number {
+  return computeIq(gameId, { accuracy: won ? clamp((7 - tries) / 6, 0.2, 1) : 0.2, difficulty: 2 })
+}
+
 /* ================= Composant principal ================= */
 export default function DailyWordGame() {
   const lang = useLang()
@@ -436,6 +455,8 @@ export default function DailyWordGame() {
   const [burstKey, setBurstKey] = useState(0)
   const [stats, setStats] = useState<DWStats>(defaultStats)
   const [ready, setReady] = useState(false)
+  /* QI estimé de la partie terminée (Task 18) — null en cours de partie. */
+  const [endIq, setEndIq] = useState<number | null>(null)
 
   const lockRef = useRef(false)
   const genRef = useRef(0)
@@ -507,6 +528,13 @@ export default function DailyWordGame() {
         setGuesses([])
       }
       setPhase(restoredPhase)
+      /* QI estimé (Task 18) : recalculé aussi sur restauration d'un défi
+         déjà terminé, pour que la carte QI réapparaisse au rechargement. */
+      if (restoredPhase !== 'playing' && d && d.date === today) {
+        setEndIq(estimateWordIq(restoredPhase === 'won', d.guesses.length))
+      } else {
+        setEndIq(null)
+      }
       /* Partie terminée mais non comptabilisée (rechargement pendant la révélation) :
          on enregistre le résultat silencieusement, sans re-célébrer. */
       if (d && d.date === today && restoredPhase !== 'playing' && !s.history[today]) {
@@ -589,6 +617,8 @@ export default function DailyWordGame() {
 
   function finishGame(won: boolean, tries: number, gs: string[]) {
     setPhase(won ? 'won' : 'lost')
+    /* QI estimé (Task 18) — calculé une seule fois, au moment de la fin. */
+    setEndIq(estimateWordIq(won, tries))
     if (won) {
       sfx.play('win')
       setConfettiKey((k) => k + 1)
@@ -645,6 +675,7 @@ export default function DailyWordGame() {
     setGuesses([])
     setCurrent('')
     setPhase('playing')
+    setEndIq(null)
     setRevealIdx(5)
     setMessage(null)
     setShakeCount(0)
@@ -665,7 +696,10 @@ export default function DailyWordGame() {
     setRevealIdx(5)
     setMessage(null)
     setShakeCount(0)
-    setPhase(gs.includes(ans) ? 'won' : gs.length >= 6 ? 'lost' : 'playing')
+    const backPhase = gs.includes(ans) ? 'won' : gs.length >= 6 ? 'lost' : 'playing'
+    setPhase(backPhase)
+    /* QI estimé (Task 18) : recalculé si le défi du jour est déjà terminé. */
+    setEndIq(backPhase !== 'playing' && gs.length > 0 ? estimateWordIq(backPhase === 'won', gs.length) : null)
     playCountedRef.current = d?.counted ?? false
   }
 
@@ -946,6 +980,7 @@ export default function DailyWordGame() {
               onReplay={() => startPractice()}
               replayLabel={mode === 'practice' ? L.newWord : L.practiceBtn}
               replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              iq={endIq ?? undefined}
               shareResult={shareResult}
             />
           </div>

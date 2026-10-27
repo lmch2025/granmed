@@ -1111,3 +1111,78 @@ Stage Summary:
 - PWA RÉPONDANT EXACTEMENT À LA DEMANDE : composant d'installation ultra-élégant (voile blur 24px plein écran, carte spring, 3 mots « Installez. Jouez. Gagnez. »/« Install. Play. Win. », CTA gradient doré, croix 44px) ; apparaît une fois par session au maximum, seulement si installable ; cesse définitivement après installation (standalone + appinstalled) ; fermeture sans installer = tranquillité pour la session, retour garanti à la prochaine ouverture (sessionStorage), jamais à chaque rafraîchissement ; jamais pendant une partie.
 - Robustesse : manifest complet (maskable, screenshots réels, display_override), SW offline-first production + mode volatile dev (HMR protégé), capture précoce avant hydratation + listeners de secours, a11y complet (aria-modal, piège focus, Échap, 44px, reduced-motion, contrastes AA), bilingue live.
 - Force majeure confinée à 2 fichiers gelés (layout.tsx, page.tsx), raison consignée, manifeste régénéré (161 fichiers), 0 suppression, intégrité ✅, tag v1.2-stable + archive froide.
+
+---
+Task ID: 18-g1
+Agent: Ingénieur d'intégration QI n°1 (subagent) — finalisé par le coordinateur
+Task: Câblage QI estimé + SEO IQ sur sequence-memory, schulte-table, speed-math, mini-crossword (Task 18).
+
+Work Log:
+- Les 4 jeux câblés selon le pattern de référence memory-match : import computeIq → calcul documenté au handler de fin → QI ajouté à l'état de fin → prop iq sur RoundEndActions → SEO IQ complet (tagline, description, features, FAQ « Comment est calculé mon QI estimé ? », record best-iq).
+- Formules : sequence-memory accuracy=(longueur−1)/12, difficulté par mode (classique 2, rapide 3) ; schulte accuracy=1−erreurs×0,12, speed=(cellules×1,1 s)/temps, difficulté par grille (3×3→1 … 6×6/7×7→3) ; speed-math accuracy=correctes/répondues, speed=correctes/20, difficulté adaptative effective ; mini-crossword accuracy=1−indices×0,08−vérifications×0,04, speed=(cases×9 s)/temps.
+- Timeout d'infrastructure à la récupération du résultat (context deadline exceeded) : code complet et conforme (revue de diff par le coordinateur), vérification navigateur reprise par le coordinateur.
+
+Stage Summary:
+- 4/4 jeux intégrés, formules documentées dans le code. Vérification E2E coordinateur : schulte-table FR 5×5 complété → carte « QI estimé : 139 — Supérieur » (formule vérifiée à la main : acc 1, speed plafonné 2,2, diff 2 → 138,6≈139) + EN « Estimated IQ : 139 — Superior » ; sequence-memory, speed-math, mini-crossword : chargement vérifié sans erreur.
+
+---
+Task ID: 18-g2
+Agent: Ingénieur d'intégration QI n°2 (subagent) — finalisé par le coordinateur
+Task: Câblage QI estimé + SEO IQ sur health-true-false, merge-garden (zen), 2048-nutrition, sudoku, daily-word (Task 18).
+
+Work Log:
+- 4 jeux à manche câblés (pattern référence) : health-true-false accuracy=correctes/total, speed=(total×4,5 s)/temps ; 2048 accuracy=clamp(log2(tuileMax)/11) documenté, difficulté par taille de grille ; sudoku accuracy=1−indices×0,12−erreurs×0,05, speed=par(360/600/900/1440 s)/temps, difficulté par niveau ; daily-word accuracy=trouvé?(7−essais)/6:0,2, difficulté 2 (fonction estimateWordIq dédiée + restauration de partie couverte, lignes 534/702).
+- merge-garden (zen, sans fin de manche) : IqCard dans le panneau collection + QI reflétant la progression (espèces/16), esthétique zen préservée.
+- Timeout d'infrastructure à la récupération : code complet (revue de diff), vérification navigateur reprise par le coordinateur.
+
+Stage Summary:
+- 5/5 jeux intégrés. Vérification E2E coordinateur : daily-word — défaite en 6 mots valides (MAIRE, TAPIS, ROUGE, VENTE, PERLE/ROCHE/FLUTE/MONDE au fil des essais) → carte « QI estimé : 70 — Novice » (précision 0,2 → 65 clampé 70, math exacte) ; merge-garden, 2048, sudoku, health-true-false : chargement vérifié sans erreur.
+
+---
+Task ID: 18-g3
+Agent: Ingénieur d'intégration QI n°3 (subagent) — finalisé par le coordinateur
+Task: Câblage QI estimé + SEO IQ sur minesweeper, block-puzzle, jigsaw-puzzle, pill-toss, fire-escape (Task 18).
+
+Work Log:
+- Formules câblées : minesweeper victoire accuracy=1, défaite=casesSûresRévélées/total (clampée 0,15–0,85, mine déduite), speed=(cellules×1,4 s)/temps, difficulté Facile 1/Intermédiaire 2/Expert 3 (état finalIq, les deux chemins fin) ; block-puzzle accuracy=score/par documenté ; jigsaw accuracy=1−coupsD'œil, speed=(pièces×14 s)/temps, difficulté 12→1/24→2/48→3 ; pill-toss et fire-escape accuracy=performance/par documentée dans le code.
+- Timeout d'infrastructure à la récupération : code complet (revue de diff), vérification navigateur reprise par le coordinateur.
+
+Stage Summary:
+- 5/5 jeux intégrés. Vérification E2E coordinateur : minesweeper — Facile 9×9 joué aux PointerEvent (le jeu écoute pointerdown/up, pas click — piège documenté) jusqu'à la mine → carte « QI estimé : 106 — Vif » (défaite partielle, ~83 % des cases sûres révélées) ; block-puzzle, jigsaw, pill-toss, fire-escape : chargement vérifié sans erreur.
+
+---
+Task ID: 18-g4
+Agent: Ingénieur d'intégration QI n°4 (subagent) — finalisé par le coordinateur
+Task: Câblage QI estimé + SEO IQ sur zen-fishing (zen), fruit-slice, guess-the-idiom, longest-word, interactive-story (Task 18).
+
+Work Log:
+- zen-fishing (zen) : IqChip sur l'écran d'accueil (si collection > 0) + IqCard en tête du carnet de collection (auto-enregistre best-iq), collectionIq=computeIq(espèces/12 clampé 0,15, difficulté 1) en useMemo — esthétique zen intacte.
+- Formules : fruit-slice accuracy=score/200 documenté, difficulté 2 ; guess-the-idiom accuracy=correctes/total, speed=(total×20 s)/temps ; longest-word accuracy=motsTrouvés/par documenté ; interactive-story accuracy=0,55+0,25(nouvelle fin)+0,20(cheminement decisions/8) borné [0,3,1], difficulté 1 (métrique narrative documentée).
+- Timeout d'infrastructure à la récupération : code complet (revue de diff), vérification navigateur reprise par le coordinateur.
+
+Stage Summary:
+- 5/5 jeux intégrés. Vérification E2E coordinateur : guess-the-idiom — partie libre, 5 expressions passées via « Passer »/« Suivant » → « Voir le bilan » → carte « QI estimé : 70 — Novice » (0/5 correctes, math exacte) ; zen-fishing — carnet ouvert → IqCard « QI estimé : 70 — Novice » (collection vide → plancher 0,15) ; fruit-slice, longest-word, interactive-story : chargement vérifié sans erreur.
+
+---
+Task ID: 18
+Agent: main (Z.ai Code — coordinateur de l'équipe d'élite)
+Task: Réorienter TOUS les jeux vers le QI et l'intelligence — le résultat obtenu fonction du niveau d'intelligence pour inciter à rejouer sans cesse ; sourcer et implémenter des mots-clés à fort trafic web sur la thématique « jeux pour améliorer le QI » ; référencement optimal GEO (moteurs d'IA), AIO et SEO (Google et moteurs de recherche) (demande utilisateur).
+
+Work Log:
+- RECHERCHE DE MOTS-CLÉS (volumes mensuels estimés, connaissance SEO de la niche — documentée pour arbitrage) : FR — « test de QI » ~110 k, « test de QI gratuit » ~60 k, « QI moyen » ~33 k, « calcul mental » ~40 k, « jeux de réflexion » ~15 k, « jeux de logique » ~10 k, « jeux de mémoire » ~10 k, « améliorer sa mémoire » ~10 k, « test d'intelligence gratuit » ~8 k, « entraînement cérébral » ~4,4 k, « stimuler son cerveau » ~2,9 k, « jeux de QI » ~1,9 k, « jeux cérébraux » ~1,6 k ; EN — « IQ test » ~450 k, « free IQ test » ~90 k, « brain games » ~74 k, « memory games » ~60 k, « mind games » ~40 k, « brain training » ~33 k, « logic games » ~27 k, « increase IQ » ~10 k, « cognitive training » ~12 k. Priorisation : intégration naturelle dans title/description/keywords/JSON-LD/llms.txt/FAQ/guides/catalogue (zéro bourrage).
+- MOTEUR QI (NOUVEAU src/lib/games/iq.ts, ajout pur) : computeIq(gameId, {accuracy, speed?, difficulty?}) → QI 70–150. Formule psychométrique documentée : 86 + difficulté×5 + (précision−0,70)×62 + (rapidité−1)×20 — une manche parfaite, rapide et difficile culmine à 141 (Génie rare et convoité). IQ_TIERS : 6 niveaux bilingues (Novice 70–89 🌱 zinc, Éveillé 90–104 💡 émeraude, Vif 105–114 ⚡ ambre, Éclairé 115–124 🔥 orange, Supérieur 125–139 💎 rose, Génie 140+ 👑 dégradé or) ; iqPercentile via Φ de Wechsler (moyenne 100, σ 15, approximation d'Abramowitz-Stegun) ; iqNext (progression vers le palier suivant) ; iqShareLine (ligne de partage localisée) ; IQ_RECORD_METRIC 'best-iq' intégré au store de progression existant (setBest → visible dans « Vos records » de chaque page jeu + dashboard).
+- CARTE QI (NOUVEAU src/components/game/iq-card.tsx) : IqCard — anneau SVG animé vers le palier suivant, count-up dramatique 70→QI (framer-motion, reduced-motion respecté), badge de niveau coloré, percentile « Top n % » (Intl par langue, décimale sous 1 %), record QI persistant auto-sauvegardé (idempotent StrictMode-safe, détection « Nouveau record » par date du jour — match nul avec ancien record exclus), barre de progression dégradée vers le niveau suivant, incitation « Rejouez pour élever votre QI » ; IqChip variante compacte pour HUD zen. Corrigées pendant la QA : 2 erreurs react-hooks/set-state-in-effect → motif officiel « ajustement pendant le rendu » (cf. VictoryBurst) + dérivation du record sans état local.
+- INTÉGRATION CENTRALE (force majeure, 2 fichiers partagés) : round-end.tsx — prop optionnelle iq sur RoundEndActions → IqCard au sommet de CHAQUE fin de manche (motif Task 15 éprouvé) + payload de partage enrichi « … · QI estimé : 118 (Éclairé) » ; i18n.ts — clés iq.* FR/EN (estimated, level, topPercent, best, newBest, replay, nextTier, maxLevel) + réorientation brand.tagline (« Élevez votre QI en jouant » / « Raise your IQ by playing »), home.heroTitle/Sub QI (« 20 jeux de QI gratuits pour tester et entraîner votre intelligence »), home.heroCta « Tester mon QI » / « Test my IQ ».
+- IMPLÉMENTATION DE RÉFÉRENCE (coordinateur) : memory-match câblé de bout en bout (accuracy=paires/coups, speed=par(4,2 s/paire+6 s)/temps, difficulté par taille de grille ; SEO IQ complet) puis validé navigateur avant délégation.
+- ÉQUIPE D'ÉLITE : 4 ingénieurs d'intégration lancés en parallèle (19 jeux en 4 lots, specs détaillées avec formules par jeu et stratégies QA documentées). Infrastructure : les 4 lancements ont renvoyé « context deadline exceeded » MAIS le travail a bien été exécuté (diffs conformes, lint/tsc propres) ; les agents n'ont pas survécu pour leurs worklogs/QA finaux (sessions navigateur zombies fermées par le coordinateur après constat d'inactivité) → relecture complète des diffs par le coordinateur (7 jeux en revue profonde) + reprise intégrale de la vérification navigateur (cf. sections 18-g1→g4).
+- SEO/GEO/AIO (force majeure, socle) : layout.tsx — title/description/keywords/OG/Twitter réorientés QI (21 mots-clés fort trafic FR+EN) ; page.tsx — JSON-LD enrichis (WebSite + alternateName « Granmed IQ Games », Organization slogan QI, ItemList « Les 20 jeux de QI gratuits », FAQPage 10 questions dont 3 QI) ; granmed-app.tsx — titres/descriptions dynamiques par vue réorientés QI (défaut FR/EN) ; catalog.ts — 4 catégories (taglines+descriptions QI) + 20 shorts de cartes réécrits (QI/intelligence/cerveau/logique/mémoire, vocabulaire varié, zéro bourrage) ; home-faq.ts — 3 nouvelles entrées AIO (« Granmed propose-t-il un test de QI gratuit ? », « Comment est calculé mon QI estimé ? », « Quel est le QI moyen ? » — cibles 60 k/33 k/mensuel) ; home-view.tsx — badge hero « Élevez votre QI en jouant » (localisé) ; guides.ts — NOUVEAU guide « Comment augmenter son QI ? Ce que dit la science » (5 sections FR+EN, honnête : transfert proche/lointain, leviers réels, plan d'entraînement Granmed) ; robots.txt — 10 crawlers d'IA explicitement autorisés (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-User, anthropic-ai, PerplexityBot, Google-Extended, CCBot, Bytespider, Applebot-Extended) ; sitemap.xml lastmod 2026-10-27 ; llms.txt réécrit — positionnement QI, section « Le QI estimé Granmed » (méthode complète), FAQ réponses directes pour moteurs d'IA, 20 jeux reformulés QI, gamification + guides à jour.
+- VÉRIFICATION NAVIGATEUR EXHAUSTIVE (session v18, 390×844, 0 erreur console/page) : E2E avec carte QI — memory-match (référence, QI 81 Novice, formule vérifiée à la main), schulte FR 5×5 (QI 139 Supérieur) + EN (Estimated IQ 139 Superior), daily-word (défaite 6 essais → QI 70), minesweeper (défaite partielle → QI 106 Vif, PointerEvents), guess-the-idiom (série passée → bilan → QI 70), zen-fishing (carnet → IqCard QI 70) ; chargement des 20/20 jeux vérifié (navigation hash, zéro 404, zéro erreur) ; accueil FR (h1 QI, badge « Élevez votre QI en jouant », sous-titre QI, CTA « Tester mon QI ») + EN (h1, « Test my IQ ») ; titres dynamiques FR/EN QI ; guide augmenter-son-qi rendu (5 sections) ; serveur — title/meta/4 JSON-LD/robots/sitemap/llms vérifiés par curl ; audits VLM : carte QI état de repos « Polished » (mobile clair), capture avec célébrations « Encombré » (= superpositions TRANSITOIRES VictoryBurst+toast, design préexistant approuvé, auto-effacement ~2 s — sans objet).
+- Pièges de QA documentés : daily-word rejette les mots hors dictionnaire SANS consommer d'essai et la ligne pleine ignore les nouvelles lettres (effacer avant de taper) ; démineur : PointerEvent down+up obligatoires ; devine-expression : avancer via « Passer » puis « Suivant » puis « Voir le bilan » ; schulte : la grille est [role=group][aria-label*="Grille"] (le sélecteur nu [role=group] attrape le sélecteur de langue).
+- QUALITÉ : lint 0 erreur, tsc 0 erreur (src/ — les erreurs préexistantes examples//skills/ restent hors périmètre), dev server sain (GET / 200).
+- FORCE MAJEURE OFFICIELLE : justification = directive utilisateur Task 18 (« orientons tous nos jeux vers QI et intelligence » + mots-clés + SEO/GEO/AIO) ; integrity:update exécuté avec raison détaillée ; 51 signalements attendus (20 jeux + catalogue + fichiers partagés/SEO) tous relus ; 0 suppression ; 2 ajouts purs (iq.ts, iq-card.tsx).
+
+Stage Summary:
+- TOUS LES JEUX RÉORIENTÉS QI : chaque fin de manche couronne désormais le résultat d'une carte QI estimé (70–150, échelle de Wechsler) fonction de la précision, de la rapidité et de la difficulté réelles — 6 niveaux d'intelligence du Novice au Génie, percentile, record « best-iq » persistant par jeu (page de records + dashboard), progression vers le palier suivant et incitation « Rejouez pour élever votre QI » : la boucle de rejouabilité demandée est complète, y compris dans le payload de partage de chaque manche. Jeux zen couverts par IqCard de collection (progression).
+- MOTS-CLÉS FORT TRAFIC implémentés partout (naturellement, bilingue) : title, meta description, keywords, OG/Twitter, JSON-LD ×4, llms.txt, FAQ d'accueil (+3 entrées AIO), guide « Comment augmenter son QI », catalogue (20 shorts + 4 catégories), contenus SEO des 20 jeux (tagline/description/features/FAQ).
+- RÉFÉRENCEMENT OPTIMAL : SEO (métadonnées serveur + dynamiques par vue, sitemap, hiérarchie h1/h2, maillage interne guides→jeux) ; AIO/GEO (llms.txt réécrit avec FAQ réponses directes, robots.txt autorisant 10 crawlers d'IA, FAQPage JSON-LD, contenu extractible et honnête — disclaimers « estimation ludique, pas un test clinique »).
+- 6 jeux vérifiés E2E avec carte QI (FR+EN), 20/20 chargés sans erreur, formules vérifiées mathématiquement (81/139/70/106/70 conformes au calcul manuel), lint+tsc 0 erreur. Nouveau point de restauration : tag v1.3-stable + archive froide.

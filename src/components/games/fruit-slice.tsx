@@ -8,6 +8,7 @@ import { useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { useHydrated, useReducedMotion, clamp, todayKey, mulberry32, seedFromString } from '@/lib/utils-game'
 import type { GameSEOContent } from '@/lib/games/types'
+import { computeIq } from '@/lib/games/iq'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
@@ -17,18 +18,18 @@ export const gameId = 'fruit-slice'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Tranchez les fruits du verger d’un geste fluide, enchaînez les combos et évitez les savons piégés.',
-    en: 'Slice the orchard fruits with a fluid swipe, chain combos and avoid the trap soaps.',
+    fr: 'Tranchez les fruits du verger d’un geste fluide, enchaînez les combos et révélez votre QI estimé — savons interdits.',
+    en: 'Slice the orchard fruits with a fluid swipe, chain combos and reveal your estimated IQ — soaps forbidden.',
   },
   description: {
     fr: [
       'Le Verger de Gran (Fruit Slice) est un jeu d’action et de réflexes gratuit dans lequel vous découpez au doigt les fruits projetés depuis le bas de l’écran. Balayez l’écran comme un couteau : chaque fruit traversé par votre geste se coupe en deux moitiés qui volent.',
-      'Les fruits montent en arcs paraboliques, par vagues de 1 à 4, de plus en plus rapides. La pastèque géante rapporte 30 points, et trancher 3 fruits ou plus dans un même geste déclenche un combo bonus (×10 points par fruit). Attention aux savons 🧼 interdits : en couper un coûte une vie, et vous n’en avez que trois.',
+      'Les fruits montent en arcs paraboliques, par vagues de 1 à 4, de plus en plus rapides. La pastèque géante rapporte 30 points, et trancher 3 fruits ou plus dans un même geste déclenche un combo bonus (×10 points par fruit). Attention aux savons 🧼 interdits : en couper un coûte une vie, et vous n’en avez que trois. Au game over, un QI estimé — calculé à partir de la précision de votre session et de la difficulté — vous attribue un niveau d’intelligence, du Novice au Génie, à élever en rejouant.',
       'Laisser tomber un fruit n’enlève rien : il casse simplement votre combo. Le jeu s’accélère progressivement, vos records de score et de combo sont sauvegardés sur votre appareil, et un défi du jour déterministe vous donne un objectif de points différent chaque matin.',
     ],
     en: [
       'Gran’s Orchard (Fruit Slice) is a free action and reflex game in which you slice with your finger the fruits tossed up from the bottom of the screen. Swipe across the game like a knife: every fruit crossed by your gesture splits into two flying halves.',
-      'Fruits rise in parabolic arcs, in waves of 1 to 4, faster and faster. The giant watermelon is worth 30 points, and slicing 3 or more fruits within one continuous swipe triggers a combo bonus (×10 points per fruit). Watch out for the forbidden soaps 🧼: slicing one costs a life, and you only have three.',
+      'Fruits rise in parabolic arcs, in waves of 1 to 4, faster and faster. The giant watermelon is worth 30 points, and slicing 3 or more fruits within one continuous swipe triggers a combo bonus (×10 points per fruit). Watch out for the forbidden soaps 🧼: slicing one costs a life, and you only have three. On game over, an estimated IQ — computed from your session accuracy and the difficulty — assigns you an intelligence level, from Novice to Genius, to raise as you replay.',
       'Letting a fruit fall costs nothing: it merely breaks your combo. The game speeds up progressively, your score and combo records are saved on your device, and a deterministic daily challenge gives you a fresh points goal every morning.',
     ],
   },
@@ -66,6 +67,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Découpe au doigt avec trainée lumineuse, éclat de lame et jus de fruits',
       '9 fruits dont la pastèque géante à 30 points, dimensionnés à l’écran',
       'Combos : bonus ×10 points par fruit au-delà de 3 en un geste',
@@ -75,6 +77,7 @@ export const content: GameSEOContent = {
       'Retour haptique léger sur chaque coupe et célébration de record',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Finger slicing with a glowing trail, blade flash and fruit juice',
       '9 fruits including the 30-point giant watermelon, sized to your screen',
       'Combos: ×10 bonus points per fruit past 3 in one swipe',
@@ -102,6 +105,7 @@ export const content: GameSEOContent = {
     fr: [
       { q: 'Que se passe-t-il quand un fruit tombe sans être tranché ?', a: 'Rien de grave : vous ne perdez ni points ni vie. Seul votre combo en cours est remis à zéro, ce qui vous encourage à trancher la vague suivante en un seul geste.' },
       { q: 'Comment fonctionne le combo ?', a: 'Chaque coupe effectuée moins de 350 ms après la précédente augmente le compteur. À partir de 3 fruits, chaque coupe supplémentaire rapporte un bonus de 10 points × le nombre de fruits du combo, affiché en « COMBO ×N ».' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'À la fin de la partie, votre QI estimé mesure la précision réelle de votre session : votre score est rapporté au par d’une manche d’arcade brillante (200 points — la victoire se joue à 150, la manche de trois étoiles à 300), en tenant compte de la difficulté croissante des vagues. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15) et vous attribue un niveau, du Novice au Génie. C’est une estimation ludique de votre performance à ce jeu d’action — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour trancher plus juste et plus longtemps.' },
       { q: 'Les savons apparaissent-ils dès le début ?', a: 'Non : ils apparaissent après environ 8 secondes, dans environ une projection sur huit. Leur proportion n’augmente pas avec le temps — seule la cadence du jeu augmente.' },
       { q: 'Le jeu devient-il trop rapide ?', a: 'La cadence et la fréquence des vagues augmentent progressivement et plafonnent après quelques minutes : le jeu reste jouable longtemps, sans mur de difficulté.' },
       { q: 'Puis-je jouer sans regarder les savons ?', a: 'Mieux vaut ne pas : chaque savon tranché coûte une vie. Mais un savon qui retombe intact ne pénalise en rien — pas même votre combo — l’ignorer complètement est une stratégie valide.' },
@@ -109,12 +113,14 @@ export const content: GameSEOContent = {
     en: [
       { q: 'What happens when a fruit falls unsliced?', a: 'Nothing bad: you lose neither points nor a life. Only your current combo resets, which encourages you to slice the next wave in one gesture.' },
       { q: 'How does the combo work?', a: 'Every cut made less than 350 ms after the previous one increases the counter. From 3 fruits up, each extra cut earns a bonus of 10 points × the number of fruits in the combo, shown as “COMBO ×N”.' },
+      { q: 'How is my estimated IQ calculated?', a: 'At the end of the run, your estimated IQ measures the real accuracy of your session: your score is compared against the par of a brilliant arcade run (200 points — the win line sits at 150, the three-star round at 300), weighted by the rising difficulty of the waves. The result maps onto the classic IQ scale (mean 100, standard deviation 15) and assigns you a level, from Novice to Genius. It is a playful estimate of your performance at this action game — not a clinical IQ test — and the best way to raise it is to keep playing to slice sharper and last longer.' },
       { q: 'Do soaps appear from the start?', a: 'No: they show up after about 8 seconds, in roughly one toss out of eight. Their share does not grow over time — only the game pace does.' },
       { q: 'Does the game get too fast?', a: 'Wave pace and frequency rise gradually and cap after a few minutes: the game stays playable for a long time, with no difficulty wall.' },
       { q: 'Can I play while ignoring the soaps?', a: 'Best not to: every sliced soap costs a life. But a soap falling back untouched penalizes nothing at all — not even your combo — so fully ignoring them is a valid strategy.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-score': { fr: 'Meilleur score', en: 'Best score' },
     'best-combo': { fr: 'Meilleur combo', en: 'Best combo' },
   },
@@ -296,7 +302,7 @@ export default function FruitSliceGame() {
 
   const [phase, setPhase] = useState<'idle' | 'playing' | 'over'>('idle')
   const [hud, setHud] = useState({ score: 0, lives: 3, chain: 0 })
-  const [result, setResult] = useState<null | { score: number; sliced: number; bestChain: number; isRecord: boolean; xp: number }>(null)
+  const [result, setResult] = useState<null | { score: number; sliced: number; bestChain: number; isRecord: boolean; xp: number; iq: number }>(null)
   const [confetti, setConfetti] = useState(0)
   /* Célébration de victoire (manche ≥ 150 points) — médaille + étoiles. */
   const [burstStars, setBurstStars] = useState(3)
@@ -364,6 +370,11 @@ export default function FruitSliceGame() {
     w.dead = true
     const prevBest = useProfileStore.getState().profile.games[gameId]?.records?.['best-score']?.value ?? 0
     const isRecord = w.score > prevBest && w.score > 0
+    /* QI estimé (Task 18) : précision = score de la session rapporté au par
+     * d’une manche d’arcade brillante (200 pts — victoire à 150, 3 étoiles
+     * à 300), difficulté 2 (cadence croissante) ; rapidité omise :
+     * la course est une endurance jusqu’aux 3 savons, sans temps cible. */
+    const iq = computeIq(gameId, { accuracy: clamp(w.score / 200, 0, 1), difficulty: 2 })
     const xp = w.score > 0 ? Math.max(1, Math.floor(w.score / 10)) : 0
     if (w.score > 0) {
       setBest(gameId, 'best-score', w.score)
@@ -392,7 +403,7 @@ export default function FruitSliceGame() {
       setBurstStars(w.score >= 300 ? 3 : w.score >= 200 ? 2 : 1)
       setBurstKey((k) => k + 1)
     }
-    setResult({ score: w.score, sliced: w.fruitsSliced, bestChain: w.bestChain, isRecord, xp })
+    setResult({ score: w.score, sliced: w.fruitsSliced, bestChain: w.bestChain, isRecord, xp, iq })
     setPhase('over')
   }, [addGameXp, addXp, setBest, unlockBadge])
 
@@ -985,6 +996,7 @@ export default function FruitSliceGame() {
                   onReplay={handleStart}
                   replayLabel={T.replay}
                   primaryRef={replayBtnRef}
+                  iq={result.iq}
                   shareResult={T.shareScore.replace('{n}', String(result.score)).replace('{c}', String(result.bestChain))}
                 />
               </div>

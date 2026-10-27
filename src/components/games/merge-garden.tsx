@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Sprout, CircleCheckBig, Circle, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
@@ -10,11 +10,13 @@ import { useProfileStore } from '@/lib/progress/store'
 import { loadSave, saveSave } from '@/lib/save'
 import { useReducedMotion, clamp, shareText } from '@/lib/utils-game'
 import { getGame } from '@/lib/games/catalog'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
+import { IqCard } from '@/components/game/iq-card'
 import { toast } from 'sonner'
 
 export const gameId = 'merge-garden'
@@ -22,18 +24,18 @@ export const gameId = 'merge-garden'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Fusionnez graines et plantes pour découvrir 16 espèces, du bourgeon jusqu’au jardin complet de Gran.',
-    en: 'Merge seeds and plants to discover 16 species, from tiny buds all the way to Gran’s complete garden.',
+    fr: 'Fusionnez graines et plantes pour découvrir 16 espèces, du bourgeon jusqu’au jardin complet de Gran — et élever votre QI estimé au fil de la collection.',
+    en: 'Merge seeds and plants to discover 16 species, from tiny buds all the way to Gran’s complete garden — raising your estimated IQ as the collection grows.',
   },
   description: {
     fr: [
       'Jardin de Gran est un jeu de fusion zen et gratuit dans lequel vous plantez des graines sur un plateau de 6×7 cases, puis combinez deux plantes identiques pour les faire évoluer en l’espèce supérieure, de la simple graine jusqu’au grand chêne et au jardin complet de Gran.',
-      'Chaque fusion rapporte de l’expérience et chaque nouvelle espèce découverte enrichit votre livre de collection. Votre stock de graines se recharge automatiquement (une toutes les 20 secondes, dans la limite de 5), même quand vous quittez la page : le jardin pousse à votre rythme, sans game-over ni pression.',
+      'Chaque fusion rapporte de l’expérience et chaque nouvelle espèce découverte enrichit votre livre de collection. Votre stock de graines se recharge automatiquement (une toutes les 20 secondes, dans la limite de 5), même quand vous quittez la page : le jardin pousse à votre rythme, sans game-over ni pression. Votre QI estimé, lié à la progression de votre collection, vous attribue un niveau d’intelligence du Novice au Génie, à élever en faisant grandir le jardin.',
       'Cinq objectifs progressifs structurent la partie — découvrir le tournesol, atteindre le grand chêne, planter 50 graines, fusionner 100 fois et compléter les 16 espèces — et tout est sauvegardé automatiquement sur votre appareil.',
     ],
     en: [
       'Gran’s Garden is a calm, free merge game where you plant seeds on a 6×7 board, then combine two identical plants to evolve them into the next species, from a simple seed all the way to the great oak and Gran’s complete garden.',
-      'Every merge earns experience and each newly discovered species enriches your collection book. Your seed stock refills automatically (one every 20 seconds, up to 5), even while you are away: the garden grows at your own pace, with no game over and no pressure.',
+      'Every merge earns experience and each newly discovered species enriches your collection book. Your seed stock refills automatically (one every 20 seconds, up to 5), even while you are away: the garden grows at your own pace, with no game over and no pressure. Your estimated IQ, tied to the growth of your species collection, assigns you an intelligence level from Novice to Genius, to raise as the garden keeps growing.',
       'Five progressive goals structure the game — discover the sunflower, reach the great oak, plant 50 seeds, merge 100 times and complete all 16 species — and everything is saved automatically on your device.',
     ],
   },
@@ -71,6 +73,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé lié à votre collection',
       '16 espèces à découvrir, de la graine 🌱 au jardin de Gran 🏡',
       'Plateau 6×7 sans game-over : une progression zen',
       'Glisser-déposer tactile aimanté : plantes et graines, avec cible illuminée et légère vibration',
@@ -80,6 +83,7 @@ export const content: GameSEOContent = {
       'Sauvegarde automatique du jardin sur votre appareil',
     ],
     en: [
+      'IQ tied to your collection',
       '16 species to discover, from the seed 🌱 to Gran’s garden 🏡',
       '6×7 board with no game over: a zen progression',
       'Magnetized touch drag & drop: plants and seeds, with a lit target and a light vibration',
@@ -110,6 +114,7 @@ export const content: GameSEOContent = {
       { q: 'Comment se recharge le stock de graines ?', a: 'Une graine est ajoutée toutes les 20 secondes, jusqu’à un maximum de 5. La recharge continue même si vous quittez la page, grâce à l’horodatage sauvegardé.' },
       { q: 'Combien d’espèces existe-t-il ?', a: '16 espèces, de la graine (niveau 1) au jardin de Gran (niveau 16). Le livre de collection vous montre celles découvertes et celles qui restent.' },
       { q: 'Puis-je jouer sur mobile ?', a: 'Oui, le jeu est conçu pour le tactile : glissez une plante ou une graine du doigt, chaque case se joue confortablement, en portrait comme en paysage.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Le jardin étant un jeu zen sans fin de manche, votre QI estimé reflète la progression de votre collection : il s’élève avec les espèces découvertes (sur les 16 que compte le jeu), la difficulté de référence étant celle de la progression complète. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre avancée dans ce jeu de fusion — pas un test de QI clinique — et le meilleur moyen de l’élever reste de continuer à faire pousser et fusionner vos plantes.' },
     ],
     en: [
       { q: 'Is Gran’s Garden really free?', a: 'Yes, the game is completely free, with no sign-up and no download, and your garden is saved locally on your device.' },
@@ -117,9 +122,11 @@ export const content: GameSEOContent = {
       { q: 'How does the seed stock refill?', a: 'One seed is added every 20 seconds, up to a maximum of 5. Refilling continues even if you leave the page, thanks to the saved timestamp.' },
       { q: 'How many species are there?', a: '16 species, from the seed (tier 1) to Gran’s garden (tier 16). The collection book shows the ones you have discovered and the ones left.' },
       { q: 'Can I play on mobile?', a: 'Yes, the game is touch-first: drag a plant or a seed with your finger, every cell is comfortable to play, in portrait or landscape.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Because the garden is a zen game with no round end, your estimated IQ reflects the progression of your collection: it rises with the species you discover (out of the 16 the game counts), the reference difficulty being that of the full progression. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your progress in this merge game — not a clinical IQ test — and the best way to raise it is to keep growing and merging your plants.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'species-discovered': { fr: 'Espèces découvertes', en: 'Species discovered' },
     'highest-tier': { fr: 'Espèce la plus élevée', en: 'Highest species reached' },
   },
@@ -661,6 +668,14 @@ export default function MergeGardenGame() {
       ? 1
       : Math.max(0, Math.min(1, (now > 0 ? now - seedState.last : 0) / SEED_MS))
   const maxTier = discovered.reduce((a, b) => Math.max(a, b), 0)
+  /* QI estimé (Task 18) : jeu zen sans fin de manche — il reflète la
+   * PROGRESSION de la collection (espèces découvertes / 16, plancher 0,15),
+   * difficulté 2 (parcours complet). Affiché dans le livre du jardin ; la
+   * IqCard enregistre elle-même le record best-iq. */
+  const gardenIq = useMemo(
+    () => computeIq(gameId, { accuracy: clamp(discovered.length / MAX_TIER, 0.15, 1), difficulty: 2 }),
+    [discovered.length],
+  )
   const boardFull = board.every((v) => v !== null)
   const nextGoalIdx = GOALS.findIndex((_, i) => !goalsDone.includes(i))
   const goalText =
@@ -935,7 +950,9 @@ export default function MergeGardenGame() {
             <Share2 className="h-4 w-4" aria-hidden="true" />
             {L.shareCollection}
           </Button>
-          <div className="grid grid-cols-4 gap-2.5">
+          {/* QI estimé lié à la collection (Task 18) — couronne le livre du jardin */}
+          <IqCard gameId={gameId} iq={gardenIq} className="mt-3" />
+          <div className="mt-3 grid grid-cols-4 gap-2.5">
             {SPECIES.map((sp, i) => {
               const tier = i + 1
               const found = discovered.includes(tier)

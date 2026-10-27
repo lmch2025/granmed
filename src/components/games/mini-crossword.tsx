@@ -23,6 +23,7 @@ import { useT, useLang, type Lang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { loadSave, saveSave } from '@/lib/save'
 import { mulberry32, seedFromString, todayKey, formatMs } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import {
   buildGrid,
@@ -41,18 +42,18 @@ export const gameId = 'mini-crossword'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Complétez de petites grilles construites à la main : nature, culture, expressions et gourmandises.',
-    en: 'Complete small hand-crafted grids: nature, culture and sweet treats.',
+    fr: 'Complétez de petites grilles construites à la main : nature, culture, expressions et gourmandises — chaque grille résolue révèle votre QI estimé.',
+    en: 'Complete small hand-crafted grids: nature, culture and sweet treats — every solved grid reveals your estimated IQ.',
   },
   description: {
     fr: [
       "Culture Gran est un jeu de mots croisés express gratuit : de petites grilles de 5×5 construites à la main, à remplir en quelques minutes à partir de définitions simples. Chaque grille a été assemblée et vérifiée lettre par lettre — les croisements sont toujours cohérents.",
-      "Le jeu propose des grilles en français et en anglais, chacune avec ses propres thèmes : fleurs du jardin, forêt, musée, épices et poèmes, lagon de corail ou camp au pré. Les définitions sont courtes et accessibles, avec un clavier à l'écran pour jouer confortablement sur téléphone.",
+      "Le jeu propose des grilles en français et en anglais, chacune avec ses propres thèmes : fleurs du jardin, forêt, musée, épices et poèmes, lagon de corail ou camp au pré. Les définitions sont courtes et accessibles, avec un clavier à l'écran pour jouer confortablement sur téléphone. En fin de grille, un QI estimé — calculé à partir de votre précision (indices et vérifications utilisés), de votre rapidité et de la difficulté — vous attribue un niveau d'intelligence, du Novice au Génie, à élever en rejouant.",
       "Trois indices par grille permettent de révéler une lettre difficile — ou un mot entier en échange de vos indices restants — tandis qu'un bouton de vérification signale les erreurs. Chronomètre et compteur de mots trouvés rythment chaque grille, et votre progression est sauvegardée automatiquement. Chaque matin, une grille du jour attend les joueurs réguliers et alimente votre série de défis quotidiens.",
     ],
     en: [
       "Culture Gran is a free mini crossword game: small 5×5 hand-crafted grids to fill in within minutes from simple clues. Every grid was assembled and verified letter by letter — crossings are always consistent.",
-      "The game offers French and English grids, each with its own themes: garden flowers, forest, museum, spices and poems, coral lagoon or meadow camp. Clues are short and accessible, with an on-screen keyboard to play comfortably on your phone.",
+      "The game offers French and English grids, each with its own themes: garden flowers, forest, museum, spices and poems, coral lagoon or meadow camp. Clues are short and accessible, with an on-screen keyboard to play comfortably on your phone. At the end of each grid, an estimated IQ — computed from your accuracy (hints and checks used), your speed and the difficulty — assigns you an intelligence level, from Novice to Genius, to raise as you replay.",
       "Three hints per grid reveal a tricky letter — or a whole word in exchange for your remaining hints — while a check button flags mistakes. A timer and a words-found counter pace every grid, and your progress auto-saves. Every morning, a grid of the day awaits regular players and feeds your daily-challenge streak.",
     ],
   },
@@ -86,6 +87,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Grilles 5×5 construites à la main et vérifiées',
       '8 grilles françaises et 6 anglaises aux thèmes variés',
       'Définitions courtes et accessibles bilingues',
@@ -95,6 +97,7 @@ export const content: GameSEOContent = {
       'Sauvegarde automatique de la progression (lettres, temps, indices)',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       'Hand-crafted and verified 5×5 grids',
       '8 French and 6 English grids on varied themes',
       'Short, accessible bilingual clues',
@@ -123,6 +126,7 @@ export const content: GameSEOContent = {
       { q: 'Les grilles sont-elles générées aléatoirement ?', a: 'Non. Chaque grille est construite à la main selon un motif vérifié : les croisements sont contrôlés lettre par lettre, ce qui garantit des grilles toujours cohérentes et solubles.' },
       { q: 'Pourquoi certains mots s’écrivent sans accent ?', a: 'Pour simplifier la saisie au clavier, les réponses françaises sont stockées sans diacritiques : ÉCOLE se saisit ECOLE. Les définitions rappellent l’orthographe complète quand c’est utile, et le clavier physique accepte les lettres accentuées.' },
       { q: 'Comment fonctionnent les indices ?', a: 'Chaque grille vous donne trois indices : chacun révèle la lettre d’une case vide (la case sélectionnée en priorité, sinon la première case vide). Vous pouvez aussi révéler un mot entier, ce qui consomme tous vos indices restants.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé combine trois dimensions mesurées pendant la grille : la précision (chaque indice ou vérification utilisée la réduit légèrement), la rapidité (environ 9 secondes par case remplie servant de rythme de référence) et la difficulté (grilles 5×5 construites à la main). Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce jeu de mots — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer en économisant vos indices.' },
       { q: 'Que contient le défi du jour ?', a: 'Chaque jour, une grille différente est désignée par tirage déterministe : tous les joueurs affrontent la même grille, et la réussir valide votre défi quotidien du parcours Granmed.' },
       { q: 'Les grilles françaises et anglaises sont-elles les mêmes ?', a: 'Non : chaque langue possède ses propres grilles, ses propres thèmes et ses propres définitions, véritablement adaptées culturellement.' },
       { q: 'Puis-je reprendre une grille commencée ?', a: 'Oui : vos lettres, la grille en cours, le temps écoulé et le nombre d’indices utilisés sont sauvegardés automatiquement sur votre appareil.' },
@@ -132,10 +136,12 @@ export const content: GameSEOContent = {
       { q: 'Are the French and English grids the same?', a: 'No: each language has its own grids, themes and clues, genuinely adapted culturally.' },
       { q: 'What is in the daily challenge?', a: 'Each day, a different grid is picked deterministically: every player faces the same grid, and solving it validates your Granmed daily challenge.' },
       { q: 'How do hints work?', a: 'You get three hints per grid: each reveals the letter of an empty cell (the selected cell first). You can also reveal a whole word, which uses up all your remaining hints.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ combines three dimensions measured during the grid: accuracy (each hint or check you use lowers it slightly), speed (about 9 seconds per filled cell as the reference pace) and difficulty (hand-crafted 5×5 grids). The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this word game — not a clinical IQ test — and the best way to raise it is to replay while saving your hints.' },
       { q: 'Can I resume a grid I started?', a: 'Yes: your letters, current grid, elapsed time and hints used are automatically saved on your device.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     solved: { fr: 'Grilles résolues', en: 'Puzzles solved' },
     'best-time': { fr: 'Meilleur temps (s)', en: 'Best time (s)' },
   },
@@ -224,11 +230,13 @@ export default function MiniCrosswordGame() {
   const [burstKey, setBurstKey] = useState(0)
   const [newRecord, setNewRecord] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [solvedIq, setSolvedIq] = useState<number | null>(null)
 
   const boardRef = useRef<HTMLDivElement>(null)
   const startRef = useRef(0) // Date.now() de la dernière reprise du chrono
   const accRef = useRef(0) // temps accumulé avant la dernière reprise
   const phaseRef = useRef<Phase>('picker')
+  const checksRef = useRef(0) // vérifications « Vérifier » pressées (QI estimé)
 
   const dailyPuzzle = useMemo(() => {
     const list = puzzlesFor(lang)
@@ -380,6 +388,8 @@ export default function MiniCrosswordGame() {
       setHintsUsed(0)
       setWrongCells(new Set())
       setNewRecord(false)
+      setSolvedIq(null)
+      checksRef.current = 0
       setActive(p.words[0] ? { r: p.words[0].row, c: p.words[0].col } : null)
       setDir(p.words[0]?.dir ?? 'across')
       setPhase('playing')
@@ -449,6 +459,13 @@ export default function MiniCrosswordGame() {
     (l: Record<string, string>) => {
       if (!puzzle) return
       const finalMs = elapsedNow()
+      /* QI estimé (Task 18) : précision = 1 − indices×0,08 − vérifications×0,04
+       * (bornée 0,3–1), rapidité = par de 9 s par case remplie, difficulté = 2
+       * (grilles 5×5 construites à la main). */
+      const filledCells = Object.keys(l).length
+      const accuracy = Math.min(1, Math.max(0.3, 1 - hintsUsed * 0.08 - checksRef.current * 0.04))
+      const speed = (filledCells * 9) / Math.max(1, finalMs / 1000)
+      setSolvedIq(computeIq(gameId, { accuracy, speed, difficulty: 2 }))
       setElapsed(finalMs)
       setPhase('solved')
       setActive(null)
@@ -686,6 +703,7 @@ export default function MiniCrosswordGame() {
   const checkGrid = useCallback(() => {
     if (!puzzle || phase !== 'playing') return
     sfx.play('click')
+    checksRef.current += 1
     const wrong = new Set<string>()
     let filled = 0
     let total = 0
@@ -1199,6 +1217,7 @@ export default function MiniCrosswordGame() {
               onReplay={() => startPuzzle(puzzle, isDaily)}
               replayLabel={t('common.playAgain')}
               replayIcon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+              iq={solvedIq ?? undefined}
               shareResult={
                 lang === 'fr'
                   ? `Grille « ${puzzle.theme.fr} » résolue en ${formatMs(elapsed)}${hintsUsed === 0 ? ' · sans indice' : ` · ${hintsUsed}/${HINTS_MAX} indices`}`

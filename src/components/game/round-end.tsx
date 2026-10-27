@@ -10,11 +10,17 @@ import { useGameSession } from '@/lib/game-session'
 import { getGame, GAMES, CATEGORY_STYLES } from '@/lib/games/catalog'
 import { useGameStats } from '@/lib/progress/store'
 import { useReducedMotion, shareText } from '@/lib/utils-game'
+import { IqCard } from '@/components/game/iq-card'
+import { iqShareLine } from '@/lib/games/iq'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 /* ============================================================
  * FIN DE MANCHE — le cœur de la boucle de rétention :
+ *  0. si le jeu fournit son QI estimé (prop `iq`), une CARTE QI
+ *     couronne l'écran : chiffre animé, niveau d'intelligence
+ *     (Novice → Génie), percentile, record et incitation à
+ *     rejouer pour élever son QI (Task 18) ;
  *  1. un bouton principal « Rejouer / Poursuivre / Manche
  *     suivante » (le jeu fournit son handler) ;
  *  2. un bouton « Quitter » bien visible (sortie de la surface
@@ -33,6 +39,7 @@ export function RoundEndActions({
   replayIcon,
   primaryRef,
   shareResult,
+  iq,
   className,
 }: {
   gameId: string
@@ -46,6 +53,10 @@ export function RoundEndActions({
   /** Ligne de résultat localisée à partager (ex. « Score : 320 pts en 45 s »).
    *  Sans elle, le CTA partage le jeu (titre + accroche + lien). */
   shareResult?: string
+  /** QI estimé de la manche (Task 18) : affiche la carte QI en tête
+   *  d'écran et enrichit le payload de partage. Calculé côté jeu via
+   *  computeIq(gameId, { accuracy, speed?, difficulty? }). */
+  iq?: number
   className?: string
 }) {
   const t = useT()
@@ -60,15 +71,21 @@ export function RoundEndActions({
         ? `${window.location.origin}${window.location.pathname}${buildHash(lang, { type: 'game', slug: gameId })}`
         : ''
     const title = game?.title[lang] ?? 'Granmed'
+    /* QI estimé dans chaque partage (Task 18) : le résultat devient
+     * une fierté à afficher — « QI estimé : 118 (Éclairé) ». */
+    const iqSuffix = iq != null ? ` · ${iqShareLine(iq, lang)}` : ''
     const text = shareResult
-      ? `${shareResult}\n${title} — Granmed\n${url}`
-      : `${title}${game ? ` — ${game.short[lang]}` : ''}\n${url}`
+      ? `${shareResult}${iqSuffix}\n${title} — Granmed\n${url}`
+      : `${title}${game ? ` — ${game.short[lang]}` : ''}${iqSuffix}\n${url}`
     const ok = await shareText(title, text)
     if (ok) toast.success(t('common.copied'))
   }
 
   return (
     <div className={cn('mx-auto flex w-full max-w-sm flex-col items-stretch gap-2.5', className)}>
+      {/* Carte QI — le résultat affiché comme fonction du niveau d'intelligence (Task 18) */}
+      {iq != null ? <IqCard gameId={gameId} iq={iq} /> : null}
+
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <Button
           ref={primaryRef}

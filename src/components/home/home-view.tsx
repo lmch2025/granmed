@@ -39,7 +39,7 @@ export function HomeView() {
           <div>
             <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              {t('brand.name')} · Play · Challenge · Relax
+              {t('brand.name')} · {t('brand.tagline')}
             </p>
             <h1 id="hero-title" className="font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
               {t('home.heroTitle')}

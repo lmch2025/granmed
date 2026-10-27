@@ -7,6 +7,7 @@ import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { useProfileStore, useIsDailyDone } from '@/lib/progress/store'
 import { todayKey, seedFromString } from '@/lib/utils-game'
+import { computeIq } from '@/lib/games/iq'
 import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
@@ -18,18 +19,18 @@ export const gameId = 'block-puzzle'
 /* ================= Contenu SEO bilingue ================= */
 export const content: GameSEOContent = {
   tagline: {
-    fr: 'Placez des pièces sur une grille 10×10, effacez des lignes et des colonnes et enchaînez les combos, sans chronomètre.',
-    en: 'Place pieces on a 10×10 grid, clear rows and columns and chain combos — with no timer to rush you.',
+    fr: 'Placez des pièces sur une grille 10×10, effacez lignes et colonnes, enchaînez les combos — et révélez votre QI estimé, sans chronomètre.',
+    en: 'Place pieces on a 10×10 grid, clear rows and columns, chain combos — and reveal your estimated IQ — with no timer to rush you.',
   },
   description: {
     fr: [
       "Block Puzzle Équilibre est un jeu de puzzle gratuit en ligne dans lequel vous posez des pièces de formes variées sur une grille de 10×10 cases. Chaque pièce placée occupe définitivement ses cases ; dès qu'une ligne ou une colonne est entièrement remplie, elle disparaît et vous marque des points.",
-      "Vous recevez trois pièces à la fois et devez les placer toutes les trois avant d'en recevoir de nouvelles, à la manière des grands classiques du genre. Le mode Classique propose le catalogue complet — point isolé, lignes, carrés, angles et le rare carré 3×3 — tandis que le mode Détente se limite aux pièces de quatre cases maximum pour des parties plus tranquilles.",
+      "Vous recevez trois pièces à la fois et devez les placer toutes les trois avant d'en recevoir de nouvelles, à la manière des grands classiques du genre. Le mode Classique propose le catalogue complet — point isolé, lignes, carrés, angles et le rare carré 3×3 — tandis que le mode Détente se limite aux pièces de quatre cases maximum pour des parties plus tranquilles. En fin de partie, un QI estimé — calculé à partir de votre précision, c'est-à-dire du score final rapporté au par de la grille — vous attribue un niveau d'intelligence, du Novice au Génie, à élever en rejouant.",
       "Sans chronomètre ni pression, le jeu récompense l'anticipation : effacer plusieurs lignes d'un seul coup déclenche un combo qui double, triple ou quadruple les points. Votre meilleur score est sauvegardé, un défi du jour propose la même séquence de pièces à tous les joueurs, et la partie en cours est conservée automatiquement pour être reprise plus tard.",
     ],
     en: [
       "Block Puzzle Balance is a free online puzzle game in which you place differently shaped pieces on a 10×10 grid. Every placed piece permanently occupies its cells; as soon as a row or a column is completely filled, it disappears and scores you points.",
-      "You receive three pieces at a time and must place all three before new ones arrive, in the tradition of the genre's classics. Classic mode offers the full catalogue — single dot, lines, squares, corners and the rare 3×3 square — while Relax mode sticks to pieces of four cells or fewer for calmer games.",
+      "You receive three pieces at a time and must place all three before new ones arrive, in the tradition of the genre's classics. Classic mode offers the full catalogue — single dot, lines, squares, corners and the rare 3×3 square — while Relax mode sticks to pieces of four cells or fewer for calmer games. At the end of each game, an estimated IQ — computed from your accuracy, that is, the final score measured against the grid's par — assigns you an intelligence level, from Novice to Genius, to raise as you replay.",
       "With no timer and no pressure, the game rewards planning ahead: clearing several lines at once triggers a combo that doubles, triples or quadruples the points. Your best score is saved, a daily challenge deals the same piece sequence to every player, and an unfinished game is automatically kept so you can resume it later.",
     ],
   },
@@ -69,6 +70,7 @@ export const content: GameSEOContent = {
   },
   features: {
     fr: [
+      'QI estimé et niveau d’intelligence après chaque partie',
       'Grille 10×10 et pièces dessinées en mini-grilles, avec un dégradé chaud par famille de formes.',
       'Glisser-déposer tactile : la pièce suit le doigt et le dépôt s’aimante sur les cases ; pose en deux gestes également possible.',
       'Deux modes : Classique (toutes les pièces, carré 3×3 rare) et Détente (pièces ≤ 4 cases).',
@@ -78,6 +80,7 @@ export const content: GameSEOContent = {
       'Record de meilleur score, XP proportionnelle au score, succès à débloquer et légères vibrations tactiles de retour.',
     ],
     en: [
+      'Estimated IQ and intelligence level after every round',
       '10×10 grid with pieces drawn as mini-grids, each shape family in a warm gradient.',
       'Touch drag-and-drop: the piece follows your finger and the drop snaps to the cells; two-tap placement also works.',
       'Two modes: Classic (all pieces, rare 3×3 square) and Relax (pieces ≤ 4 cells).',
@@ -109,6 +112,7 @@ export const content: GameSEOContent = {
       { q: 'Quelle est la différence entre les modes Classique et Détente ?', a: 'Le mode Classique propose toutes les pièces, y compris le rare carré 3×3 de neuf cases. Le mode Détente exclut ce grand carré et se limite aux pièces de quatre cases maximum.' },
       { q: 'Comment fonctionnent les combos ?', a: 'Quand un placement efface plusieurs lignes et/ou colonnes à la fois, les points de lignes sont multipliés : ×2 pour deux lignes, ×3 pour trois, ×4 pour quatre.' },
       { q: 'Comment est calculé le score ?', a: 'Chaque case posée rapporte 1 point, et chaque ligne effacée rapporte 10 points de base, multipliés par le multiplicateur de combo le cas échéant.' },
+      { q: 'Comment est calculé mon QI estimé ?', a: 'Votre QI estimé repose sur votre précision : le score final de la partie est rapporté à un par de 2 200 points (un bon score courant, autour de 1 500 à 1 900 points, correspond à une précision de 0,70 à 0,85). Ce jeu zen étant dépourvu de chronomètre, la rapidité n’entre pas en compte. Le résultat est ramené sur l’échelle classique du QI (moyenne 100, écart-type 15). C’est une estimation ludique de votre performance à ce puzzle — pas un test de QI clinique — et le meilleur moyen de l’élever reste de rejouer pour anticiper plus loin.' },
       { q: 'Puis-je rejouer le défi du jour ?', a: "Le défi du jour est validé dès que votre partie quotidienne se termine avec un score supérieur à 0. Vous pouvez ensuite relancer des parties libres normales." },
     ],
     en: [
@@ -116,10 +120,12 @@ export const content: GameSEOContent = {
       { q: 'What is the difference between Classic and Relax modes?', a: 'Classic mode deals every piece, including the rare nine-cell 3×3 square. Relax mode excludes that big square and sticks to pieces of four cells or fewer.' },
       { q: 'How do combos work?', a: 'When a placement clears several rows and/or columns at once, line points are multiplied: ×2 for two lines, ×3 for three, ×4 for four.' },
       { q: 'How is the score calculated?', a: 'Each placed cell is worth 1 point, and each cleared line is worth 10 base points, multiplied by the combo multiplier when applicable.' },
+      { q: 'How is my estimated IQ calculated?', a: 'Your estimated IQ rests on accuracy: the game’s final score is measured against a 2,200-point par (a good everyday score of roughly 1,500–1,900 points maps to 0.7–0.85 accuracy). Since this zen game has no timer, speed does not come into it. The result maps onto the classic IQ scale (mean 100, standard deviation 15). It is a playful estimate of your performance at this puzzle — not a clinical IQ test — and the best way to raise it is to keep playing and plan further ahead.' },
       { q: 'Can I replay the daily challenge?', a: 'The daily challenge is validated as soon as your daily game ends with a score above 0. You can then keep playing normal free games.' },
     ],
   },
   records: {
+    'best-iq': { fr: 'Meilleur QI estimé', en: 'Best estimated IQ' },
     'best-score': { fr: 'Meilleur score', en: 'Best score' },
   },
 }
@@ -345,6 +351,7 @@ export default function BlockPuzzleGame() {
   const [comboFx, setComboFx] = useState<{ n: number; pts: number; key: number } | null>(null)
   const [comboBest, setComboBest] = useState(0)
   const [wasRecord, setWasRecord] = useState(false)
+  const [finalIq, setFinalIq] = useState<number | null>(null)
   const [confettiFire, setConfettiFire] = useState(0)
   const [dragUi, setDragUi] = useState<DragUi | null>(null)
 
@@ -425,6 +432,11 @@ export default function BlockPuzzleGame() {
   /* --- Fin de partie : XP + records + succès (appelée depuis le handler) --- */
   function finish(finalScore: number, wasDaily: boolean, finalLines: number) {
     sfx.play('lose')
+    /* QI estimé (Task 18) : précision = score final / par de 2 200 (un bon score
+     * courant ≈ 1 500–1 900 pts → 0,70–0,85), clampée [0,15 ; 1]. Jeu zen sans
+     * chrono : rapidité omise ; difficulté 2 (grille 10×10, modes Classique/Détente). */
+    const iq = computeIq(gameId, { accuracy: Math.min(1, Math.max(0.15, finalScore / 2200)), difficulty: 2 })
+    setFinalIq(iq)
     const rec = finalScore > 0 ? setBest(gameId, 'best-score', finalScore, false) : false
     setWasRecord(rec)
     if (rec) setConfettiFire((n) => n + 1)
@@ -455,6 +467,7 @@ export default function BlockPuzzleGame() {
     setFlash(0)
     setComboBest(0)
     setWasRecord(false)
+    setFinalIq(null)
     lockRef.current = false
     setGame({ board: new Array(100).fill(0), slots, score: 0, lines: 0, rng: rng.state(), mode: m, daily, over: false })
     addPlay(gameId)
@@ -475,6 +488,7 @@ export default function BlockPuzzleGame() {
     setFlash(0)
     setComboBest(0)
     setWasRecord(false)
+    setFinalIq(null)
     lockRef.current = false
     addPlay(gameId)
     sfx.play('pop')
@@ -961,6 +975,7 @@ export default function BlockPuzzleGame() {
                 onReplay={() => startGame(game.mode, false)}
                 replayLabel={t('common.playAgain')}
                 shareResult={shareResult}
+                iq={finalIq ?? undefined}
                 className="mt-1"
               />
             </div>
