@@ -58,7 +58,15 @@ export const metadata: Metadata = {
           ),
         type: "image/svg+xml",
       },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Granmed",
+    statusBarStyle: "default",
   },
   alternates: {
     canonical: "/",
@@ -102,6 +110,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const PWA_EARLY_CAPTURE = `(function(){try{var W=window;W.__granmedPwa={bip:null,dismissed:W.sessionStorage.getItem('granmed:pwa-dismissed')==='1',standalone:W.matchMedia('(display-mode: standalone)').matches||W.navigator.standalone===true,installed:false,showAfter:0};W.addEventListener('beforeinstallprompt',function(e){e.preventDefault();var s=W.__granmedPwa;s.bip=e;if(!s.showAfter)s.showAfter=Date.now()+2600;});W.addEventListener('appinstalled',function(){var s=W.__granmedPwa;if(s){s.bip=null;s.installed=true;}});}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -110,6 +120,8 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable} antialiased bg-background text-foreground`}>
+        {/* PWA : capture précoce de beforeinstallprompt avant l'hydratation React. */}
+        <script dangerouslySetInnerHTML={{ __html: PWA_EARLY_CAPTURE }} />
         {children}
         <Toaster />
       </body>

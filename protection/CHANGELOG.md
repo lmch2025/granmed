@@ -25,3 +25,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (23) : src/components/games/speed-math.tsx, src/components/games/daily-word.tsx, src/components/games/zen-fishing.tsx, src/components/games/merge-garden.tsx, src/components/games/memory-match.tsx, src/components/games/mini-crossword.tsx, src/components/games/pill-toss.tsx, src/components/games/fire-escape.tsx, src/components/games/longest-word.tsx, src/components/games/interactive-story.tsx, src/components/games/fruit-slice.tsx, src/components/games/2048-nutrition.tsx, src/components/games/health-true-false.tsx, src/components/games/guess-the-idiom.tsx, src/components/games/sudoku.tsx, src/components/games/block-puzzle.tsx, src/components/games/minesweeper.tsx, src/components/games/sequence-memory.tsx, src/components/games/schulte-table.tsx, src/components/games/jigsaw-puzzle.tsx, src/components/game/round-end.tsx, src/components/game/game-shell.tsx, src/lib/i18n.ts
 - Suppressions (0) : aucune
 
+## 2026-10-27 12:51 — Task 17 (force majeure sanctionnée par la demande utilisateur « PWA robuste ») : layout.tsx — métadonnées manifest+appleWebApp+icône apple et script inline de capture précoce beforeinstallprompt ; page.tsx — montage du composant PwaInstall. Ajouts : public/manifest.webmanifest, public/sw.js, public/icons/* (icônes+captures), src/components/shared/pwa-install.tsx, scripts/generate-pwa-icons.ts
+- Commit : `4421d6658fe1`
+- Jeux protégés : 20
+- Ajouts (10) : src/components/shared/pwa-install.tsx, public/icons/icon-512.png, public/icons/icon-192.png, public/icons/screenshot-wide.png, public/icons/apple-touch-icon.png, public/icons/icon-maskable-512.png, public/icons/screenshot-narrow.png, public/icons/icon-maskable-192.png, public/manifest.webmanifest, public/sw.js
+- Modifications (2) : src/app/page.tsx, src/app/layout.tsx
+- Suppressions (0) : aucune
+

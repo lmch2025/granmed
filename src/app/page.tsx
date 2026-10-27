@@ -1,4 +1,5 @@
 import { GranmedApp } from "@/components/granmed-app";
+import { PwaInstall } from "@/components/shared/pwa-install";
 import { GAMES, CATEGORIES } from "@/lib/games/catalog";
 import { HOME_FAQ } from "@/lib/content/home-faq";
 import { GUIDES } from "@/lib/content/guides";
@@ -97,6 +98,7 @@ export default function Page() {
       <JsonLd data={gamesJsonLd()} />
       <JsonLd data={faqJsonLd()} />
       <GranmedApp />
+      <PwaInstall />
     </>
   );
 }
