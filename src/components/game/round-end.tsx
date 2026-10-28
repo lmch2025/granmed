@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { RotateCcw, LogOut, ChevronRight, Sparkles, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
@@ -11,7 +13,7 @@ import { getGame, GAMES, CATEGORY_STYLES } from '@/lib/games/catalog'
 import { useGameStats } from '@/lib/progress/store'
 import { useReducedMotion, shareText } from '@/lib/utils-game'
 import { IqCard } from '@/components/game/iq-card'
-import { iqShareLine } from '@/lib/games/iq'
+import { iqLevel, iqShareLine } from '@/lib/games/iq'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -30,6 +32,22 @@ import { toast } from 'sonner'
  *     dans les deux langues (Task 15) ;
  *  4. une recommandation SUBTILE vers un autre jeu (chip
  *     discrète, tournante selon le nombre de parties).
+ *
+ * TASK 19 — L'ÉCRAN DE FIN EST UN POPUP (variante par défaut) :
+ *  • porté au <body> via un portail React → recouvre TOUT
+ *    l'écran (mode immersif comme page normale) et échappe au
+ *    conteneur backdrop-blur du GameShell ;
+ *  • voile flouté + carte centrée spring : directement visible
+ *    SANS LE MOINDRE SCROLL, succès comme échec ;
+ *  • la célébration VictoryBurst/Confetti brille d'abord à
+ *    l'écran (~0,95 s), puis le popup prend la scène ;
+ *  • le DÉFI QI BIENVEILLANT est mis en lumière : eyebrow
+ *    « 🧠 Défi QI · Résultat », accroche incitative adaptée au
+ *    niveau d'intelligence atteint (quel que soit l'issue),
+ *    ligne de résultat concrète, puis la carte QI complète ;
+ *  • variante `inline` : la mise en page compacte d'origine,
+ *    pour les transitions de manche qui doivent rester rapides
+ *    (ex. pill-toss entre deux manches).
  * ============================================================ */
 
 export function RoundEndActions({
@@ -40,6 +58,7 @@ export function RoundEndActions({
   primaryRef,
   shareResult,
   iq,
+  variant = 'popup',
   className,
 }: {
   gameId: string
@@ -57,12 +76,68 @@ export function RoundEndActions({
    *  d'écran et enrichit le payload de partage. Calculé côté jeu via
    *  computeIq(gameId, { accuracy, speed?, difficulty? }). */
   iq?: number
+  /** popup (défaut) = écran de fin plein écran ; inline = mise en page
+   *  compacte d'origine pour les transitions de manche rapides. */
+  variant?: 'popup' | 'inline'
   className?: string
 }) {
   const t = useT()
   const lang = useLang()
+  const reduce = useReducedMotion()
   const requestExit = useGameSession((s) => s.requestExit)
   const game = getGame(gameId)
+  const headlineId = useId()
+  const cardRef = useRef<HTMLDivElement>(null)
+  const fallbackBtnRef = useRef<HTMLButtonElement>(null)
+
+  /* --- Révélation du popup : la célébration (VictoryBurst, confettis,
+   *     fanfare du jeu) occupe la scène ~0,95 s, puis le popup spring
+   *     prend le relais. Son StrictMode-safe (joué dans le timeout,
+   *     le premier est annulé par le cleanup). --- */
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    if (variant !== 'popup') return
+    const id = window.setTimeout(
+      () => {
+        sfx.play('levelup', { volume: 0.35 })
+        setShown(true)
+      },
+      reduce ? 400 : 950,
+    )
+    return () => window.clearTimeout(id)
+  }, [variant, reduce])
+
+  /* --- À l'ouverture : focus sur Rejouer (Entrée = rejouer). --- */
+  useEffect(() => {
+    if (!shown) return
+    const btn = primaryRef?.current ?? fallbackBtnRef.current
+    btn?.focus({ preventScroll: true })
+  }, [shown, primaryRef])
+
+  /* --- Piège de focus clavier (Tab / Shift+Tab) dans le popup. --- */
+  useEffect(() => {
+    if (!shown) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const root = cardRef.current
+      if (!root) return
+      const focusables = Array.from(root.querySelectorAll<HTMLElement>('button, a[href], [tabindex]:not([tabindex="-1"])')).filter(
+        (el) => !el.hasAttribute('disabled'),
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [shown])
 
   async function onShare() {
     sfx.play('coin', { volume: 0.6 })
@@ -81,14 +156,29 @@ export function RoundEndActions({
     if (ok) toast.success(t('common.copied'))
   }
 
-  return (
-    <div className={cn('mx-auto flex w-full max-w-sm flex-col items-stretch gap-2.5', className)}>
-      {/* Carte QI — le résultat affiché comme fonction du niveau d'intelligence (Task 18) */}
-      {iq != null ? <IqCard gameId={gameId} iq={iq} /> : null}
+  /* --- Accroche incitative BIENVEILLANTE, fonction du niveau
+   *     d'intelligence atteint — quel que soit l'issue (Task 19) :
+   *     Novice → on encourage, Éveillé/Vif → on relance, Éclairé/
+   *     Supérieur → on tend le génie, Génie → on défend le trône. --- */
+  const tier = iq != null ? iqLevel(iq) : null
+  const spurKey =
+    tier == null
+      ? 'iq.spurDefault'
+      : tier.id === 1
+        ? 'iq.spur1'
+        : tier.id <= 3
+          ? 'iq.spur2'
+          : tier.id <= 5
+            ? 'iq.spur3'
+            : 'iq.spur4'
+  const spur = t(spurKey)
 
+  /* --- Actions communes (boutons + partage + recommandation). --- */
+  const actions = (
+    <div className="flex w-full flex-col items-stretch gap-2.5">
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <Button
-          ref={primaryRef}
+          ref={primaryRef ?? fallbackBtnRef}
           size="lg"
           className="h-12 gap-2 rounded-2xl text-base font-bold shadow-md transition-transform active:scale-[0.98]"
           onClick={() => {
@@ -131,6 +221,66 @@ export function RoundEndActions({
 
       <NextGameChip gameId={gameId} />
     </div>
+  )
+
+  /* --- Variante inline : la mise en page compacte d'origine
+   *     (transitions de manche rapides, ex. pill-toss). --- */
+  if (variant === 'inline') {
+    return (
+      <div className={cn('mx-auto flex w-full max-w-sm flex-col items-stretch gap-2.5', className)}>
+        {iq != null ? <IqCard gameId={gameId} iq={iq} /> : null}
+        {actions}
+      </div>
+    )
+  }
+
+  /* --- Variante popup (défaut) : porté au <body> pour recouvrir
+   *     tout l'écran, toujours visible sans le moindre scroll. --- */
+  if (!shown || typeof document === 'undefined') return null
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md backdrop-saturate-100"
+      initial={reduce ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.26 }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={headlineId}
+    >
+      <motion.div
+        ref={cardRef}
+        initial={reduce ? false : { opacity: 0, scale: 0.85, y: 24 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+        className="nice-scroll max-h-[92dvh] w-full max-w-sm overflow-y-auto rounded-3xl border-2 border-amber-200/70 bg-card p-4 shadow-2xl"
+      >
+        {/* Eyebrow — le défi QI signe l'écran */}
+        <p className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-amber-700 dark:text-amber-400">
+          <span aria-hidden="true">🧠</span> {t('iq.resultEyebrow')}
+        </p>
+
+        {/* Accroche incitative bienveillante — fonction du niveau atteint,
+            quel que soit l'issue de la manche */}
+        <h2
+          id={headlineId}
+          className="mt-1 bg-gradient-to-r from-amber-500 via-primary to-rose-500 bg-clip-text text-center font-display text-xl font-extrabold leading-tight tracking-tight text-transparent sm:text-2xl"
+        >
+          {spur}
+        </h2>
+
+        {/* Résultat concret de la manche */}
+        {shareResult ? (
+          <p className="mt-1 text-center text-xs font-semibold text-muted-foreground">{shareResult}</p>
+        ) : null}
+
+        {/* Carte QI — le résultat affiché comme fonction du niveau
+            d'intelligence (Task 18), en vedette (Task 19) */}
+        {iq != null ? <IqCard gameId={gameId} iq={iq} className="mt-3 p-3" /> : null}
+
+        <div className="mt-3">{actions}</div>
+      </motion.div>
+    </motion.div>,
+    document.body,
   )
 }
 

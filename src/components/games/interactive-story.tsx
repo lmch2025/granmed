@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { STORIES, type Story } from '@/components/games/data/interactive-story-data'
 
 export const gameId = 'interactive-story'
@@ -607,6 +608,8 @@ export default function InteractiveStoryGame() {
       {screen === 'picker' || !story || !node ? (
         /* ---------- Bibliothèque ---------- */
         <div className="anim-rise">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
           <div className="flex items-center gap-2.5">
             <h2 className="flex min-w-0 flex-1 items-center gap-2 font-display text-lg font-bold tracking-tight sm:text-2xl">
               <Library className="h-5 w-5 shrink-0 text-orange-500" aria-hidden="true" />

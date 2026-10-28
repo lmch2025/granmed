@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'pill-toss'
 
@@ -1085,6 +1086,8 @@ export default function PillTossGame() {
         {phase === 'idle' ? (
           <div className="absolute inset-0 z-20 flex overflow-y-auto bg-stone-900/45 p-4 backdrop-blur-[2px]">
             <div className="m-auto flex flex-col items-center gap-2.5 text-center">
+              {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+              <IqChallengeBanner gameId={gameId} />
               <div className="flex gap-2 [@media(max-height:420px)]:hidden" aria-hidden="true">
                 {['💊', '✨', '🎯'].map((e, i) => (
                   <span key={i} className={cn('text-3xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
@@ -1146,6 +1149,7 @@ export default function PillTossGame() {
               <div className="mt-3">
                 <RoundEndActions
                   gameId={gameId}
+                  variant="inline" // transitions de manche : reste compact, sans popup
                   onReplay={handleNext}
                   replayLabel={T.next}
                   replayIcon={<SkipForward className="h-5 w-5" aria-hidden="true" />}

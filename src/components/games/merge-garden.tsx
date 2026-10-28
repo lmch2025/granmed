@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
 import { IqCard } from '@/components/game/iq-card'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { toast } from 'sonner'
 
 export const gameId = 'merge-garden'
@@ -715,6 +716,8 @@ export default function MergeGardenGame() {
   /* --- Rendu --- */
   return (
     <div className="relative my-auto w-full select-none">
+      {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+      <IqChallengeBanner gameId={gameId} className="mb-2" />
       {/* HUD compact — une ligne : graines + progression, planter, collection
           (avec l’espèce max), fusions, prochain objectif */}
       <div className="mb-2 flex flex-wrap items-center gap-1.5 sm:gap-2">

@@ -14,6 +14,7 @@ import { QUIZ_STATEMENTS, type QuizStatement } from '@/components/games/data/hea
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { DifficultyDots } from '@/components/shared/ui-bits'
 
 export const gameId = 'health-true-false'
@@ -456,6 +457,9 @@ export default function HealthTrueFalseGame() {
       {/* ---------- Menu : choix du mode (compact, 2 gros boutons immédiatement visibles) ---------- */}
       {phase === 'menu' ? (
         <div className="space-y-2.5">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
+
           <div className="grid gap-2.5 sm:grid-cols-2">
             <button
               type="button"

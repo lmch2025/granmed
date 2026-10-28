@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 
 export const gameId = 'block-puzzle'
@@ -986,6 +987,8 @@ export default function BlockPuzzleGame() {
         </div>
       ) : (
         <div className="checkerboard flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-2xl border p-6 text-center sm:min-h-[300px]">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
           <div className="flex items-end gap-4 sm:gap-6" aria-hidden="true">
             <MiniPiece shape={SHAPES[1]} cell="min(5vw, 18px)" />
             <MiniPiece shape={SHAPES[6]} cell="min(5vw, 18px)" />

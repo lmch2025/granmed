@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
 import { IqCard, IqChip } from '@/components/game/iq-card'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 
@@ -1199,6 +1200,8 @@ export default function ZenFishingGame() {
         {phase === 'idle' ? (
           <div className="absolute inset-0 z-20 overflow-y-auto nice-scroll bg-stone-900/40 backdrop-blur-[2px]">
             <div className="flex min-h-full flex-col items-center justify-center gap-3 p-4 text-center">
+              {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+              <IqChallengeBanner gameId={gameId} />
               <div className="flex gap-2" aria-hidden="true">
                 {['⛵', '🐟', '✨'].map((e, i) => (
                   <span key={i} className="text-3xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>

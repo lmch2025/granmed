@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { loadSave, saveSave } from '@/lib/save'
 
 export const gameId = 'jigsaw-puzzle'
@@ -904,6 +905,8 @@ export default function JigsawPuzzleGame() {
       {!game ? (
         /* ================= Écran de sélection (compact : Jouer visible sans scroll) ================= */
         <div>
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
           <p className="mb-2 text-sm text-muted-foreground">
             {L.selectHint} <span className="font-semibold">{doneTotal}/18</span> {L.done}.
           </p>

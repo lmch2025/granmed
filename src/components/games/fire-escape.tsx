@@ -13,6 +13,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'fire-escape'
 
@@ -1080,6 +1081,8 @@ export default function FireEscapeGame() {
           {/* Écran d'accueil */}
           {phase === 'idle' ? (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-stone-900/45 p-5 text-center backdrop-blur-[2px]">
+              {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+              <IqChallengeBanner gameId={gameId} />
               <div className="flex gap-2.5" aria-hidden="true">
                 {['🧑‍🚒', '🔥', '💧'].map((e, i) => (
                   <span key={i} className="text-3xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>

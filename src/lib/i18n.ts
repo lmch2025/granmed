@@ -107,6 +107,17 @@ const DICT: Record<string, Record<Lang, string>> = {
   'iq.nextTier': { fr: '+{n} pts → {level}', en: '{n} pts to {level}' },
   'iq.maxLevel': { fr: 'Niveau maximal atteint', en: 'Highest level reached' },
 
+  // --- Défi QI bienveillant (Task 19 : écrans de démarrage et de fin)
+  'iq.challenge': { fr: 'Défi QI', en: 'IQ Challenge' },
+  'iq.challengeSub': { fr: 'Chaque partie révèle votre QI estimé', en: 'Every game reveals your estimated IQ' },
+  'iq.challengeBest': { fr: 'Record : {n} — le relèverez-vous ?', en: 'Best: {n} — will you rise to it?' },
+  'iq.resultEyebrow': { fr: 'Défi QI · Résultat', en: 'IQ Challenge · Result' },
+  'iq.spur1': { fr: 'Votre cerveau s’échauffe — chaque essai compte !', en: 'Your brain is warming up — every try counts!' },
+  'iq.spur2': { fr: 'Bien joué — montez encore d’un cran !', en: 'Well played — push one notch higher!' },
+  'iq.spur3': { fr: 'Bravo — le génie est à portée !', en: 'Bravo — genius is within reach!' },
+  'iq.spur4': { fr: 'Génie confirmé — défendez votre trône !', en: 'Genius confirmed — defend your throne!' },
+  'iq.spurDefault': { fr: 'Relevez le défi — une nouvelle partie vous attend !', en: 'Take the challenge — a new game awaits!' },
+
   // --- Page jeu
   'game.favoriteAdd': { fr: 'Ajouter aux favoris', en: 'Add to favorites' },
   'game.favoriteRemove': { fr: 'Retirer des favoris', en: 'Remove from favorites' },

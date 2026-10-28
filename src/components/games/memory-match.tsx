@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'memory-match'
 
@@ -427,6 +428,9 @@ export default function MemoryMatchGame() {
       {phase === 'idle' ? (
         /* ============ Écran de réglages compact : « Jouer » visible sans scroll ============ */
         <div className="space-y-2">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
+
           {!dailyDone ? (
             <button
               type="button"

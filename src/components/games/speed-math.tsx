@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'speed-math'
 
@@ -531,6 +532,9 @@ export default function SpeedMathGame() {
       {/* Barre de configuration — visible uniquement au repos, bouton Jouer immédiat */}
       {phase === 'idle' ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
+
           <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.difficulty')}>
             {(['easy', 'medium', 'hard'] as Diff[]).map((d) => (
               <button

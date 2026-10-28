@@ -13,6 +13,7 @@ import { FR_WORDS, EN_WORDS, FR_LETTER_WEIGHTS, EN_LETTER_WEIGHTS } from '@/comp
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'longest-word'
 
@@ -664,6 +665,8 @@ export default function LongestWordGame() {
       {phase === 'menu' ? (
         <div className="checkerboard rounded-2xl border p-4 sm:p-6">
           <div className="mx-auto flex w-full max-w-sm flex-col gap-2.5">
+            {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+            <IqChallengeBanner gameId={gameId} />
             {!dailyDone ? (
               <button
                 type="button"

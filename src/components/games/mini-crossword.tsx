@@ -36,6 +36,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'mini-crossword'
 
@@ -873,6 +874,9 @@ export default function MiniCrosswordGame() {
     const solvedCount = list.filter((p) => solvedIds.includes(p.id)).length
     return (
       <div className="relative my-auto w-full select-none">
+        {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+        <IqChallengeBanner gameId={gameId} />
+
         {!dailyDone ? (
           <button
             type="button"

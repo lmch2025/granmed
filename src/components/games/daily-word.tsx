@@ -14,6 +14,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import {
   answersFor,
   buildDictionary,
@@ -204,9 +205,11 @@ const KEY_CLASS: Record<LetterState, string> = {
 /** Taille de tuile adaptative : la grille + le clavier tiennent dans
  *  calc(100dvh − 220px) (chrome Task 9 ≈ 190 px + marge). Plafonnée par la
  *  largeur (11.5 vw ≈ 45 px à 390 px) pour ne jamais déborder horizontalement,
- *  plancher 32 px sur les écrans très courts. */
+ *  plancher 32 px sur les écrans très courts. Budget vertical 460 → 524 px
+ *  (Task 19) : la bannière « Défi QI » (~64 px) doit pousser les tuiles à
+ *  rétrécir, jamais le clavier sous le pli. */
 const TILE_SIZE =
-  'h-[clamp(32px,min(11.5vw,(100dvh_-_460px)/6),56px)] w-[clamp(32px,min(11.5vw,(100dvh_-_460px)/6),56px)]'
+  'h-[clamp(32px,min(11.5vw,(100dvh_-_524px)/6),56px)] w-[clamp(32px,min(11.5vw,(100dvh_-_524px)/6),56px)]'
 
 const L_FR = {
   dailyBadge: 'Défi du jour',
@@ -796,6 +799,9 @@ export default function DailyWordGame() {
         emoji="🎉"
         sub={phase === 'won' ? `${guesses.length}/6 · ${mode === 'daily' ? L.dailyBadge : L.practiceBadge}` : undefined}
       />
+
+      {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+      <IqChallengeBanner gameId={gameId} />
 
       {/* HUD compact : mode, n° du jour, série, essais restants */}
       <div className="flex flex-wrap items-center gap-1.5">

@@ -14,6 +14,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { toast } from 'sonner'
 
 export const gameId = '2048-nutrition'
@@ -636,6 +637,8 @@ export default function Game2048() {
   if (!game) {
     return (
       <div className="checkerboard flex min-h-[300px] w-full select-none flex-col items-center justify-center gap-3.5 rounded-2xl border p-5 text-center sm:min-h-[380px] sm:gap-4 sm:p-8 my-auto">
+        {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+        <IqChallengeBanner gameId={gameId} />
         <div className="flex gap-2" aria-hidden="true">
           {['🍒', '🍓', '🍊', '🍉'].map((e, i) => (
             <span key={i} className={cn('text-3xl sm:text-4xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>

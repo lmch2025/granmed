@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'minesweeper'
 
@@ -894,6 +895,9 @@ export default function MinesweeperGame() {
 
       {phase === 'idle' ? (
         <>
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
+
           {/* Choix de difficulté — compact : tout tient à l'écran sans scroll */}
           <div className="grid grid-cols-3 gap-2">
             {(['easy', 'medium', 'expert'] as const).map((d) => {

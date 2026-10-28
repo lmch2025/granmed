@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Volume2, VolumeX, BookOpen, Trophy, Share2, Maximize2, X, LayoutGrid, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
@@ -90,15 +90,29 @@ export function GameShell({
     setSwitchOpen(false)
   }
 
-  /* … puis défilement doux vers les jeux similaires de la page. */
+  /* … puis défilement doux vers les jeux similaires de la page.
+     Ignoré à la première montée : le compteur global survit aux
+     navigations SPA et ne doit PAS rejouer ce défilement à chaque
+     réouverture de jeu — l’écran de démarrage doit rester
+     directement visible à l’ouverture (exigence Task 19). Le
+     timeout est aussi nettoyé (annulation si navigation rapide). */
+  const exitScrollMounted = useRef(false)
   useEffect(() => {
+    if (!exitScrollMounted.current) {
+      exitScrollMounted.current = true
+      return
+    }
     if (exitRequests === 0) return
+    let tid = 0
     const raf = requestAnimationFrame(() => {
-      window.setTimeout(() => {
+      tid = window.setTimeout(() => {
         document.getElementById('similar-game')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 60)
     })
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(tid)
+    }
   }, [exitRequests])
 
   /* Verrouillage du défilement + isolement accessibilité de la page

@@ -12,6 +12,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'sequence-memory'
 
@@ -416,6 +417,9 @@ export default function SequenceMemoryGame() {
       <div className="mb-2.5 flex min-h-10 flex-wrap items-center gap-1.5">
         {phase === 'idle' || phase === 'over' ? (
           <>
+            {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+            <IqChallengeBanner gameId={gameId} />
+
             <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('common.mode')}>
               {(['classic', 'fast'] as Mode[]).map((m) => (
                 <button

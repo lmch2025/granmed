@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { DifficultyDots } from '@/components/shared/ui-bits'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'guess-the-idiom'
 
@@ -817,6 +818,8 @@ export default function GuessTheIdiomGame() {
       {/* ===== Écran de menu (compact : bouton Jouer visible immédiatement) ===== */}
       {phase === 'menu' ? (
         <div className="checkerboard flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center sm:p-6">
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
           <div className="flex gap-2 text-3xl sm:text-4xl" aria-hidden="true">
             {['💬', '🐇', '🐂'].map((e, i) => (
               <span key={i} className={reduce ? '' : 'anim-floaty'} style={{ animationDelay: `${i * 0.4}s` }}>

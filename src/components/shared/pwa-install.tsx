@@ -179,7 +179,15 @@ export function PwaInstall() {
       const s = ensureState();
       if (s.dismissed || s.installed || s.standalone || isStandalone()) return;
       if (!s.bip || !s.showAfter || Date.now() < s.showAfter) return;
-      if (document.querySelector("#game-board")) return; // jamais pendant une partie
+      if (document.querySelector("#game-board")) {
+        /* Courtoisie renforcée (Task 19) : si l'invite s'est ouverte sur
+           l'accueil et que le joueur entre dans un jeu, elle S'EFFACE
+           (sans compter comme un refus) et reviendra ~un tick après la
+           sortie du jeu — l'écran de fin de manche reste LE dialogue
+           à l'écran, sans superposition. */
+        setOpen(false);
+        return;
+      }
       setOpen(true);
     }, TICK_MS);
 

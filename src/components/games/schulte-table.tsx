@@ -13,6 +13,7 @@ import type { GameSEOContent } from '@/lib/games/types'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'schulte-table'
 
@@ -462,6 +463,9 @@ export default function SchulteTableGame() {
 
       {phase === 'idle' ? (
         <>
+          {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+          <IqChallengeBanner gameId={gameId} />
+
           {/* Réglages compacts : taille en chips, affichage + Démarrer visibles immédiatement */}
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('common.size')}>
             {SIZES.map((n) => (

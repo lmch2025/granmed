@@ -12,6 +12,7 @@ import { computeIq } from '@/lib/games/iq'
 import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
+import { IqChallengeBanner } from '@/components/game/iq-banner'
 
 export const gameId = 'fruit-slice'
 
@@ -949,6 +950,8 @@ export default function FruitSliceGame() {
         {/* Écran d'accueil compact */}
         {phase === 'idle' ? (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-stone-900/40 p-6 text-center backdrop-blur-[2px]">
+            {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
+            <IqChallengeBanner gameId={gameId} />
             <div className="flex gap-2" aria-hidden="true">
               {['🍉', '🔪', '🍎'].map((e, i) => (
                 <span key={i} className="text-4xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
