@@ -35,7 +35,7 @@ How Granmed's free IQ test works: every round computes an estimated IQ from thre
 
 ## Les 20 jeux / The 20 games
 
-Chaque jeu possède sa page dédiée, ses règles, sa FAQ et ses records (dont le « meilleur QI estimé »). Navigation par hash : `https://granmed.store/#/fr/<chemin>` (français) ou `https://granmed.store/#/en/<path>` (anglais). Deux versions linguistiques canoniques existent pour les moteurs : `https://granmed.store/` (français) et `https://granmed.store/?lang=en` (anglais — métadonnées, FAQ et données structurées en anglais).
+Chaque jeu possède sa page dédiée, ses règles, sa FAQ et ses records (dont le « meilleur QI estimé »). Navigation par hash : `https://granmed.store/#/fr/<chemin>` (français) ou `https://granmed.store/#/en/<path>` (anglais). Deux versions linguistiques canoniques existent pour les moteurs : `https://granmed.store` (français) et `https://granmed.store/?lang=en` (anglais — métadonnées, FAQ et données structurées en anglais).
 
 ### Mémoire et entraînement cérébral / Memory & brain training
 

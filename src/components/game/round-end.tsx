@@ -95,8 +95,15 @@ export function RoundEndActions({
    *     prend le relais. Son StrictMode-safe (joué dans le timeout,
    *     le premier est annulé par le cleanup). --- */
   const [shown, setShown] = useState(false)
+  /* « Quitter » (ou Échap) referme l'écran de fin : sans cela, le popup
+   * porté au <body> restait affiché au-dessus de la page et masquait le
+   * défilement vers les jeux similaires — le bouton paraissait inerte
+   * (correctif Task 24). Le masquage vaut pour les deux variantes ; le
+   * jeu conserve derrière son propre écran de résultat (stats, retour
+   * aux réglages…), donc aucune impasse. */
+  const [dismissed, setDismissed] = useState(false)
   useEffect(() => {
-    if (variant !== 'popup') return
+    if (variant !== 'popup' || dismissed) return
     const id = window.setTimeout(
       () => {
         sfx.play('levelup', { volume: 0.35 })
@@ -105,7 +112,7 @@ export function RoundEndActions({
       reduce ? 400 : 950,
     )
     return () => window.clearTimeout(id)
-  }, [variant, reduce])
+  }, [variant, reduce, dismissed])
 
   /* --- À l'ouverture : focus sur Rejouer (Entrée = rejouer). --- */
   useEffect(() => {
@@ -137,6 +144,21 @@ export function RoundEndActions({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+  }, [shown])
+
+  /* --- Échap referme doucement l'écran de fin (fermeture simple :
+   *     le jeu garde son écran de résultat propre derrière, sans
+   *     déclencher la sortie immersif). Le GameShell ignore Échap
+   *     tant qu'un dialog modal est ouvert (correctif Task 24). --- */
+  useEffect(() => {
+    if (!shown) return
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      sfx.play('sweep', { volume: 0.4 })
+      setDismissed(true)
+    }
+    window.addEventListener('keydown', onEsc)
+    return () => window.removeEventListener('keydown', onEsc)
   }, [shown])
 
   async function onShare() {
@@ -197,6 +219,7 @@ export function RoundEndActions({
           title={t('game.exit')}
           onClick={() => {
             sfx.play('sweep', { volume: 0.5 })
+            setDismissed(true)
             requestExit()
           }}
         >
@@ -226,6 +249,7 @@ export function RoundEndActions({
   /* --- Variante inline : la mise en page compacte d'origine
    *     (transitions de manche rapides, ex. pill-toss). --- */
   if (variant === 'inline') {
+    if (dismissed) return null
     return (
       <div className={cn('mx-auto flex w-full max-w-sm flex-col items-stretch gap-2.5', className)}>
         {iq != null ? <IqCard gameId={gameId} iq={iq} /> : null}
@@ -236,7 +260,7 @@ export function RoundEndActions({
 
   /* --- Variante popup (défaut) : porté au <body> pour recouvrir
    *     tout l'écran, toujours visible sans le moindre scroll. --- */
-  if (!shown || typeof document === 'undefined') return null
+  if (dismissed || !shown || typeof document === 'undefined') return null
   return createPortal(
     <motion.div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md backdrop-saturate-100"

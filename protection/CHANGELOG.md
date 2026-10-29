@@ -74,3 +74,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (1) : src/lib/app-store.ts
 - Suppressions (0) : aucune
 
+## 2026-10-29 22:28 — Task 24 (force majeure, bug signalé par l'utilisateur + fuite découverte en E2E) : bouton « Quitter » de fin de manche enfin fonctionnel — le popup RoundEndActions restait monté au-dessus de la page et masquait la sortie (correctif : état dismissed, fermeture sur Quitter et Échap, les deux variantes) ; game-shell : init paresseuse du compteur exitRequests (l'auto-immersif mobile était cassé pour tout jeu ouvert après une première sortie) + Échap courtois si dialog modal ouvert ; pwa-install + game-shell : verrou de scroll à compteur partagé (scroll-lock.ts, ajout pur) — la course invite-PWA/immersif laissait body.overflow=hidden à vie sans overlay ; sitemap.xml + llms.txt : alignement du canonique racine sur la forme déclarée par la page (sans slash), exigé par le nouveau garde-fou sitemap:check (18/18 vert) — 0 suppression, comportements d'origine préservés
+- Commit : `d1e0a69125bf`
+- Jeux protégés : 20
+- Ajouts (1) : src/lib/scroll-lock.ts
+- Modifications (6) : src/components/shared/pwa-install.tsx, src/components/game/round-end.tsx, src/components/game/game-shell.tsx, public/sitemap.xml, public/llms.txt, package.json
+- Suppressions (0) : aucune
+

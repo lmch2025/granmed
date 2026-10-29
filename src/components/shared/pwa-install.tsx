@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Download, X } from "lucide-react";
 import { toast } from "sonner";
+import { acquireScrollLock, releaseScrollLock } from "@/lib/scroll-lock";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -199,11 +200,15 @@ export function PwaInstall() {
     };
   }, [celebrateInstalled]);
 
-  /* Verrou de défilement + focus + Échap pendant l'ouverture du dialogue. */
+  /* Verrou de défilement + focus + Échap pendant l'ouverture du dialogue.
+     Verrou à compteur partagé (correctif Task 24) : le mode immersif du
+     GameShell verrouille lui aussi body.overflow — imbriqués (invite
+     ouverte → entrée dans un jeu → courtoisie ferme l'invite), chaque
+     surface restaurait « sa » valeur et la page restait figée après la
+     sortie du jeu. */
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    acquireScrollLock();
     installBtnRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -222,7 +227,7 @@ export function PwaInstall() {
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       window.removeEventListener("keydown", onKey);
     };
   }, [open, dismiss]);

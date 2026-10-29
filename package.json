@@ -8,6 +8,7 @@
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "integrity": "bun protection/integrity.ts",
+    "sitemap:check": "bun protection/sitemap-check.ts",
     "integrity:update": "bun protection/integrity.ts --update",
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",

@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-29T20:29:22.503Z",
-  "reason": "Task 22 (ultime audit — complément après vérification E2E agent-browser) : correctif setLang — pushState avec pathname explicite, car un pushState '#/…' relatif ne remplace que le fragment et conservait une query ?lang=en obsolète après bascule EN→FR (testé : /#/fr et /?lang=en#/en désormais invariants, ?lang=en ⟺ anglais actif). Le reste du lot Task 22 est inchangé : /?lang=en 100 % anglais dans le HTML brut (proxy.ts x-granmed-lang → <html lang>, LangOverrideContext → corps, useLang dans hash-link → ancres #/en), robots de rendu → langue canonique FR, og-granmed.png vrai PNG, catalogue keywords 20 jeux FR/EN → VideoGame.keywords JSON-LD",
-  "baselineCommit": "4e3efb690d84deba5844549c927dcea9b31a9df9",
+  "generatedAt": "2026-10-29T22:28:46.786Z",
+  "reason": "Task 24 (force majeure, bug signalé par l'utilisateur + fuite découverte en E2E) : bouton « Quitter » de fin de manche enfin fonctionnel — le popup RoundEndActions restait monté au-dessus de la page et masquait la sortie (correctif : état dismissed, fermeture sur Quitter et Échap, les deux variantes) ; game-shell : init paresseuse du compteur exitRequests (l'auto-immersif mobile était cassé pour tout jeu ouvert après une première sortie) + Échap courtois si dialog modal ouvert ; pwa-install + game-shell : verrou de scroll à compteur partagé (scroll-lock.ts, ajout pur) — la course invite-PWA/immersif laissait body.overflow=hidden à vie sans overlay ; sitemap.xml + llms.txt : alignement du canonique racine sur la forme déclarée par la page (sans slash), exigé par le nouveau garde-fou sitemap:check (18/18 vert) — 0 suppression, comportements d'origine préservés",
+  "baselineCommit": "d1e0a69125bf0412c5e9d8e5e19af7e608281079",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -524,8 +524,8 @@
       "bytes": 9116
     },
     "src/components/shared/pwa-install.tsx": {
-      "sha256": "5647c647e6644524f61b4153ea53a127311efa45070e398acf2f960fb4757a95",
-      "bytes": 11225
+      "sha256": "04cd25af23b03b74549487112334c7de9323c4549ffe48339439de7cd581129f",
+      "bytes": 11512
     },
     "src/components/shared/game-preview.tsx": {
       "sha256": "b04806899fd649e4c91907f78788442ee379b8101d96ac5a3ee5925fde7ea1bb",
@@ -556,8 +556,8 @@
       "bytes": 2490
     },
     "src/components/game/round-end.tsx": {
-      "sha256": "68a3db30ab0192c87b82b060e3cfef718b28fccd1a046a6c01bd7811658b6789",
-      "bytes": 16928
+      "sha256": "f0a659a840cc67c3e9a25372e861c16fc14509f3cc611aeed2decad251906986",
+      "bytes": 18096
     },
     "src/components/game/fx.tsx": {
       "sha256": "5384d28e516ce86aa81444ad7c52d0d5c6ecf5979076194f09ab63e01cb2b81d",
@@ -568,8 +568,8 @@
       "bytes": 7756
     },
     "src/components/game/game-shell.tsx": {
-      "sha256": "c1dd8ad2ed8bbae9e8372d2f44dba1f3a9908109b05b26b8afe151f67d0278ed",
-      "bytes": 19878
+      "sha256": "5f0689a1540a4f1e190232f6cafe8a67de26b388ccc1cda8c43ad3579fa2c2dd",
+      "bytes": 20422
     },
     "src/components/pages/category-view.tsx": {
       "sha256": "2b2622d1c291f4d6363f2750ff4e1ac510794988eff6ddec4a99dda77856e4b2",
@@ -763,6 +763,10 @@
       "sha256": "8bc9f19cd8a67983f1abea1c90fe9cd9746778c46cf8f0fcf539d9de840e3b2b",
       "bytes": 17039
     },
+    "src/lib/scroll-lock.ts": {
+      "sha256": "4ad87b5bf99c557ecec72d3a33d5a02100e40e4444e6bdd788c143be001f2772",
+      "bytes": 1678
+    },
     "src/proxy.ts": {
       "sha256": "c4e976eca527420e1bd7a81d4e164592275c2d786a1edcf292aca886bb2d6ee4",
       "bytes": 1383
@@ -788,8 +792,8 @@
       "bytes": 10206
     },
     "public/sitemap.xml": {
-      "sha256": "fd952d512fc2c13c63275464763a07318d500d8ef1a4d7b9a4daaf384ed47bc1",
-      "bytes": 965
+      "sha256": "c08d417f3b6bfcf7e46f173c4aad58d234571a866d345fe80b91e05ba0a2f676",
+      "bytes": 960
     },
     "public/icons/icon-512.png": {
       "sha256": "ed2615eb022a2b8df25ba489a9ae3b81f12e5fd3c5f8e16967428011179a20ff",
@@ -916,8 +920,8 @@
       "bytes": 3957
     },
     "public/llms.txt": {
-      "sha256": "9c0a791aad205c95430c2812f5c23d7dcdfbf72b0ed297a0dd07760f8d4af42e",
-      "bytes": 10266
+      "sha256": "edf480fba3fc299d775d182cc659fcf7bdc93f94ad443b75aad7c67820ae78cc",
+      "bytes": 10265
     },
     "public/images/jigsaw-market.png": {
       "sha256": "07a9b3a7f9bdb7e9ab6a1a26b40147b9bb690608f87a2d182d13ba3c37aee270",
@@ -1871,8 +1875,8 @@
   },
   "watched": {
     "package.json": {
-      "sha256": "72f67be50d13d98bef6be32009c2331044d025840f64e4d1f0b77dd0fa68229b",
-      "bytes": 3325
+      "sha256": "d376a51fdbe5e98c50c4a951f3e5025a1e1e1952d02993b8812acaccb985f5a2",
+      "bytes": 3381
     }
   },
   "presenceOnly": [

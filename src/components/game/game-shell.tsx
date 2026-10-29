@@ -12,6 +12,7 @@ import { useGameSession } from '@/lib/game-session'
 import { getGame, GAMES, CATEGORIES, CATEGORY_STYLES } from '@/lib/games/catalog'
 import { useGameContent } from '@/lib/games/registry'
 import { useHydrated, shareText, useMediaQuery } from '@/lib/utils-game'
+import { acquireScrollLock, releaseScrollLock } from '@/lib/scroll-lock'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -83,7 +84,7 @@ export function GameShell({
      jeu) : ajustement pendant le rendu (motif React recommandé) — on
      quitte l'immersif et on ferme le changeur ; le défilement vers les
      recommandations est planifié par l'effet ci-dessous. */
-  const [lastExitReq, setLastExitReq] = useState(0)
+  const [lastExitReq, setLastExitReq] = useState(() => useGameSession.getState().exitRequests)
   if (exitRequests !== lastExitReq) {
     setLastExitReq(exitRequests)
     setUserImmersive(false)
@@ -117,12 +118,14 @@ export function GameShell({
 
   /* Verrouillage du défilement + isolement accessibilité de la page
      derrière l'overlay (header, footer, contenu éditornel deviennent
-     inertes), et focus initial sur le bouton quitter. */
+     inertes), et focus initial sur le bouton quitter. Le verrou passe
+     par le compteur partagé (correctif Task 24) : l'invite d'installation
+     PWA peut se fermer pendant une partie — chaque surface restaurait
+     « sa » valeur précédente et la dernière libération réécrivait
+     « hidden » sans overlay restant. */
   useEffect(() => {
     if (!immersive) return
-    const body = document.body
-    const prevOverflow = body.style.overflow
-    body.style.overflow = 'hidden'
+    acquireScrollLock()
     const inerted: Element[] = []
     for (const el of document.querySelectorAll('#site-header, #site-footer, #game-page-nav, #game-page-header, #game-page-content')) {
       try {
@@ -134,7 +137,7 @@ export function GameShell({
       }
     }
     return () => {
-      body.style.overflow = prevOverflow
+      releaseScrollLock()
       for (const el of inerted) {
         try {
           ;(el as HTMLElement).inert = false
@@ -144,11 +147,15 @@ export function GameShell({
     }
   }, [immersive])
 
-  /* Échap quitte le mode immersif. */
+  /* Échap quitte le mode immersif — sauf si un dialog modal (fin de
+     manche, règles…) est ouvert : Échap doit le refermer, pas quitter
+     l'immersif en dessous (correctif Task 24). */
   useEffect(() => {
     if (!immersive) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setUserImmersive(false)
+      if (e.key !== 'Escape') return
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+      setUserImmersive(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
