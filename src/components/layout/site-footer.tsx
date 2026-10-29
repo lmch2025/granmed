@@ -1,21 +1,14 @@
 'use client'
 
 import { Heart, ShieldCheck, Languages } from 'lucide-react'
-import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { CATEGORIES, popularGames } from '@/lib/games/catalog'
 import { LogoMark } from '@/components/layout/site-header'
+import { HashLink } from '@/components/shared/hash-link'
 
 export function SiteFooter() {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
-
-  const go = (fn: () => void) => {
-    sfx.play('click', { volume: 0.5 })
-    fn()
-  }
 
   const colClass = 'min-w-0'
   const linkClass =
@@ -41,46 +34,46 @@ export function SiteFooter() {
         <nav className={colClass} aria-label={t('footer.gamesCol')}>
           <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide">{t('footer.gamesCol')}</h2>
           {popularGames(5).map((g) => (
-            <button key={g.slug} type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'game', slug: g.slug }))}>
+            <HashLink key={g.slug} view={{ type: 'game', slug: g.slug }} className={linkClass}>
               {g.icon} {g.title[lang]}
-            </button>
+            </HashLink>
           ))}
         </nav>
 
         <nav className={colClass} aria-label={t('footer.catsCol')}>
           <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide">{t('footer.catsCol')}</h2>
           {CATEGORIES.map((c) => (
-            <button key={c.id} type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'category', id: c.id }))}>
+            <HashLink key={c.id} view={{ type: 'category', id: c.id }} className={linkClass}>
               {c.icon} {c.name[lang]}
-            </button>
+            </HashLink>
           ))}
         </nav>
 
         <nav className={colClass} aria-label={t('footer.resCol')}>
           <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide">{t('footer.resCol')}</h2>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'guides' }))}>
+          <HashLink view={{ type: 'guides' }} className={linkClass}>
             📚 {t('footer.guides')}
-          </button>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'home' }))}>
+          </HashLink>
+          <HashLink view={{ type: 'home' }} className={linkClass}>
             ❓ {t('footer.faq')}
-          </button>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'about' }))}>
+          </HashLink>
+          <HashLink view={{ type: 'about' }} className={linkClass}>
             💛 {t('footer.about')}
-          </button>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'dashboard' }))}>
+          </HashLink>
+          <HashLink view={{ type: 'dashboard' }} className={linkClass}>
             <Heart className="mb-0.5 me-1 inline h-3.5 w-3.5" aria-hidden="true" />
             {t('nav.dashboard')}
-          </button>
+          </HashLink>
         </nav>
 
         <nav className={colClass} aria-label={t('footer.legalCol')}>
           <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide">{t('footer.legalCol')}</h2>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'legal', doc: 'privacy' }))}>
+          <HashLink view={{ type: 'legal', doc: 'privacy' }} className={linkClass}>
             {t('footer.privacy')}
-          </button>
-          <button type="button" className={linkClass} onClick={() => go(() => navigate({ type: 'legal', doc: 'terms' }))}>
+          </HashLink>
+          <HashLink view={{ type: 'legal', doc: 'terms' }} className={linkClass}>
             {t('footer.terms')}
-          </button>
+          </HashLink>
           <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
             <Languages className="h-3.5 w-3.5" aria-hidden="true" />
             FR / EN — {t('common.noSignup')}

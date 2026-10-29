@@ -1,16 +1,14 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { CATEGORIES, gamesOfCategory } from '@/lib/games/catalog'
 import { GameGrid, GradientTile } from '@/components/shared/ui-bits'
+import { HashLink } from '@/components/shared/hash-link'
 
 export function CategoryView({ id }: { id: string }) {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
   const cat = CATEGORIES.find((c) => c.id === id)
   if (!cat) return null
   const games = gamesOfCategory(cat.id)
@@ -20,9 +18,9 @@ export function CategoryView({ id }: { id: string }) {
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
         <ol className="flex items-center gap-1">
           <li>
-            <button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>
+            <HashLink view={{ type: 'home' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">
               {t('nav.home')}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
           <li aria-current="page" className="font-medium text-foreground">{cat.name[lang]}</li>

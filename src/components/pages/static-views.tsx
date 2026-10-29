@@ -3,9 +3,9 @@
 import { ChevronRight, ShieldCheck, HeartHandshake, Languages, Gamepad2 } from 'lucide-react'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { GAMES } from '@/lib/games/catalog'
 import { Button } from '@/components/ui/button'
+import { HashLink } from '@/components/shared/hash-link'
 
 const ABOUT_TEXT: Record<'fr' | 'en', { p: string[] }> = {
   fr: {
@@ -31,16 +31,15 @@ const ABOUT_TEXT: Record<'fr' | 'en', { p: string[] }> = {
 export function AboutView() {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 sm:px-6">
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
         <ol className="flex items-center gap-1">
           <li>
-            <button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>
+            <HashLink view={{ type: 'home' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">
               {t('nav.home')}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
           <li aria-current="page" className="font-medium text-foreground">{t('nav.about')}</li>
@@ -90,8 +89,10 @@ export function AboutView() {
       </div>
 
       <div className="mt-8 text-center">
-        <Button size="lg" className="rounded-full" onClick={() => { sfx.play('pop'); navigate({ type: 'home' }) }}>
-          {t('common.playNow')}
+        <Button size="lg" className="rounded-full" asChild>
+          <HashLink view={{ type: 'home' }} sound={null} onNavigate={() => sfx.play('pop')}>
+            {t('common.playNow')}
+          </HashLink>
         </Button>
       </div>
     </div>
@@ -146,7 +147,6 @@ const LEGAL_TEXT: Record<'privacy' | 'terms', Record<'fr' | 'en', { title: strin
 export function LegalView({ doc }: { doc: 'privacy' | 'terms' }) {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
   const c = LEGAL_TEXT[doc][lang]
 
   return (
@@ -154,9 +154,9 @@ export function LegalView({ doc }: { doc: 'privacy' | 'terms' }) {
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
         <ol className="flex items-center gap-1">
           <li>
-            <button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>
+            <HashLink view={{ type: 'home' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">
               {t('nav.home')}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
           <li aria-current="page" className="font-medium text-foreground">{c.title}</li>
@@ -176,14 +176,15 @@ export function LegalView({ doc }: { doc: 'privacy' | 'terms' }) {
 
 export function NotFoundView() {
   const t = useT()
-  const navigate = useAppStore((s) => s.navigate)
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-20 text-center">
       <span className="text-6xl anim-floaty" aria-hidden="true">🍂</span>
       <h1 className="mt-6 font-display text-3xl font-extrabold">{t('misc.notFound')}</h1>
       <p className="mt-2 text-muted-foreground">{t('misc.notFoundSub')}</p>
-      <Button size="lg" className="mt-6 rounded-full" onClick={() => { sfx.play('pop'); navigate({ type: 'home' }) }}>
-        {t('misc.backHome')}
+      <Button size="lg" className="mt-6 rounded-full" asChild>
+        <HashLink view={{ type: 'home' }} sound={null} onNavigate={() => sfx.play('pop')}>
+          {t('misc.backHome')}
+        </HashLink>
       </Button>
     </div>
   )

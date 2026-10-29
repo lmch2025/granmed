@@ -3,8 +3,8 @@
 import { CalendarCheck, Flame, Heart, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
-import { useAppStore } from '@/lib/app-store'
 import { useT, useLang } from '@/lib/i18n'
+import { HashLink } from '@/components/shared/hash-link'
 import { CATEGORY_STYLES, getGame, type GameDef } from '@/lib/games/catalog'
 import { useIsFavorite, useProfileStore } from '@/lib/progress/store'
 import { useHydrated } from '@/lib/utils-game'
@@ -130,26 +130,14 @@ export function FavoriteHeart({ gameId, className }: { gameId: string; className
 export function GameCard({ game, className }: { game: GameDef; className?: string }) {
   const lang = useLang()
   const t = useT()
-  const navigate = useAppStore((s) => s.navigate)
   const stats = useProfileStore((s) => s.profile.games[game.slug]?.plays ?? 0)
-  const open = () => {
-    sfx.play('click')
-    navigate({ type: 'game', slug: game.slug })
-  }
   return (
-    <div
-      role="link"
-      tabIndex={0}
+    /* Task 21 (SEO) : vraie ancre crawlable — le routeur hash prend le relais. */
+    <HashLink
+      view={{ type: 'game', slug: game.slug }}
       aria-label={`${game.title[lang]} — ${t('common.play')}`}
-      onClick={open}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          open()
-        }
-      }}
       className={cn(
-        'gc-card group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_24px_44px_-18px_rgb(0_0_0/0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        'gc-card group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-card text-inherit no-underline shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_24px_44px_-18px_rgb(0_0_0/0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         className,
       )}
     >
@@ -210,7 +198,7 @@ export function GameCard({ game, className }: { game: GameDef; className?: strin
           ) : null}
         </div>
       </div>
-    </div>
+    </HashLink>
   )
 }
 

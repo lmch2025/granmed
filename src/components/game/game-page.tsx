@@ -15,11 +15,11 @@ import {
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { CATEGORIES, CATEGORY_STYLES, getGame } from '@/lib/games/catalog'
 import { GameLoader, useGameContent } from '@/lib/games/registry'
 import { GameShell } from '@/components/game/game-shell'
 import { GameErrorBoundary } from '@/components/shared/error-boundary'
+import { HashLink } from '@/components/shared/hash-link'
 import { DifficultyDots, GameGrid, SectionHeader } from '@/components/shared/ui-bits'
 import { GamePreview } from '@/components/shared/game-preview'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -27,7 +27,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 export function GamePage({ slug }: { slug: string }) {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
   const game = getGame(slug)
   const content = useGameContent(slug)
   const category = CATEGORIES.find((c) => c.id === game?.category)
@@ -73,31 +72,23 @@ export function GamePage({ slug }: { slug: string }) {
       <nav id="game-page-nav" aria-label="Breadcrumb" className="mb-3 hidden text-sm text-muted-foreground sm:mb-4 sm:block">
         <ol className="flex flex-wrap items-center gap-1">
           <li>
-            <button
-              type="button"
-              className="rounded px-1 py-0.5 hover:text-primary hover:underline"
-              onClick={() => {
-                sfx.play('click')
-                navigate({ type: 'home' })
-              }}
+            <HashLink
+              view={{ type: 'home' }}
+              className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline"
             >
               {t('nav.home')}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center">
             <ChevronRight className="h-3.5 w-3.5" />
           </li>
           <li>
-            <button
-              type="button"
-              className="rounded px-1 py-0.5 hover:text-primary hover:underline"
-              onClick={() => {
-                sfx.play('click')
-                navigate({ type: 'category', id: game.category })
-              }}
+            <HashLink
+              view={{ type: 'category', id: game.category }}
+              className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline"
             >
               {category?.name[lang]}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center">
             <ChevronRight className="h-3.5 w-3.5" />

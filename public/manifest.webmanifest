@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Granmed — Jeux gratuits en ligne",
+  "name": "Granmed — Jeux de QI gratuits",
   "short_name": "Granmed",
-  "description": "20 jeux gratuits sans téléchargement : mémoire, sudoku, 2048, mots, quiz santé et réflexes. Défis quotidiens, succès et records personnels. Jouez en français ou en anglais.",
+  "description": "20 jeux de QI gratuits sans téléchargement : mémoire, sudoku, 2048, mots, logique et réflexes. Chaque partie révèle votre QI estimé et votre niveau d'intelligence, du Novice au Génie. Jouez en français ou en anglais, sans inscription.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -12,7 +12,8 @@
   "background_color": "#faf5ee",
   "lang": "fr",
   "dir": "ltr",
-  "categories": ["games", "entertainment", "health"],
+  "categories": ["games", "entertainment", "education"],
+  "launch_handler": { "client_mode": "focus-existing" },
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -25,14 +26,14 @@
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Le portail Granmed : 20 jeux gratuits"
+      "label": "Le portail Granmed : 20 jeux de QI gratuits"
     },
     {
       "src": "/icons/screenshot-wide.png",
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Jouez directement dans le navigateur"
+      "label": "Jouez directement dans le navigateur, chaque partie révèle votre QI estimé"
     }
   ]
 }

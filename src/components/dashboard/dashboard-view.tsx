@@ -13,6 +13,7 @@ import { useGameContent } from '@/lib/games/registry'
 import { useHydrated, todayKey, dateKeyOffset } from '@/lib/utils-game'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { HashLink } from '@/components/shared/hash-link'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { GameGrid, EmptyState, GradientTile, SectionHeader } from '@/components/shared/ui-bits'
 
@@ -117,8 +118,10 @@ export function DashboardView({ tab = 'overview' }: { tab?: 'overview' | 'badges
             <div className="flex flex-wrap items-center gap-3">
               <GradientTile icon={dailyGame.icon} category={dailyGame.category} />
               <p className="min-w-0 flex-1 text-sm text-muted-foreground">{dailyGame.short[lang]}</p>
-              <Button className="rounded-full" onClick={() => { sfx.play('click'); navigate({ type: 'game', slug: dailyGame.slug }) }}>
-                {t('common.play')}
+              <Button className="rounded-full" asChild>
+                <HashLink view={{ type: 'game', slug: dailyGame.slug }}>
+                  {t('common.play')}
+                </HashLink>
               </Button>
             </div>
             <div className="mt-4 grid gap-1.5">
@@ -230,11 +233,10 @@ function DailyRow({ slug }: { slug: string }) {
   const game = getGame(slug)
   if (!game) return null
   return (
-    <button
-      type="button"
-      onClick={() => { sfx.play('click'); navigate({ type: 'game', slug }) }}
+    <HashLink
+      view={{ type: 'game', slug }}
       className={cn(
-        'flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors',
+        'flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-inherit no-underline transition-colors',
         done ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'hover:bg-accent',
       )}
     >
@@ -247,7 +249,7 @@ function DailyRow({ slug }: { slug: string }) {
       ) : (
         <span className="shrink-0 text-xs font-semibold text-amber-600 dark:text-amber-400">●</span>
       )}
-    </button>
+    </HashLink>
   )
 }
 
@@ -284,9 +286,9 @@ function RecordGameRow({ slug }: { slug: string }) {
     <div className="rounded-2xl border bg-card p-4">
       <div className="mb-2.5 flex items-center gap-3">
         <GradientTile icon={game.icon} category={game.category} size="sm" />
-        <button type="button" className="min-w-0 flex-1 truncate text-left font-display text-sm font-bold hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'game', slug }) }}>
+        <HashLink view={{ type: 'game', slug }} className="min-w-0 flex-1 truncate text-left font-display text-sm font-bold text-inherit hover:text-primary hover:underline">
           {game.title[lang]}
-        </button>
+        </HashLink>
         <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       </div>
       <ul className="grid gap-1.5 sm:grid-cols-2">

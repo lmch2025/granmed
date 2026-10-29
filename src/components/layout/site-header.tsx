@@ -6,10 +6,11 @@ import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
+import { useAppStore, type View } from '@/lib/app-store'
 import { useProfileStore } from '@/lib/progress/store'
 import { useHydrated } from '@/lib/utils-game'
 import { Button } from '@/components/ui/button'
+import { HashLink } from '@/components/shared/hash-link'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
 
@@ -28,34 +29,29 @@ export function SiteHeader() {
   const t = useT()
   const lang = useLang()
   const hydrated = useHydrated()
-  const navigate = useAppStore((s) => s.navigate)
-  const setLang = useAppStore((s) => s.setLang)
   const { theme, setTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
   const soundOn = useProfileStore((s) => s.profile.settings.sound)
   const favCount = useProfileStore((s) => s.profile.favorites.length)
   const updateSettings = useProfileStore((s) => s.updateSettings)
+  const setLang = useAppStore((s) => s.setLang)
 
-  const go = (fn: () => void) => {
-    sfx.play('click')
-    setMenuOpen(false)
-    fn()
-  }
+  const closeMenu = () => setMenuOpen(false)
 
   const navItems = (
     <>
-      <button type="button" onClick={() => go(() => navigate({ type: 'home' }))} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+      <HashLink view={{ type: 'home' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.home')}
-      </button>
-      <button type="button" onClick={() => go(() => navigate({ type: 'guides' }))} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+      </HashLink>
+      <HashLink view={{ type: 'guides' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.guides')}
-      </button>
-      <button type="button" onClick={() => go(() => navigate({ type: 'dashboard' }))} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+      </HashLink>
+      <HashLink view={{ type: 'dashboard' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.dashboard')}
-      </button>
-      <button type="button" onClick={() => go(() => navigate({ type: 'about' }))} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+      </HashLink>
+      <HashLink view={{ type: 'about' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.about')}
-      </button>
+      </HashLink>
     </>
   )
 
@@ -65,28 +61,32 @@ export function SiteHeader() {
         {t('misc.skipToContent')}
       </a>
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-4 sm:px-6">
-        <button
-          type="button"
+        <HashLink
+          view={{ type: 'home' }}
+          sound={null}
+          onNavigate={() => {
+            sfx.play('click')
+            setMenuOpen(false)
+          }}
           className="flex items-center gap-2.5 rounded-full py-1 pe-2 focus-visible:outline-2 focus-visible:outline-ring"
           aria-label="Granmed — Accueil"
-          onClick={() => go(() => navigate({ type: 'home' }))}
         >
           <LogoMark />
           <span className="font-display text-lg font-extrabold tracking-tight sm:text-xl">
             Gran<span className="text-primary">med</span>
           </span>
-        </button>
+        </HashLink>
 
         <nav aria-label="Navigation principale" className="ms-4 hidden items-center gap-1 md:flex">
           {navItems}
         </nav>
 
         <div className="ms-auto flex items-center gap-1 sm:gap-1.5">
-          <button
-            type="button"
+          <HashLink
+            view={{ type: 'dashboard', tab: 'favorites' }}
+            onNavigate={closeMenu}
             aria-label={t('nav.favorites')}
             title={t('nav.favorites')}
-            onClick={() => go(() => navigate({ type: 'dashboard', tab: 'favorites' }))}
             className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
           >
             <Heart className="h-5 w-5" />
@@ -95,7 +95,7 @@ export function SiteHeader() {
                 {favCount}
               </span>
             ) : null}
-          </button>
+          </HashLink>
 
           <button
             type="button"
@@ -153,10 +153,10 @@ export function SiteHeader() {
                 </SheetTitle>
               </SheetHeader>
               <nav aria-label="Navigation mobile" className="mt-2 flex flex-col gap-1 px-4">
-                <MobileNavItem icon={<Home className="h-4 w-4" />} label={t('nav.home')} onClick={() => go(() => navigate({ type: 'home' }))} />
-                <MobileNavItem icon={<BookOpen className="h-4 w-4" />} label={t('nav.guides')} onClick={() => go(() => navigate({ type: 'guides' }))} />
-                <MobileNavItem icon={<Compass className="h-4 w-4" />} label={t('nav.dashboard')} onClick={() => go(() => navigate({ type: 'dashboard' }))} />
-                <MobileNavItem icon={<Info className="h-4 w-4" />} label={t('nav.about')} onClick={() => go(() => navigate({ type: 'about' }))} />
+                <MobileNavItem icon={<Home className="h-4 w-4" />} label={t('nav.home')} onClick={closeMenu} view={{ type: 'home' }} />
+                <MobileNavItem icon={<BookOpen className="h-4 w-4" />} label={t('nav.guides')} onClick={closeMenu} view={{ type: 'guides' }} />
+                <MobileNavItem icon={<Compass className="h-4 w-4" />} label={t('nav.dashboard')} onClick={closeMenu} view={{ type: 'dashboard' }} />
+                <MobileNavItem icon={<Info className="h-4 w-4" />} label={t('nav.about')} onClick={closeMenu} view={{ type: 'about' }} />
                 <MobileNavItem
                   icon={hydrated && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   label={t('misc.toggleTheme')}
@@ -168,7 +168,7 @@ export function SiteHeader() {
                 <Separator className="my-2" />
                 <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('nav.categories')}</p>
                 {/* Les catégories sont accessibles depuis l'accueil */}
-                <MobileNavItem icon={<Heart className="h-4 w-4" />} label={t('nav.favorites')} onClick={() => go(() => navigate({ type: 'dashboard', tab: 'favorites' }))} />
+                <MobileNavItem icon={<Heart className="h-4 w-4" />} label={t('nav.favorites')} onClick={closeMenu} view={{ type: 'dashboard', tab: 'favorites' }} />
               </nav>
             </SheetContent>
           </Sheet>
@@ -178,13 +178,20 @@ export function SiteHeader() {
   )
 }
 
-function MobileNavItem({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function MobileNavItem({ icon, label, onClick, view }: { icon: React.ReactNode; label: string; onClick?: () => void; view?: View }) {
+  const className = 'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent'
+  if (view) {
+    return (
+      <HashLink view={view} onNavigate={onClick} className={className}>
+        <span className="text-muted-foreground" aria-hidden="true">
+          {icon}
+        </span>
+        {label}
+      </HashLink>
+    )
+  }
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-    >
+    <button type="button" onClick={onClick} className={className}>
       <span className="text-muted-foreground" aria-hidden="true">
         {icon}
       </span>

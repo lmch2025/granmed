@@ -1,26 +1,24 @@
 'use client'
 
 import { ChevronRight, ChevronLeft, Clock, CalendarDays } from 'lucide-react'
-import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { GUIDES, GUIDES_BY_SLUG } from '@/lib/content/guides'
 import { SectionHeader } from '@/components/shared/ui-bits'
+import { HashLink } from '@/components/shared/hash-link'
 import { Separator } from '@/components/ui/separator'
 
 export function GuidesView() {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-6 sm:px-6">
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
         <ol className="flex items-center gap-1">
           <li>
-            <button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>
+            <HashLink view={{ type: 'home' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">
               {t('nav.home')}
-            </button>
+            </HashLink>
           </li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
           <li aria-current="page" className="font-medium text-foreground">{t('nav.guides')}</li>
@@ -31,11 +29,10 @@ export function GuidesView() {
 
       <div className="space-y-4">
         {GUIDES.map((g) => (
-          <button
+          <HashLink
             key={g.slug}
-            type="button"
-            onClick={() => { sfx.play('click'); navigate({ type: 'guide', slug: g.slug }) }}
-            className="group flex w-full items-start gap-4 rounded-2xl border bg-card p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+            view={{ type: 'guide', slug: g.slug }}
+            className="group flex w-full items-start gap-4 rounded-2xl border bg-card p-5 text-left text-inherit no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
           >
             <span className="text-4xl transition-transform group-hover:scale-110" aria-hidden="true">{g.icon}</span>
             <span className="min-w-0 flex-1">
@@ -47,7 +44,7 @@ export function GuidesView() {
               </span>
             </span>
             <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" aria-hidden="true" />
-          </button>
+          </HashLink>
         ))}
       </div>
     </div>
@@ -57,7 +54,6 @@ export function GuidesView() {
 export function GuideView({ slug }: { slug: string }) {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
   const guide = GUIDES_BY_SLUG[slug]
 
   if (!guide) {
@@ -73,9 +69,9 @@ export function GuideView({ slug }: { slug: string }) {
     <article className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6 sm:px-6">
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-1">
-          <li><button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'home' }) }}>{t('nav.home')}</button></li>
+          <li><HashLink view={{ type: 'home' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">{t('nav.home')}</HashLink></li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
-          <li><button type="button" className="rounded px-1 py-0.5 hover:text-primary hover:underline" onClick={() => { sfx.play('click'); navigate({ type: 'guides' }) }}>{t('nav.guides')}</button></li>
+          <li><HashLink view={{ type: 'guides' }} className="rounded px-1 py-0.5 text-inherit hover:text-primary hover:underline">{t('nav.guides')}</HashLink></li>
           <li aria-hidden="true" className="flex items-center"><ChevronRight className="h-3.5 w-3.5" /></li>
           <li aria-current="page" className="max-w-[14rem] truncate font-medium text-foreground">{guide.title[lang]}</li>
         </ol>
@@ -113,14 +109,13 @@ export function GuideView({ slug }: { slug: string }) {
       </div>
 
       <div className="mt-10 rounded-2xl border bg-secondary/40 p-5 text-center">
-        <button
-          type="button"
-          onClick={() => { sfx.play('click'); navigate({ type: 'guides' }) }}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
+        <HashLink
+          view={{ type: 'guides' }}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline transition-transform hover:scale-105"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           {t('nav.guides')}
-        </button>
+        </HashLink>
       </div>
     </article>
   )

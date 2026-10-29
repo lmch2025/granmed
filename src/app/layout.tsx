@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     description:
       "Mémoire, logique, calcul mental, réflexes… Chaque partie révèle votre QI estimé et votre niveau d'intelligence, du Novice au Génie. Jouez gratuitement, sans inscription. FR/EN. Free IQ games & brain training.",
     url: SITE_URL,
-    images: [{ url: "/images/og-granmed.png", width: 1200, height: 630, alt: "Granmed — jeux de QI et entraînement cérébral gratuits" }],
+    images: [{ url: "/images/og-granmed.png", width: 1344, height: 768, alt: "Granmed — jeux de QI et entraînement cérébral gratuits" }],
     locale: "fr_FR",
     alternateLocale: ["en_US"],
   },
@@ -119,6 +119,9 @@ export const viewport: Viewport = {
 
 const PWA_EARLY_CAPTURE = `(function(){try{var W=window;W.__granmedPwa={bip:null,dismissed:W.sessionStorage.getItem('granmed:pwa-dismissed')==='1',standalone:W.matchMedia('(display-mode: standalone)').matches||W.navigator.standalone===true,installed:false,showAfter:0};W.addEventListener('beforeinstallprompt',function(e){e.preventDefault();var s=W.__granmedPwa;s.bip=e;if(!s.showAfter)s.showAfter=Date.now()+2600;});W.addEventListener('appinstalled',function(){var s=W.__granmedPwa;if(s){s.bip=null;s.installed=true;}});}catch(e){}})();`;
 
+/* SEO : la version anglaise dédiée (?lang=en) porte <html lang="en"> avant même l'hydratation. */
+const LANG_EARLY = `(function(){try{if(new URLSearchParams(window.location.search).get('lang')==='en')document.documentElement.lang='en';}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -129,6 +132,8 @@ export default function RootLayout({
       <body className={`${display.variable} ${body.variable} antialiased bg-background text-foreground`}>
         {/* PWA : capture précoce de beforeinstallprompt avant l'hydratation React. */}
         <script dangerouslySetInnerHTML={{ __html: PWA_EARLY_CAPTURE }} />
+        {/* SEO : langue correcte sur /?lang=en dès le HTML brut (crawlers sans JS). */}
+        <script dangerouslySetInnerHTML={{ __html: LANG_EARLY }} />
         {children}
         <Toaster />
       </body>

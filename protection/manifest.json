@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-29T00:37:20.367Z",
-  "reason": "Task 20 (force majeure sanctionnée par la demande utilisateur : « remplacer toutes les émoticônes sparkles par d'autres plus appropriées — cet émoticône fait trop IA — puis implémenter des effets visuels satisfaisants dans nos jeux, par exemple Block Puzzle Équilibre : suppressions de lignes ultra satisfaisantes sans retarder ou gêner le cours du jeu ») : (1) sweep ✨ — 16 émojis remplacés par des équivalents contextuels (guides 📖, catégorie words 📚, fins d histoires 🎭, sans-faute 🎯, pill-toss 🧪/💥, zen-fishing ⭐/🎣/🌊, merge-garden 🌿, previews : points lumineux CSS + 🌸) et 15 icônes lucide Sparkles remplacées (Eraser/Drama/Brain/ListChecks/Gamepad2/Trophy/Play/Languages/Lightbulb) ; (2) effets juice — NOUVEAU kit src/components/game/fx.tsx (useJuice WAAPI + FxCellBurst, ajout pur) + keyframes fx-* dans globals.css ; Block Puzzle Équilibre : suppression de ligne = onde radiale colorée + éclats + particules + flash + secousse du plateau + halo + pop score, verrou 340 ms inchangé (rythme identique, animations fire-and-forget pointer-events-none) ; 19 autres jeux : juice du moment clé de réussite (fusions 2048, snap jigsaw, mots croisés, paires memory, pads séquence, schulte, speed-math, vrai-faux, canvas fruit/pill/fire/zen, daily-word, longest-word, idiomes, histoires) — zéro logique modifiée, zéro délai ajouté, reduced-motion respecté",
-  "baselineCommit": "9f36dba0b9373dcf5e0a8e6b5debe171cdd36e28",
+  "generatedAt": "2026-10-29T19:23:21.887Z",
+  "reason": "Task 21 (force majeure sanctionnée par la demande utilisateur : « audit final de tout ce qui peut pénaliser notre PWA ainsi que tous ses jeux en chaque langue (en/fr) et, le cas échéant, corrigeons tout immédiatement et de façon stricte pour être aligné parfaitement SEO, GEO et AIO, ainsi que les mots-clés à forts volumes de recherches dans nos niches et les mots-clés longue traîne ») : (1) maillage interne crawlable reconstitué — nouveau composant HashLink (ajout pur) et conversion de toutes les surfaces de navigation en vraies ancres #/ (GameCard, header, footer, home, breadcrumbs, guides, dashboard) : 64 ancres dans le HTML brut vs 1 avant, 36 vues uniques atteignables ; (2) métadonnées serveur par langue via generateMetadata — /?lang=en désormais 100 % anglaise (title, description, keywords fort volume + longue traîne, OG, Twitter, canonique auto-référentielle, cluster hreflang valide fr/en/x-default) et JSON-LD entièrement localisé (FAQPage EN, ItemList EN) ; (3) corrections strictes : og:image dims réelles 1344×768, favicon.ico (ajout pur, 200 OK), manifest aligné QI + launch_handler focus-existing, robots.txt +8 crawlers IA (19 au total), sitemap.xml 2 URLs canoniques + annotations hreflang + lastmod à jour, llms.txt documentant les URLs linguistiques canoniques, script pré-hydratation lang=en ; 0 suppression de fonctionnalité — sons, scrolls et destinations d'origine préservés",
+  "baselineCommit": "61f9591b2db80bd13639708b9ddddcb8b88dfb33",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -319,49 +319,121 @@
     }
   ],
   "frozen": {
-    "src/app/globals.css": {
-      "sha256": "2769299d8e5836a421c530099592188d0a04a6748987009c703696dfac7666c2",
-      "bytes": 24141
+    "src/components/layout/site-header.tsx": {
+      "sha256": "4973690996df4f4fb995fdeddd70d37181d0c4beff48b382c2906312012d440a",
+      "bytes": 9932
     },
-    "src/app/api/route.ts": {
-      "sha256": "bb3323e70b608cf916b285f8942d8efabb02166f84f9e5a8aa6fe9e417344bce",
-      "bytes": 134
+    "src/components/layout/site-footer.tsx": {
+      "sha256": "3b101351a5402b6a9cf5069d7f4dc211d1ba8bc21684c3904e860ff6dece4795",
+      "bytes": 4061
     },
-    "src/app/page.tsx": {
-      "sha256": "1a89c0e9f7fe103e7bb54b46db755dfa31843d5687a31dba380a54a6ddcae4bb",
-      "bytes": 3628
-    },
-    "src/app/layout.tsx": {
-      "sha256": "bf42c80f2398343a8ae79e49b9d74268efd895eefcad2174e4b82369ad87f380",
-      "bytes": 4980
-    },
-    "src/components/ui/slider.tsx": {
-      "sha256": "55140ef92c201c82d530dede076603611fbfb2cdc899e4d8459b58f6cbb2b235",
-      "bytes": 2001
-    },
-    "src/components/ui/input-otp.tsx": {
-      "sha256": "35d561c352fde4e34fc3481839649728300c01cfadac62aa84c375d6d812f4de",
-      "bytes": 2254
+    "src/components/ui/badge.tsx": {
+      "sha256": "f41c11fc13e9a1f1b849349cb51b137ddd27de0a17c5339675c789d58f556cc4",
+      "bytes": 1631
     },
     "src/components/ui/navigation-menu.tsx": {
       "sha256": "d71f57fe0f365541fbf5d00196b0b78a461d8c4f38d35293e5754680d93b9245",
       "bytes": 6664
     },
-    "src/components/ui/progress.tsx": {
-      "sha256": "e7a89220fb49e18d6613956781cfd5eb38d5da36379e93f5fc90ccec127dc871",
-      "bytes": 740
+    "src/components/ui/chart.tsx": {
+      "sha256": "670849399b33fecf7e46aa222c52f6a7c294faac079f5227f8c01c594822fd5d",
+      "bytes": 9781
+    },
+    "src/components/ui/select.tsx": {
+      "sha256": "8795c9fac7c48d565ff6c47cbf4cca8bfefe25d8cb3d7e7aeba36855739a76ab",
+      "bytes": 6253
+    },
+    "src/components/ui/popover.tsx": {
+      "sha256": "29a217781737bbf5c430859b3de46097a44ada81c4143c2d05543d2167de0ee1",
+      "bytes": 1635
+    },
+    "src/components/ui/card.tsx": {
+      "sha256": "78cdb63dff3ec7ef074ada630ff20a5d8004768b6cbe24ed134a8bfba12bafbb",
+      "bytes": 1989
+    },
+    "src/components/ui/dialog.tsx": {
+      "sha256": "491a87bfae8f28773624d353bf56b9288d0852413e814d508e0d086dc7b06edb",
+      "bytes": 3982
     },
     "src/components/ui/drawer.tsx": {
       "sha256": "0c9464ed4f95207ff6ec0b8f433f550388ea0fe57fecd36bbe100b084ee46a3e",
       "bytes": 4255
     },
-    "src/components/ui/context-menu.tsx": {
-      "sha256": "6573f8ed4232ae9801a3098a5cd4549b43a1e0ac1fd2c495e552a862d81fba22",
-      "bytes": 8222
+    "src/components/ui/form.tsx": {
+      "sha256": "b41b4b10f5e11b2acc1accb7b027eba0581b5cdd549d3ccef92e30d1f4efcf54",
+      "bytes": 3759
+    },
+    "src/components/ui/pagination.tsx": {
+      "sha256": "53ffa0474d07dbfe1fb67f043a0ad7e7d24feecf950e65da8b929a90179c6ad4",
+      "bytes": 2712
+    },
+    "src/components/ui/aspect-ratio.tsx": {
+      "sha256": "6a75117416aa89200cf31e8d61643b428e812f479caea857c80004b26d893e79",
+      "bytes": 280
+    },
+    "src/components/ui/tooltip.tsx": {
+      "sha256": "8d8a3645f547334b759341daf94a20b12a8ba17e8de4ad6e4e1c64b38842c1e3",
+      "bytes": 1891
+    },
+    "src/components/ui/command.tsx": {
+      "sha256": "4fb4f8f95dfbe884ae598661b80e541d62eacdfe2101beab58819ab58b96c2ea",
+      "bytes": 4818
+    },
+    "src/components/ui/toggle.tsx": {
+      "sha256": "b201563ea8cdef3680a3d9bf272cfc5918a5ab6e1079d7ff8d6273df7fce2849",
+      "bytes": 1570
+    },
+    "src/components/ui/button.tsx": {
+      "sha256": "82403231e33fd3d45b111e5e819df194cdfa7cef9a726770185724a60bd20932",
+      "bytes": 2123
+    },
+    "src/components/ui/radio-group.tsx": {
+      "sha256": "b12ca5cef859dd75b274337234bae66e413b0f97845243254a1dedcb2d7a7237",
+      "bytes": 1466
+    },
+    "src/components/ui/progress.tsx": {
+      "sha256": "e7a89220fb49e18d6613956781cfd5eb38d5da36379e93f5fc90ccec127dc871",
+      "bytes": 740
+    },
+    "src/components/ui/hover-card.tsx": {
+      "sha256": "031f6a309d87c8e42a2282fccc277dde75e373de8c93dad881582c9dc13e05d0",
+      "bytes": 1532
+    },
+    "src/components/ui/separator.tsx": {
+      "sha256": "e9dddbd8dbbc0eccd683306481b0f0bbc8e2b60ea97817416ebb9fe7fbbbdca8",
+      "bytes": 699
+    },
+    "src/components/ui/slider.tsx": {
+      "sha256": "55140ef92c201c82d530dede076603611fbfb2cdc899e4d8459b58f6cbb2b235",
+      "bytes": 2001
+    },
+    "src/components/ui/toaster.tsx": {
+      "sha256": "e4957974d6393d08f8237e6660a522e4f314610c6743b21c28f256efdb7fff7c",
+      "bytes": 785
+    },
+    "src/components/ui/accordion.tsx": {
+      "sha256": "7251e973cc6896411e3348c1e9cd10bb359934b0e766055c9a3439b07b775edc",
+      "bytes": 2053
     },
     "src/components/ui/scroll-area.tsx": {
       "sha256": "1c5d0b242d0513848f4bfa9b57ba7f438d9b1120617029941bfaa137196ecead",
       "bytes": 1645
+    },
+    "src/components/ui/tabs.tsx": {
+      "sha256": "e8469e599381cf021ce751c27cca3d8cb06440a45665ca9c2ef2efb0acef1fd9",
+      "bytes": 1969
+    },
+    "src/components/ui/skeleton.tsx": {
+      "sha256": "f2aea81d8baf2b621945382aabac150e3db40f20d19ac1abea7aff805f1dc33c",
+      "bytes": 276
+    },
+    "src/components/ui/resizable.tsx": {
+      "sha256": "41043c0f3dec3a41e163fcfbba4ed8138eeafcedd1aa40c007c3e195f34d37df",
+      "bytes": 2028
+    },
+    "src/components/ui/label.tsx": {
+      "sha256": "9ec42c8a57e82311118b794318409ee02b2cebfa49ba6cce8457cff6448cd471",
+      "bytes": 611
     },
     "src/components/ui/collapsible.tsx": {
       "sha256": "c2c74dc3e99482d00a57de673b56920860c2ff4b330373d783843f505dc11dae",
@@ -371,297 +443,201 @@
       "sha256": "59967c334f56dd44100e49b1fc18db428e7f15f5a28b9c2c4f9a3b7dcb4db4b7",
       "bytes": 3864
     },
-    "src/components/ui/toggle.tsx": {
-      "sha256": "b201563ea8cdef3680a3d9bf272cfc5918a5ab6e1079d7ff8d6273df7fce2849",
-      "bytes": 1570
-    },
-    "src/components/ui/avatar.tsx": {
-      "sha256": "e8672934f1c315f36cdae39380454ba8c2da62aca420dfb827d96693091419c4",
-      "bytes": 1097
-    },
-    "src/components/ui/resizable.tsx": {
-      "sha256": "41043c0f3dec3a41e163fcfbba4ed8138eeafcedd1aa40c007c3e195f34d37df",
-      "bytes": 2028
-    },
-    "src/components/ui/popover.tsx": {
-      "sha256": "29a217781737bbf5c430859b3de46097a44ada81c4143c2d05543d2167de0ee1",
-      "bytes": 1635
-    },
-    "src/components/ui/carousel.tsx": {
-      "sha256": "b7ea0dda3903d972c186f739e23da61f547bc83b5a0bf13b16856577846d5fc3",
-      "bytes": 5556
-    },
-    "src/components/ui/menubar.tsx": {
-      "sha256": "d3c5b6060323b78aef1b32650e22d3d951d1b125404f76ffb967ed80446a3ddd",
-      "bytes": 8394
-    },
-    "src/components/ui/card.tsx": {
-      "sha256": "78cdb63dff3ec7ef074ada630ff20a5d8004768b6cbe24ed134a8bfba12bafbb",
-      "bytes": 1989
-    },
-    "src/components/ui/sonner.tsx": {
-      "sha256": "958d33cd8a85293728acad21c1f3881da56b805bc11a3ec862d6aa355c152d90",
-      "bytes": 564
-    },
-    "src/components/ui/aspect-ratio.tsx": {
-      "sha256": "6a75117416aa89200cf31e8d61643b428e812f479caea857c80004b26d893e79",
-      "bytes": 280
-    },
-    "src/components/ui/skeleton.tsx": {
-      "sha256": "f2aea81d8baf2b621945382aabac150e3db40f20d19ac1abea7aff805f1dc33c",
-      "bytes": 276
-    },
-    "src/components/ui/toast.tsx": {
-      "sha256": "45d3d86ddb0b098a2bbbdca8458369d4a1fb046f77d9e106b690727ff6658afd",
-      "bytes": 4829
-    },
-    "src/components/ui/hover-card.tsx": {
-      "sha256": "031f6a309d87c8e42a2282fccc277dde75e373de8c93dad881582c9dc13e05d0",
-      "bytes": 1532
-    },
-    "src/components/ui/textarea.tsx": {
-      "sha256": "de4e9fb0fd8e8ed10ea2e475ffe202a922ffe77e3f3edb2c517b0781447ad1b4",
-      "bytes": 759
-    },
-    "src/components/ui/badge.tsx": {
-      "sha256": "f41c11fc13e9a1f1b849349cb51b137ddd27de0a17c5339675c789d58f556cc4",
-      "bytes": 1631
-    },
-    "src/components/ui/dropdown-menu.tsx": {
-      "sha256": "9b346378821ba06f9501e4571fd7678cd8819d6833f833daff72bec699565c06",
-      "bytes": 8284
-    },
-    "src/components/ui/command.tsx": {
-      "sha256": "4fb4f8f95dfbe884ae598661b80e541d62eacdfe2101beab58819ab58b96c2ea",
-      "bytes": 4818
-    },
-    "src/components/ui/dialog.tsx": {
-      "sha256": "491a87bfae8f28773624d353bf56b9288d0852413e814d508e0d086dc7b06edb",
-      "bytes": 3982
-    },
-    "src/components/ui/toaster.tsx": {
-      "sha256": "e4957974d6393d08f8237e6660a522e4f314610c6743b21c28f256efdb7fff7c",
-      "bytes": 785
-    },
-    "src/components/ui/tooltip.tsx": {
-      "sha256": "8d8a3645f547334b759341daf94a20b12a8ba17e8de4ad6e4e1c64b38842c1e3",
-      "bytes": 1891
-    },
-    "src/components/ui/checkbox.tsx": {
-      "sha256": "4c395ef15549e46068eb3b32a2a10fb5bfdb01f6834a3c0231a218a529015c83",
-      "bytes": 1226
-    },
-    "src/components/ui/table.tsx": {
-      "sha256": "7b8c7a952cf49e78aafe5f628c3bd90f7e01bd5602eb5d3650bef5727a8186d7",
-      "bytes": 2448
-    },
-    "src/components/ui/pagination.tsx": {
-      "sha256": "53ffa0474d07dbfe1fb67f043a0ad7e7d24feecf950e65da8b929a90179c6ad4",
-      "bytes": 2712
-    },
-    "src/components/ui/input.tsx": {
-      "sha256": "6628e8fde207857b9ba08910d386eeea8213d7d745b4e0ae8b95332b52730db9",
-      "bytes": 967
-    },
-    "src/components/ui/calendar.tsx": {
-      "sha256": "fe832b1ba33bd42a41cd2b66c7e156f5f421af87f8ceb799eea5db48bab6d294",
-      "bytes": 7660
-    },
-    "src/components/ui/sidebar.tsx": {
-      "sha256": "73561977bb06800b7d7700d844e4219b8dc4d14ac732c7a448e807005286d9f7",
-      "bytes": 21633
-    },
-    "src/components/ui/separator.tsx": {
-      "sha256": "e9dddbd8dbbc0eccd683306481b0f0bbc8e2b60ea97817416ebb9fe7fbbbdca8",
-      "bytes": 699
-    },
-    "src/components/ui/button.tsx": {
-      "sha256": "82403231e33fd3d45b111e5e819df194cdfa7cef9a726770185724a60bd20932",
-      "bytes": 2123
-    },
-    "src/components/ui/chart.tsx": {
-      "sha256": "670849399b33fecf7e46aa222c52f6a7c294faac079f5227f8c01c594822fd5d",
-      "bytes": 9781
-    },
-    "src/components/ui/tabs.tsx": {
-      "sha256": "e8469e599381cf021ce751c27cca3d8cb06440a45665ca9c2ef2efb0acef1fd9",
-      "bytes": 1969
-    },
-    "src/components/ui/radio-group.tsx": {
-      "sha256": "b12ca5cef859dd75b274337234bae66e413b0f97845243254a1dedcb2d7a7237",
-      "bytes": 1466
-    },
-    "src/components/ui/label.tsx": {
-      "sha256": "9ec42c8a57e82311118b794318409ee02b2cebfa49ba6cce8457cff6448cd471",
-      "bytes": 611
+    "src/components/ui/sheet.tsx": {
+      "sha256": "3d6a560c635fd91094e43191ecf73b124ccb2537e6060f85d5d31fcf68150e74",
+      "bytes": 4090
     },
     "src/components/ui/toggle-group.tsx": {
       "sha256": "09eebce0dcbac76f860d4b6df5261c4f385f5ba233f88a0cd8dde91b1772abeb",
       "bytes": 1925
     },
+    "src/components/ui/dropdown-menu.tsx": {
+      "sha256": "9b346378821ba06f9501e4571fd7678cd8819d6833f833daff72bec699565c06",
+      "bytes": 8284
+    },
+    "src/components/ui/checkbox.tsx": {
+      "sha256": "4c395ef15549e46068eb3b32a2a10fb5bfdb01f6834a3c0231a218a529015c83",
+      "bytes": 1226
+    },
+    "src/components/ui/menubar.tsx": {
+      "sha256": "d3c5b6060323b78aef1b32650e22d3d951d1b125404f76ffb967ed80446a3ddd",
+      "bytes": 8394
+    },
     "src/components/ui/breadcrumb.tsx": {
       "sha256": "22f3f4c13ed1085c4131379bfccc6fb173a474f861636bc2736506820153aa08",
       "bytes": 2357
+    },
+    "src/components/ui/textarea.tsx": {
+      "sha256": "de4e9fb0fd8e8ed10ea2e475ffe202a922ffe77e3f3edb2c517b0781447ad1b4",
+      "bytes": 759
+    },
+    "src/components/ui/input.tsx": {
+      "sha256": "6628e8fde207857b9ba08910d386eeea8213d7d745b4e0ae8b95332b52730db9",
+      "bytes": 967
     },
     "src/components/ui/switch.tsx": {
       "sha256": "17f2390d98e8ce4d9e90155eac1918266914d6a9ada7c276b5d1c917cef0e969",
       "bytes": 1177
     },
-    "src/components/ui/form.tsx": {
-      "sha256": "b41b4b10f5e11b2acc1accb7b027eba0581b5cdd549d3ccef92e30d1f4efcf54",
-      "bytes": 3759
-    },
-    "src/components/ui/sheet.tsx": {
-      "sha256": "3d6a560c635fd91094e43191ecf73b124ccb2537e6060f85d5d31fcf68150e74",
-      "bytes": 4090
-    },
-    "src/components/ui/select.tsx": {
-      "sha256": "8795c9fac7c48d565ff6c47cbf4cca8bfefe25d8cb3d7e7aeba36855739a76ab",
-      "bytes": 6253
+    "src/components/ui/table.tsx": {
+      "sha256": "7b8c7a952cf49e78aafe5f628c3bd90f7e01bd5602eb5d3650bef5727a8186d7",
+      "bytes": 2448
     },
     "src/components/ui/alert.tsx": {
       "sha256": "49d8311589b810b106aada8ef7b13f70b2b1f68cfce4e1458b7f31a191f420e9",
       "bytes": 1614
     },
-    "src/components/ui/accordion.tsx": {
-      "sha256": "7251e973cc6896411e3348c1e9cd10bb359934b0e766055c9a3439b07b775edc",
-      "bytes": 2053
+    "src/components/ui/sidebar.tsx": {
+      "sha256": "73561977bb06800b7d7700d844e4219b8dc4d14ac732c7a448e807005286d9f7",
+      "bytes": 21633
     },
-    "src/components/shared/confetti.tsx": {
-      "sha256": "18d232b4bb9419b2206130d50255a91a4bb83ee13ffc730422d622efb31255ee",
-      "bytes": 4184
+    "src/components/ui/avatar.tsx": {
+      "sha256": "e8672934f1c315f36cdae39380454ba8c2da62aca420dfb827d96693091419c4",
+      "bytes": 1097
     },
-    "src/components/shared/game-preview.tsx": {
-      "sha256": "b04806899fd649e4c91907f78788442ee379b8101d96ac5a3ee5925fde7ea1bb",
-      "bytes": 27360
+    "src/components/ui/carousel.tsx": {
+      "sha256": "b7ea0dda3903d972c186f739e23da61f547bc83b5a0bf13b16856577846d5fc3",
+      "bytes": 5556
     },
-    "src/components/shared/error-boundary.tsx": {
-      "sha256": "24fba9653bbe97577394baa869115fb54ec510fb8300059d2422ac5eefa9437c",
-      "bytes": 1378
+    "src/components/ui/input-otp.tsx": {
+      "sha256": "35d561c352fde4e34fc3481839649728300c01cfadac62aa84c375d6d812f4de",
+      "bytes": 2254
+    },
+    "src/components/ui/sonner.tsx": {
+      "sha256": "958d33cd8a85293728acad21c1f3881da56b805bc11a3ec862d6aa355c152d90",
+      "bytes": 564
+    },
+    "src/components/ui/context-menu.tsx": {
+      "sha256": "6573f8ed4232ae9801a3098a5cd4549b43a1e0ac1fd2c495e552a862d81fba22",
+      "bytes": 8222
+    },
+    "src/components/ui/calendar.tsx": {
+      "sha256": "fe832b1ba33bd42a41cd2b66c7e156f5f421af87f8ceb799eea5db48bab6d294",
+      "bytes": 7660
+    },
+    "src/components/ui/toast.tsx": {
+      "sha256": "45d3d86ddb0b098a2bbbdca8458369d4a1fb046f77d9e106b690727ff6658afd",
+      "bytes": 4829
     },
     "src/components/shared/ui-bits.tsx": {
-      "sha256": "042371b617d63965f45b68f39a97e10067f8dc239f529391329dea815081843f",
-      "bytes": 9283
+      "sha256": "5295013dde50bce6fbb24308fa213e216f4e65253f49da921d10cc9d8a93ac24",
+      "bytes": 9116
     },
     "src/components/shared/pwa-install.tsx": {
       "sha256": "5647c647e6644524f61b4153ea53a127311efa45070e398acf2f960fb4757a95",
       "bytes": 11225
     },
-    "src/components/home/home-view.tsx": {
-      "sha256": "fd6ef042d568d695fb7ea318e89dccc9d5a7607b010b4d4143bf94a26942410a",
-      "bytes": 16428
+    "src/components/shared/game-preview.tsx": {
+      "sha256": "b04806899fd649e4c91907f78788442ee379b8101d96ac5a3ee5925fde7ea1bb",
+      "bytes": 27360
     },
-    "src/components/pages/static-views.tsx": {
-      "sha256": "d6bceb1e65083f56c0f5180de8a7b10366aa8bf3c495937e9dd7198268afe458",
-      "bytes": 13137
+    "src/components/shared/hash-link.tsx": {
+      "sha256": "1d3547819892fe1be0f5821cb60f544ac42be4a38d52e0f7b33d02b17e51f84e",
+      "bytes": 1678
     },
-    "src/components/pages/category-view.tsx": {
-      "sha256": "53e452a7ce6e421e1cc951796920c65f45ce097e23d5211a397bc30eb658f5be",
-      "bytes": 2012
+    "src/components/shared/confetti.tsx": {
+      "sha256": "18d232b4bb9419b2206130d50255a91a4bb83ee13ffc730422d622efb31255ee",
+      "bytes": 4184
     },
-    "src/components/pages/guides-view.tsx": {
-      "sha256": "e8cc7b20435f9622267aab0f05112f3364f50fa93f3305d3a628c3fe63e80f00",
-      "bytes": 6164
+    "src/components/shared/error-boundary.tsx": {
+      "sha256": "24fba9653bbe97577394baa869115fb54ec510fb8300059d2422ac5eefa9437c",
+      "bytes": 1378
     },
-    "src/components/game/round-end.tsx": {
-      "sha256": "68a3db30ab0192c87b82b060e3cfef718b28fccd1a046a6c01bd7811658b6789",
-      "bytes": 16928
-    },
-    "src/components/game/game-shell.tsx": {
-      "sha256": "c1dd8ad2ed8bbae9e8372d2f44dba1f3a9908109b05b26b8afe151f67d0278ed",
-      "bytes": 19878
-    },
-    "src/components/game/iq-card.tsx": {
-      "sha256": "de62088fcab5dc7b82902f073879a051ee5b63ce44797f239de3b9885405a302",
-      "bytes": 7756
+    "src/components/dashboard/dashboard-view.tsx": {
+      "sha256": "d64dddd6a3b6a1eba7b8f28b59287ac86c7cc5c7c3f117f6536f8b5d20b04667",
+      "bytes": 14514
     },
     "src/components/game/game-page.tsx": {
-      "sha256": "bbff8fce8543de5f794a77367acc4d76efb3bd56e0aea3d975de44df959e7457",
-      "bytes": 12428
+      "sha256": "5452e4fe0f322405c406299d2b1517abeaf347517b8a2b63afaa2e47a27b3b44",
+      "bytes": 12193
     },
     "src/components/game/iq-banner.tsx": {
       "sha256": "68c3003204052b563200b1eddf9c2432d6cbcc0050a12e59b97ce50cb1f1b7bf",
       "bytes": 2490
     },
+    "src/components/game/round-end.tsx": {
+      "sha256": "68a3db30ab0192c87b82b060e3cfef718b28fccd1a046a6c01bd7811658b6789",
+      "bytes": 16928
+    },
     "src/components/game/fx.tsx": {
       "sha256": "5384d28e516ce86aa81444ad7c52d0d5c6ecf5979076194f09ab63e01cb2b81d",
       "bytes": 6032
     },
-    "src/components/granmed-app.tsx": {
-      "sha256": "14d61c0f1c3a77dd9e14824da6f7c09c98ca9925b8629e269a416de5307d8e59",
-      "bytes": 4320
+    "src/components/game/iq-card.tsx": {
+      "sha256": "de62088fcab5dc7b82902f073879a051ee5b63ce44797f239de3b9885405a302",
+      "bytes": 7756
     },
-    "src/components/layout/site-header.tsx": {
-      "sha256": "a5bc1f86503a40addc065d4d0664bcbeecac3503bad0830bb5bf8223d8798685",
-      "bytes": 9736
+    "src/components/game/game-shell.tsx": {
+      "sha256": "c1dd8ad2ed8bbae9e8372d2f44dba1f3a9908109b05b26b8afe151f67d0278ed",
+      "bytes": 19878
     },
-    "src/components/layout/site-footer.tsx": {
-      "sha256": "db74d1e4766fabf9e08155a8f8d8c6e8bd2745f686356470c3b8721ad730ee82",
-      "bytes": 4534
+    "src/components/pages/category-view.tsx": {
+      "sha256": "2b2622d1c291f4d6363f2750ff4e1ac510794988eff6ddec4a99dda77856e4b2",
+      "bytes": 1900
     },
-    "src/components/dashboard/dashboard-view.tsx": {
-      "sha256": "6278c6277ab347accae8635277987954ff6377a7e66286f1954960c98b194403",
-      "bytes": 14505
+    "src/components/pages/guides-view.tsx": {
+      "sha256": "b883bad30ccefae63c18df0088b2c1941d574b9035f6982c9f823e1cd379be6b",
+      "bytes": 5837
     },
-    "src/components/games/mini-crossword.tsx": {
-      "sha256": "ca7dfde305884b2a08a4b240a2df17d29f878eab4f0177bc18f476792ee74bf1",
-      "bytes": 57896
+    "src/components/pages/static-views.tsx": {
+      "sha256": "e11beea80b4481ce87534cecc48fb2e57eec0642602f14201146fcf3846506a2",
+      "bytes": 13038
     },
-    "src/components/games/schulte-table.tsx": {
-      "sha256": "204f3a36783e0dffa6cacf6eb8704492c71bbb7aa2bba5ab61e22104f7574480",
-      "bytes": 38026
-    },
-    "src/components/games/memory-match.tsx": {
-      "sha256": "7393029747e9c56ec8f4ec2f385b2cc5ae74e48845b1b1ed07f6af94f4bd3d5b",
-      "bytes": 35577
-    },
-    "src/components/games/2048-nutrition.tsx": {
-      "sha256": "18943417c4913ab642fb5dd8c8b3a94a9734d72bd21b5d21b1df0ef854f0d6d7",
-      "bytes": 42278
-    },
-    "src/components/games/merge-garden.tsx": {
-      "sha256": "23df1cba925027a99009393f176a1d8785a661d783d49f9497f46aa2a26eb0b3",
-      "bytes": 45737
-    },
-    "src/components/games/zen-fishing.tsx": {
-      "sha256": "85515fba90b119a7c2747b786e3e0a26943a4ece7bc697f246ca163772118b10",
-      "bytes": 56149
-    },
-    "src/components/games/sudoku.tsx": {
-      "sha256": "f494d23c835738b9f5c0636dca5a523995e071cf8cf8fd38b1564dd5ce6eeb0f",
-      "bytes": 49520
+    "src/components/home/home-view.tsx": {
+      "sha256": "fd0237b371f45ddcf9fd97f3995397b76eb822db0091c8947c1301ba1bc4413b",
+      "bytes": 16063
     },
     "src/components/games/minesweeper.tsx": {
       "sha256": "2746a193fc3f8aa5fc732b1266cccc46c0eb70c68e41bcaeb007cc72befa1f1b",
       "bytes": 52036
     },
-    "src/components/games/fruit-slice.tsx": {
-      "sha256": "9595fdc700ced821115a41001fefc4cdf79dbff30a7e5ba5dbabf5c11168dc16",
-      "bytes": 45717
+    "src/components/games/speed-math.tsx": {
+      "sha256": "a8fff4fa646f5cc7dd40990e0cce898430604f16af12be5f83110bfe2c189fb0",
+      "bytes": 40985
     },
-    "src/components/games/pill-toss.tsx": {
-      "sha256": "e7bdf352ea62a15763b660ff3f9865d289c6f499c64141dbf6ef74d87c74a68b",
-      "bytes": 53507
+    "src/components/games/schulte-table.tsx": {
+      "sha256": "204f3a36783e0dffa6cacf6eb8704492c71bbb7aa2bba5ab61e22104f7574480",
+      "bytes": 38026
     },
     "src/components/games/health-true-false.tsx": {
       "sha256": "aaa4921195d92fe99deb5473d290097b154bc664c1e14d7d22f2c246599b2344",
       "bytes": 43156
     },
-    "src/components/games/data/interactive-story-data.ts": {
-      "sha256": "b54710697036efcc1ec2a7ce54fe00d1af2e752e02d0e08c59232bc1625f74d1",
-      "bytes": 50524
+    "src/components/games/sudoku.tsx": {
+      "sha256": "f494d23c835738b9f5c0636dca5a523995e071cf8cf8fd38b1564dd5ce6eeb0f",
+      "bytes": 49520
     },
-    "src/components/games/data/health-true-false-data.ts": {
-      "sha256": "1a52c81f7e0d28d7014971b693ec475022740b4c064c5a1df6d428608dc4a65a",
-      "bytes": 46735
+    "src/components/games/daily-word.tsx": {
+      "sha256": "7ddba69aaa838eb5cbf17e0db79898f87933b060853c241d54b4066fd273d2cc",
+      "bytes": 48263
     },
-    "src/components/games/data/mini-crossword-data.ts": {
-      "sha256": "a658183ee37dd116274011e8e5d95dcc7c0bc774232f242aceb66f9a9c27e7b4",
-      "bytes": 14035
+    "src/components/games/pill-toss.tsx": {
+      "sha256": "e7bdf352ea62a15763b660ff3f9865d289c6f499c64141dbf6ef74d87c74a68b",
+      "bytes": 53507
     },
-    "src/components/games/data/guess-the-idiom-data.ts": {
-      "sha256": "f8f484251b5d27fedab9be3bda695f256309929ec875cda3e4ce7fe2e6861218",
-      "bytes": 60629
+    "src/components/games/zen-fishing.tsx": {
+      "sha256": "85515fba90b119a7c2747b786e3e0a26943a4ece7bc697f246ca163772118b10",
+      "bytes": 56149
+    },
+    "src/components/games/block-puzzle.tsx": {
+      "sha256": "08833156d16dadf34dd5e6ff6b3d17dbcfc11f454edcfd25145eb7bb11acbeb1",
+      "bytes": 50125
+    },
+    "src/components/games/mini-crossword.tsx": {
+      "sha256": "ca7dfde305884b2a08a4b240a2df17d29f878eab4f0177bc18f476792ee74bf1",
+      "bytes": 57896
+    },
+    "src/components/games/jigsaw-puzzle.tsx": {
+      "sha256": "50248806479e49788c96c1126337428b547af741b52c5b7a1644240bcc27f8b4",
+      "bytes": 56327
+    },
+    "src/components/games/merge-garden.tsx": {
+      "sha256": "23df1cba925027a99009393f176a1d8785a661d783d49f9497f46aa2a26eb0b3",
+      "bytes": 45737
+    },
+    "src/components/games/memory-match.tsx": {
+      "sha256": "7393029747e9c56ec8f4ec2f385b2cc5ae74e48845b1b1ed07f6af94f4bd3d5b",
+      "bytes": 35577
     },
     "src/components/games/data/longest-word-data.ts": {
       "sha256": "2e2997ca59479b690d390ca9407fe5e27ef467e7327e625716bab8b5bdaba30f",
@@ -671,13 +647,21 @@
       "sha256": "2eced3042000b14bb0a6c4a158fa8af76cfa2dbd7f68b0080505186fd85e305b",
       "bytes": 20959
     },
-    "src/components/games/speed-math.tsx": {
-      "sha256": "a8fff4fa646f5cc7dd40990e0cce898430604f16af12be5f83110bfe2c189fb0",
-      "bytes": 40985
+    "src/components/games/data/health-true-false-data.ts": {
+      "sha256": "1a52c81f7e0d28d7014971b693ec475022740b4c064c5a1df6d428608dc4a65a",
+      "bytes": 46735
     },
-    "src/components/games/daily-word.tsx": {
-      "sha256": "7ddba69aaa838eb5cbf17e0db79898f87933b060853c241d54b4066fd273d2cc",
-      "bytes": 48263
+    "src/components/games/data/guess-the-idiom-data.ts": {
+      "sha256": "f8f484251b5d27fedab9be3bda695f256309929ec875cda3e4ce7fe2e6861218",
+      "bytes": 60629
+    },
+    "src/components/games/data/interactive-story-data.ts": {
+      "sha256": "b54710697036efcc1ec2a7ce54fe00d1af2e752e02d0e08c59232bc1625f74d1",
+      "bytes": 50524
+    },
+    "src/components/games/data/mini-crossword-data.ts": {
+      "sha256": "a658183ee37dd116274011e8e5d95dcc7c0bc774232f242aceb66f9a9c27e7b4",
+      "bytes": 14035
     },
     "src/components/games/fire-escape.tsx": {
       "sha256": "2babb42ae027858ec13a5126d4246df00793709af335367790ca841248fa1b30",
@@ -687,109 +671,129 @@
       "sha256": "44af83b26b0a92eadb3696d850c43f412d5e9c441fc6c05f03209b27e884ef6b",
       "bytes": 49072
     },
-    "src/components/games/guess-the-idiom.tsx": {
-      "sha256": "4deda6a9ff80652b5169f1994dea77b8e99728fc466a667936d89dfddf90918a",
-      "bytes": 64102
-    },
-    "src/components/games/block-puzzle.tsx": {
-      "sha256": "08833156d16dadf34dd5e6ff6b3d17dbcfc11f454edcfd25145eb7bb11acbeb1",
-      "bytes": 50125
-    },
-    "src/components/games/longest-word.tsx": {
-      "sha256": "5f662ecfe0b2d4fff5ea1ba1ecc541ab88cf2724af26aeb98dfc81b3dc5d9436",
-      "bytes": 56751
-    },
-    "src/components/games/jigsaw-puzzle.tsx": {
-      "sha256": "50248806479e49788c96c1126337428b547af741b52c5b7a1644240bcc27f8b4",
-      "bytes": 56327
+    "src/components/games/fruit-slice.tsx": {
+      "sha256": "9595fdc700ced821115a41001fefc4cdf79dbff30a7e5ba5dbabf5c11168dc16",
+      "bytes": 45717
     },
     "src/components/games/sequence-memory.tsx": {
       "sha256": "63c9d0c8902007f40158c0bd96f4c839e82e2433d95976e397ad4ff2a2d1b884",
       "bytes": 32409
     },
-    "src/hooks/use-mobile.ts": {
-      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
-      "bytes": 565
+    "src/components/games/guess-the-idiom.tsx": {
+      "sha256": "4deda6a9ff80652b5169f1994dea77b8e99728fc466a667936d89dfddf90918a",
+      "bytes": 64102
+    },
+    "src/components/games/longest-word.tsx": {
+      "sha256": "5f662ecfe0b2d4fff5ea1ba1ecc541ab88cf2724af26aeb98dfc81b3dc5d9436",
+      "bytes": 56751
+    },
+    "src/components/games/2048-nutrition.tsx": {
+      "sha256": "18943417c4913ab642fb5dd8c8b3a94a9734d72bd21b5d21b1df0ef854f0d6d7",
+      "bytes": 42278
+    },
+    "src/components/granmed-app.tsx": {
+      "sha256": "14d61c0f1c3a77dd9e14824da6f7c09c98ca9925b8629e269a416de5307d8e59",
+      "bytes": 4320
     },
     "src/hooks/use-toast.ts": {
       "sha256": "12f8fcd1101acdd4a1cf6952d85aa8997d2a53aa9956d3cb77a85d441e54b1a9",
       "bytes": 3917
     },
-    "src/lib/utils-game.ts": {
-      "sha256": "6546961d6fd188c6afc91088382cbabcdf84e646f71cc7bfcece5e4bbe8734a9",
-      "bytes": 3769
-    },
-    "src/lib/utils.ts": {
-      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
-      "bytes": 166
-    },
-    "src/lib/app-store.ts": {
-      "sha256": "0a974292e5901f03abb3d8285e05e240be7a455f8672c34411554dd8a59c14be",
-      "bytes": 6483
-    },
-    "src/lib/progress/levels.ts": {
-      "sha256": "864654ccc9dd7aad004f37b67f82d262adab9cd5dc74efc53bbecd1199b51a07",
-      "bytes": 2990
-    },
-    "src/lib/progress/store.ts": {
-      "sha256": "0ffddf0bd73c06aefc2c4bc61cafd0ad3296258a73ca5220d594b0875387ad1d",
-      "bytes": 10360
-    },
-    "src/lib/progress/badges.ts": {
-      "sha256": "3282c6f881c41cc86f6dede1938456561d5867f1b0835bbc6fc7b60d068545cc",
-      "bytes": 10703
-    },
-    "src/lib/game-session.ts": {
-      "sha256": "a6745c1af7108819363079346f09a0f532e19081031425a2e0f3d7108ffc4fd7",
-      "bytes": 828
-    },
-    "src/lib/save.ts": {
-      "sha256": "497ca5f1294d605919548a8b83b575c06fae09b651a26d1c1cb8e997933fbce6",
-      "bytes": 744
-    },
-    "src/lib/games/iq.ts": {
-      "sha256": "d85354505625b5f88da4621bd5d81153bea9727f2b263436f39c38feb19e5318",
-      "bytes": 6531
-    },
-    "src/lib/games/types.ts": {
-      "sha256": "79c2cadcd64c8def0cc75d7a454453f296bf6aac19aad307ca68fbcac8cdae84",
-      "bytes": 1041
-    },
-    "src/lib/i18n.ts": {
-      "sha256": "da7ca3415d55965ca4e944d577f17142302035a9eaafc0cf25abef493f72ca5c",
-      "bytes": 16325
-    },
-    "src/lib/content/home-faq.ts": {
-      "sha256": "305ee0df49ed1fdfd5db7d2c7cebf996bc4bc87afb48083fe45b6dadefd27a0d",
-      "bytes": 7340
-    },
-    "src/lib/content/guides.ts": {
-      "sha256": "00baa48aa2905eef2a29fff4692675c7129381aa494a667842b0847dd41552d6",
-      "bytes": 26279
-    },
-    "src/lib/sound/index.ts": {
-      "sha256": "4352a3f5d0bc657fa3b7f4845e28608aab80203a21b918aca068a208ed5755a6",
-      "bytes": 4096
+    "src/hooks/use-mobile.ts": {
+      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
+      "bytes": 565
     },
     "src/lib/db.ts": {
       "sha256": "ce5d51390121a452bc0a4d5208deaff71c583177773bcbbcd15b0af8ab48e2fc",
       "bytes": 299
     },
-    "public/icons/apple-touch-icon.png": {
-      "sha256": "ff7f153dda48c299bd48afb594fbcf721e2d9cfdf7b2f9e97fef90565c8f7fbf",
-      "bytes": 2973
+    "src/lib/game-session.ts": {
+      "sha256": "a6745c1af7108819363079346f09a0f532e19081031425a2e0f3d7108ffc4fd7",
+      "bytes": 828
+    },
+    "src/lib/utils-game.ts": {
+      "sha256": "6546961d6fd188c6afc91088382cbabcdf84e646f71cc7bfcece5e4bbe8734a9",
+      "bytes": 3769
+    },
+    "src/lib/progress/badges.ts": {
+      "sha256": "3282c6f881c41cc86f6dede1938456561d5867f1b0835bbc6fc7b60d068545cc",
+      "bytes": 10703
+    },
+    "src/lib/progress/store.ts": {
+      "sha256": "0ffddf0bd73c06aefc2c4bc61cafd0ad3296258a73ca5220d594b0875387ad1d",
+      "bytes": 10360
+    },
+    "src/lib/progress/levels.ts": {
+      "sha256": "864654ccc9dd7aad004f37b67f82d262adab9cd5dc74efc53bbecd1199b51a07",
+      "bytes": 2990
+    },
+    "src/lib/app-store.ts": {
+      "sha256": "0a974292e5901f03abb3d8285e05e240be7a455f8672c34411554dd8a59c14be",
+      "bytes": 6483
+    },
+    "src/lib/utils.ts": {
+      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "bytes": 166
+    },
+    "src/lib/games/types.ts": {
+      "sha256": "79c2cadcd64c8def0cc75d7a454453f296bf6aac19aad307ca68fbcac8cdae84",
+      "bytes": 1041
+    },
+    "src/lib/games/iq.ts": {
+      "sha256": "d85354505625b5f88da4621bd5d81153bea9727f2b263436f39c38feb19e5318",
+      "bytes": 6531
+    },
+    "src/lib/content/guides.ts": {
+      "sha256": "00baa48aa2905eef2a29fff4692675c7129381aa494a667842b0847dd41552d6",
+      "bytes": 26279
+    },
+    "src/lib/content/home-faq.ts": {
+      "sha256": "305ee0df49ed1fdfd5db7d2c7cebf996bc4bc87afb48083fe45b6dadefd27a0d",
+      "bytes": 7340
+    },
+    "src/lib/save.ts": {
+      "sha256": "497ca5f1294d605919548a8b83b575c06fae09b651a26d1c1cb8e997933fbce6",
+      "bytes": 744
+    },
+    "src/lib/sound/index.ts": {
+      "sha256": "4352a3f5d0bc657fa3b7f4845e28608aab80203a21b918aca068a208ed5755a6",
+      "bytes": 4096
+    },
+    "src/lib/i18n.ts": {
+      "sha256": "da7ca3415d55965ca4e944d577f17142302035a9eaafc0cf25abef493f72ca5c",
+      "bytes": 16325
+    },
+    "src/app/favicon.ico": {
+      "sha256": "50fe0ceb944f871352d4e6d00dd802c515b48630119017ca1ad4e1eba1dcc753",
+      "bytes": 5266
+    },
+    "src/app/api/route.ts": {
+      "sha256": "bb3323e70b608cf916b285f8942d8efabb02166f84f9e5a8aa6fe9e417344bce",
+      "bytes": 134
+    },
+    "src/app/layout.tsx": {
+      "sha256": "b63fb507f28348c197ffe46cb885f08693d2d84b617d0a9aba1430bf2c1fbdfa",
+      "bytes": 5397
+    },
+    "src/app/globals.css": {
+      "sha256": "2769299d8e5836a421c530099592188d0a04a6748987009c703696dfac7666c2",
+      "bytes": 24141
+    },
+    "src/app/page.tsx": {
+      "sha256": "f25f53eaabbf3f94caab9ad1452092317f1d7f14de8fb669b59a5cf9ddfe17d6",
+      "bytes": 9707
+    },
+    "public/sitemap.xml": {
+      "sha256": "fd952d512fc2c13c63275464763a07318d500d8ef1a4d7b9a4daaf384ed47bc1",
+      "bytes": 965
     },
     "public/icons/icon-512.png": {
       "sha256": "ed2615eb022a2b8df25ba489a9ae3b81f12e5fd3c5f8e16967428011179a20ff",
       "bytes": 15796
     },
-    "public/icons/icon-maskable-512.png": {
-      "sha256": "2f5e016d06890b0810f9816ba4c348f41386650bd7d90a5f798e3a407a3714d5",
-      "bytes": 9524
-    },
-    "public/icons/icon-maskable-192.png": {
-      "sha256": "77b626d88db29714fbb9c0a9c3c596fba96bd8d0213ff0db7047af718744856b",
-      "bytes": 3135
+    "public/icons/apple-touch-icon.png": {
+      "sha256": "ff7f153dda48c299bd48afb594fbcf721e2d9cfdf7b2f9e97fef90565c8f7fbf",
+      "bytes": 2973
     },
     "public/icons/screenshot-wide.png": {
       "sha256": "7c80ea5c828bb4a8dd784efbf7b5574b766174fe0e23fd989698051daac83b77",
@@ -799,45 +803,33 @@
       "sha256": "7e5677105b2f5c8cfd9fc352d0561d64e54f2feeb582aacee120e339a6e783d0",
       "bytes": 5116
     },
+    "public/icons/icon-maskable-192.png": {
+      "sha256": "77b626d88db29714fbb9c0a9c3c596fba96bd8d0213ff0db7047af718744856b",
+      "bytes": 3135
+    },
+    "public/icons/icon-maskable-512.png": {
+      "sha256": "2f5e016d06890b0810f9816ba4c348f41386650bd7d90a5f798e3a407a3714d5",
+      "bytes": 9524
+    },
     "public/icons/screenshot-narrow.png": {
       "sha256": "c34370a6276ee27564ecb78cfa8aeffadab91e9e4636539828f0ffe7573c3d72",
       "bytes": 171895
     },
-    "public/sitemap.xml": {
-      "sha256": "bfc306a4b7cbbfaf90ff1e3f84dbc2f003f17a1f64850ea35b4c6386ea363732",
-      "bytes": 263
+    "public/logo.svg": {
+      "sha256": "8506450e8ef647695d218c4b3245ef573f9c6473783f372eef87fdba9bd47eac",
+      "bytes": 1065
     },
-    "public/images/jigsaw-cat.png": {
-      "sha256": "556475700e7b16c9590d89bcc7e8227dade6614a59f898f00945c9c2fdc86093",
-      "bytes": 168613
+    "public/robots.txt": {
+      "sha256": "63b11c1bca5fecba42218fb4489ebcb8d48dc8ffadd030e5d4058f62f02b4648",
+      "bytes": 828
     },
-    "public/images/hero-granmed.png": {
-      "sha256": "6e22e727da89483ca6ba83968365f5cbd35b68825b14642463a234145a8db46a",
-      "bytes": 149725
+    "public/manifest.webmanifest": {
+      "sha256": "4b6f6aecc5cb5c2607fdfef8a53fafd8c19fa3d990acb2af03f6a84d488795f3",
+      "bytes": 1602
     },
-    "public/images/jigsaw-lake.png": {
-      "sha256": "5bd66c303792f0606078f5f85b156cdf5ebd8a2faf2077cf784262f5076cf4d7",
-      "bytes": 158441
-    },
-    "public/images/jigsaw-market.png": {
-      "sha256": "07a9b3a7f9bdb7e9ab6a1a26b40147b9bb690608f87a2d182d13ba3c37aee270",
-      "bytes": 173409
-    },
-    "public/images/jigsaw-lavender.png": {
-      "sha256": "de4be829df6b72aeeda3de404c98b70e5e7521213cad7672c5e84047777555bb",
-      "bytes": 170747
-    },
-    "public/images/jigsaw-garden.png": {
-      "sha256": "f6ecbecc0221119065af4f80637e67515658a8e7fc935bf1dc6774ae39fecc52",
-      "bytes": 193562
-    },
-    "public/images/og-granmed.png": {
-      "sha256": "3dfde721ee93743c8af280afde96937c89772f52121f4caa044f94bdf07bbc91",
-      "bytes": 114200
-    },
-    "public/images/jigsaw-kitchen.png": {
-      "sha256": "60805ff8ef431261a1016696aded0638b79904aed705f15a1f3c2b1f15e34bb3",
-      "bytes": 119498
+    "public/sounds/win.mp3": {
+      "sha256": "2d27ade509a6fe7471304d5f819d6dee3fe1607ead0ad38efbb344404c322f5e",
+      "bytes": 38625
     },
     "public/sounds/correct.mp3": {
       "sha256": "c5246de9f6929c879679c617bcc985421e26ed588f8f4cd17fbbda5c59ab066d",
@@ -847,17 +839,37 @@
       "sha256": "e08186dfb1fae811e32c87dce8fd43eb3efdbacb163866e396647eedf77e0913",
       "bytes": 6037
     },
-    "public/sounds/wrong.mp3": {
-      "sha256": "f01766666cf5c9f0f4597c26d1df7c1a0b49c8bdc9436659287898c75c63b454",
-      "bytes": 20849
+    "public/sounds/pair.mp3": {
+      "sha256": "7279dd712192dda27d8d5657a3c63cb016d59f9defc9a885af5d49cc973608d6",
+      "bytes": 14439
+    },
+    "public/sounds/click.mp3": {
+      "sha256": "06e28a44d8b781c398a542226a9695a3d7f733b355513ee16b7596c5c1afcf32",
+      "bytes": 3146
+    },
+    "public/sounds/slice.mp3": {
+      "sha256": "913513cedf8472eb430405aa1ffcabd2d1f82463c016d9a91a9c7cce717ca4ce",
+      "bytes": 12820
+    },
+    "public/sounds/flip.mp3": {
+      "sha256": "5a97d7c1f79cf0549fd246100be772cd7e215327902a02c00dd4f27d82a3944e",
+      "bytes": 8024
+    },
+    "public/sounds/coin.mp3": {
+      "sha256": "92bb3b680e3203c0dd0e0b2078ade9d5b9eab5f852481b023593036f23ce5a6e",
+      "bytes": 15454
     },
     "public/sounds/merge.mp3": {
       "sha256": "000b4b84f4f92afb699a07710dadcdf046344dd6fd59334193d19e4295ad65de",
       "bytes": 24998
     },
-    "public/sounds/swish.mp3": {
-      "sha256": "e8116be2826d048586806364d7d6b1af112081da4de53e49fb8caab85de9ccdc",
-      "bytes": 7415
+    "public/sounds/LICENSE.md": {
+      "sha256": "41a94256e9b37db20995c867be397c9c4465850229769df236011d3128955da3",
+      "bytes": 2695
+    },
+    "public/sounds/reveal.mp3": {
+      "sha256": "091a8847a019af80cb2d4b4871664e7914f69714b3d992e5bad342641eaa64ce",
+      "bytes": 15400
     },
     "public/sounds/sweep.mp3": {
       "sha256": "8c270c4353f079a9ec76dbeae692ee6f68e1b1c4c167463145acb753e0b923fb",
@@ -867,21 +879,13 @@
       "sha256": "414ef5b064107a96d777d540b4338b55110ac28f9e02816412dacf820b0e9a91",
       "bytes": 25730
     },
-    "public/sounds/win.mp3": {
-      "sha256": "2d27ade509a6fe7471304d5f819d6dee3fe1607ead0ad38efbb344404c322f5e",
-      "bytes": 38625
+    "public/sounds/achievement.mp3": {
+      "sha256": "1512d36d6315f9194796baad623d143ec89e857f55ae5c5513b99a89c8cdd4ca",
+      "bytes": 18409
     },
-    "public/sounds/LICENSE.md": {
-      "sha256": "41a94256e9b37db20995c867be397c9c4465850229769df236011d3128955da3",
-      "bytes": 2695
-    },
-    "public/sounds/pair.mp3": {
-      "sha256": "7279dd712192dda27d8d5657a3c63cb016d59f9defc9a885af5d49cc973608d6",
-      "bytes": 14439
-    },
-    "public/sounds/flip.mp3": {
-      "sha256": "5a97d7c1f79cf0549fd246100be772cd7e215327902a02c00dd4f27d82a3944e",
-      "bytes": 8024
+    "public/sounds/wrong.mp3": {
+      "sha256": "f01766666cf5c9f0f4597c26d1df7c1a0b49c8bdc9436659287898c75c63b454",
+      "bytes": 20849
     },
     "public/sounds/pop.mp3": {
       "sha256": "2387e5f03862a2759f28ec3659a5d65a37e67e4e96567064791895c78b8adecd",
@@ -891,53 +895,57 @@
       "sha256": "5846d697134149b52247c0989793c6b9b164d5713890827602fdf73524cdd30c",
       "bytes": 5353
     },
-    "public/sounds/lose.mp3": {
-      "sha256": "35cb4ea65fa5f85b4d460038dd75d006259bbd582fa23eb1f4c52a4dee661edb",
-      "bytes": 37877
+    "public/sounds/swish.mp3": {
+      "sha256": "e8116be2826d048586806364d7d6b1af112081da4de53e49fb8caab85de9ccdc",
+      "bytes": 7415
     },
     "public/sounds/levelup.mp3": {
       "sha256": "769bb423e175984234c0fe89bda2d36efa8c503c25a682b1086fa2bab3ab8de2",
       "bytes": 33285
     },
-    "public/sounds/slice.mp3": {
-      "sha256": "913513cedf8472eb430405aa1ffcabd2d1f82463c016d9a91a9c7cce717ca4ce",
-      "bytes": 12820
-    },
-    "public/sounds/click.mp3": {
-      "sha256": "06e28a44d8b781c398a542226a9695a3d7f733b355513ee16b7596c5c1afcf32",
-      "bytes": 3146
-    },
-    "public/sounds/coin.mp3": {
-      "sha256": "92bb3b680e3203c0dd0e0b2078ade9d5b9eab5f852481b023593036f23ce5a6e",
-      "bytes": 15454
-    },
-    "public/sounds/achievement.mp3": {
-      "sha256": "1512d36d6315f9194796baad623d143ec89e857f55ae5c5513b99a89c8cdd4ca",
-      "bytes": 18409
-    },
-    "public/sounds/reveal.mp3": {
-      "sha256": "091a8847a019af80cb2d4b4871664e7914f69714b3d992e5bad342641eaa64ce",
-      "bytes": 15400
+    "public/sounds/lose.mp3": {
+      "sha256": "35cb4ea65fa5f85b4d460038dd75d006259bbd582fa23eb1f4c52a4dee661edb",
+      "bytes": 37877
     },
     "public/sw.js": {
       "sha256": "d2ad768c84af4ffc8e157e2b8b4ab205b5df3f4739f439e97da02c606b43cae7",
       "bytes": 3957
     },
     "public/llms.txt": {
-      "sha256": "8fb2383c0360e185f52dcf1942cba2d89e27259469041a17fc4b184fd6748279",
-      "bytes": 10056
+      "sha256": "9c0a791aad205c95430c2812f5c23d7dcdfbf72b0ed297a0dd07760f8d4af42e",
+      "bytes": 10266
     },
-    "public/robots.txt": {
-      "sha256": "959d096980f0162bc49562058310d6bcad942f72d346305f28db56ab5837297d",
-      "bytes": 544
+    "public/images/jigsaw-market.png": {
+      "sha256": "07a9b3a7f9bdb7e9ab6a1a26b40147b9bb690608f87a2d182d13ba3c37aee270",
+      "bytes": 173409
     },
-    "public/logo.svg": {
-      "sha256": "8506450e8ef647695d218c4b3245ef573f9c6473783f372eef87fdba9bd47eac",
-      "bytes": 1065
+    "public/images/jigsaw-garden.png": {
+      "sha256": "f6ecbecc0221119065af4f80637e67515658a8e7fc935bf1dc6774ae39fecc52",
+      "bytes": 193562
     },
-    "public/manifest.webmanifest": {
-      "sha256": "f70b241c54ba704b93899334d03fbc049b2e2c62969898cdcedd2f7487f3a681",
-      "bytes": 1435
+    "public/images/hero-granmed.png": {
+      "sha256": "6e22e727da89483ca6ba83968365f5cbd35b68825b14642463a234145a8db46a",
+      "bytes": 149725
+    },
+    "public/images/jigsaw-lavender.png": {
+      "sha256": "de4be829df6b72aeeda3de404c98b70e5e7521213cad7672c5e84047777555bb",
+      "bytes": 170747
+    },
+    "public/images/jigsaw-kitchen.png": {
+      "sha256": "60805ff8ef431261a1016696aded0638b79904aed705f15a1f3c2b1f15e34bb3",
+      "bytes": 119498
+    },
+    "public/images/jigsaw-cat.png": {
+      "sha256": "556475700e7b16c9590d89bcc7e8227dade6614a59f898f00945c9c2fdc86093",
+      "bytes": 168613
+    },
+    "public/images/og-granmed.png": {
+      "sha256": "3dfde721ee93743c8af280afde96937c89772f52121f4caa044f94bdf07bbc91",
+      "bytes": 114200
+    },
+    "public/images/jigsaw-lake.png": {
+      "sha256": "5bd66c303792f0606078f5f85b156cdf5ebd8a2faf2077cf784262f5076cf4d7",
+      "bytes": 158441
     },
     "protection/integrity.ts": {
       "sha256": "7a80a7867d68cdbb8469d6ca60c79eea07459044e7dc068507d247bc459beffd",

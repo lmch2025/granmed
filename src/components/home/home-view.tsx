@@ -5,13 +5,13 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
-import { useAppStore } from '@/lib/app-store'
 import { CATEGORIES, GAMES, dailyFeaturedGame, popularGames, recentGames } from '@/lib/games/catalog'
 import { useTotalStats, useProfileStore, xpProgress } from '@/lib/progress/store'
 import { useHydrated, todayKey } from '@/lib/utils-game'
 import { GUIDES } from '@/lib/content/guides'
 import { HOME_FAQ } from '@/lib/content/home-faq'
 import { GameCard, GradientTile, SectionHeader, GameGrid } from '@/components/shared/ui-bits'
+import { HashLink } from '@/components/shared/hash-link'
 import { GamePreview } from '@/components/shared/game-preview'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
@@ -19,17 +19,11 @@ import { Button } from '@/components/ui/button'
 export function HomeView() {
   const t = useT()
   const lang = useLang()
-  const navigate = useAppStore((s) => s.navigate)
   const hydrated = useHydrated()
   const totals = useTotalStats()
   const xp = useProfileStore((s) => s.profile.xp)
   const prog = xpProgress(xp)
   const dailyGame = dailyFeaturedGame(todayKey())
-
-  const goGame = (slug: string) => {
-    sfx.play('click')
-    navigate({ type: 'game', slug })
-  }
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
@@ -49,13 +43,12 @@ export function HomeView() {
               <Button
                 size="lg"
                 className="h-12 rounded-full px-7 text-base anim-glow"
-                onClick={() => {
-                  sfx.play('pop')
-                  goGame(dailyGame.slug)
-                }}
+                asChild
               >
-                <Gamepad2 className="h-5 w-5" aria-hidden="true" />
-                {t('home.heroCta')}
+                <HashLink view={{ type: 'game', slug: dailyGame.slug }} sound={null} onNavigate={() => sfx.play('pop')}>
+                  <Gamepad2 className="h-5 w-5" aria-hidden="true" />
+                  {t('home.heroCta')}
+                </HashLink>
               </Button>
               <Button
                 size="lg"
@@ -106,13 +99,14 @@ export function HomeView() {
         <SectionHeader id="daily-title" icon="🎯" title={t('home.dailyTitle')} sub={t('home.dailySub')} />
         <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-amber-300/50 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm transition-shadow hover:shadow-md dark:border-amber-500/25 dark:from-amber-500/10 dark:to-orange-500/10 sm:p-6">
           {/* aperçu animé du jeu du jour */}
-          <div
+          <HashLink
+            view={{ type: 'game', slug: dailyGame.slug }}
             className="hidden w-44 shrink-0 cursor-pointer overflow-hidden rounded-2xl shadow-md ring-1 ring-amber-300/40 transition-transform duration-300 hover:scale-[1.03] sm:block"
             aria-hidden="true"
-            onClick={() => goGame(dailyGame.slug)}
+            tabIndex={-1}
           >
             <GamePreview slug={dailyGame.slug} className="aspect-[4/3] w-full" />
-          </div>
+          </HashLink>
           <GradientTile icon={dailyGame.icon} category={dailyGame.category} size="xl" className="anim-glow sm:hidden" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">{todayKey()}</p>
@@ -126,9 +120,11 @@ export function HomeView() {
                 {totals.streak} {t('common.days')}
               </span>
             ) : null}
-            <Button size="lg" className="rounded-full" onClick={() => goGame(dailyGame.slug)}>
-              <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-              {t('common.play')}
+            <Button size="lg" className="rounded-full" asChild>
+              <HashLink view={{ type: 'game', slug: dailyGame.slug }}>
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                {t('common.play')}
+              </HashLink>
             </Button>
           </div>
         </div>
@@ -152,17 +148,11 @@ export function HomeView() {
               title={cat.name[lang]}
               sub={cat.tagline[lang]}
               action={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1 rounded-full"
-                  onClick={() => {
-                    sfx.play('click')
-                    navigate({ type: 'category', id: cat.id })
-                  }}
-                >
-                  {t('home.viewAll')}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <Button variant="ghost" size="sm" className="gap-1 rounded-full" asChild>
+                  <HashLink view={{ type: 'category', id: cat.id }}>
+                    {t('home.viewAll')}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </HashLink>
                 </Button>
               }
             />
@@ -217,17 +207,11 @@ export function HomeView() {
             )}
           </div>
           <div className="flex items-center justify-center">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="h-12 rounded-full px-6"
-              onClick={() => {
-                sfx.play('click')
-                navigate({ type: 'dashboard' })
-              }}
-            >
-              <Trophy className="h-5 w-5 text-amber-500" aria-hidden="true" />
-              {t('home.openJourney')}
+            <Button size="lg" variant="secondary" className="h-12 rounded-full px-6" asChild>
+              <HashLink view={{ type: 'dashboard' }}>
+                <Trophy className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                {t('home.openJourney')}
+              </HashLink>
             </Button>
           </div>
         </div>
@@ -247,30 +231,20 @@ export function HomeView() {
           title={t('home.guidesTitle')}
           sub={t('home.guidesSub')}
           action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1 rounded-full"
-              onClick={() => {
-                sfx.play('click')
-                navigate({ type: 'guides' })
-              }}
-            >
-              {t('home.viewAll')}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <Button variant="ghost" size="sm" className="gap-1 rounded-full" asChild>
+              <HashLink view={{ type: 'guides' }}>
+                {t('home.viewAll')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </HashLink>
             </Button>
           }
         />
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDES.slice(0, 4).map((g) => (
-            <button
+            <HashLink
               key={g.slug}
-              type="button"
-              onClick={() => {
-                sfx.play('click')
-                navigate({ type: 'guide', slug: g.slug })
-              }}
-              className="group flex items-start gap-4 rounded-2xl border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring sm:p-5"
+              view={{ type: 'guide', slug: g.slug }}
+              className="group flex items-start gap-4 rounded-2xl border bg-card p-4 text-left text-inherit no-underline shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring sm:p-5"
             >
               <span className="text-3xl transition-transform group-hover:scale-110" aria-hidden="true">
                 {g.icon}
@@ -283,7 +257,7 @@ export function HomeView() {
                   {g.readMinutes} min
                 </span>
               </span>
-            </button>
+            </HashLink>
           ))}
         </div>
       </section>
