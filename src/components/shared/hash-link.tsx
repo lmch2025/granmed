@@ -2,7 +2,8 @@
 
 import type { AnchorHTMLAttributes, ReactNode } from 'react'
 import { sfx } from '@/lib/sound'
-import { buildHash, useAppStore, type View } from '@/lib/app-store'
+import { buildHash, type View } from '@/lib/app-store'
+import { useLang } from '@/lib/i18n'
 
 /**
  * HashLink — ancre de navigation interne SEO-friendly (Task 21, audit strict).
@@ -30,7 +31,9 @@ export function HashLink({
   onNavigate?: () => void
   children: ReactNode
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) {
-  const lang = useAppStore((s) => s.lang)
+  /* Task 22 : useLang (et non le store brut) afin que les ancres SSR de `/?lang=en`
+     pointent vers `#/en/…` — maillage interne cohérent avec la langue servie. */
+  const lang = useLang()
 
   return (
     <a

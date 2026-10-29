@@ -60,3 +60,17 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (15) : src/components/layout/site-header.tsx, src/components/layout/site-footer.tsx, src/components/shared/ui-bits.tsx, src/components/dashboard/dashboard-view.tsx, src/components/game/game-page.tsx, src/components/pages/category-view.tsx, src/components/pages/guides-view.tsx, src/components/pages/static-views.tsx, src/components/home/home-view.tsx, src/app/layout.tsx, src/app/page.tsx, public/sitemap.xml, public/robots.txt, public/manifest.webmanifest, public/llms.txt
 - Suppressions (0) : aucune
 
+## 2026-10-29 20:25 — Task 22 (ultime audit, force majeure sanctionnée par la demande utilisateur : « ultime audit afin d'identifier tout ce qui peut pénaliser notre PWA ainsi que tous ses jeux en chaque langue (en/fr) et le cas échéant corrigeons tout immédiatement et de façon stricte pour être aligné parfaitement SEO, GEO et AIO, ainsi que les mots-clés à forts volumes et longue traîne » + « assurons-nous que le composant d'installation s'affiche toujours ») : (1) /?lang=en sert désormais un HTML ENTIÈREMENT anglais dans le HTML brut — new proxy.ts (ajout pur, convention Next 16) propage ?lang en en-tête x-granmed-lang ; layout.tsx lit headers() pour <html lang> exact sans JS ; LangOverrideContext (i18n.ts) + GranmedApp initialLang rendent le CORPS serveur anglais (crawlers sans JS : GPTBot, ClaudeBot, PerplexityBot) ; hash-link.tsx utilise useLang pour des ancres #/en cohérentes ; (2) app-store.ts : robots de rendu → langue canonique FR (cohérence canonique/hreflang/sitemap) + setLang synchronise ?lang=en⟺EN dans l'URL ; (3) og-granmed.png ré-encodé en vrai PNG (était JPEG avec Content-Type image/png — mismatch validateurs) 1344×768 préservé ; (4) catalogue : champ keywords ajouté (ajout pur append-only) aux 20 jeux × FR/EN (fort volume + longue traîne par niche) et exposé dans VideoGame.keywords du JSON-LD ; vérifié : FR = 64 ancres #/fr + corps FR + lang=fr, EN = 64 ancres #/en + corps 100 % EN + lang=en + title EN ; 0 suppression de fonctionnalité — installation PWA, sons, scrolls et destinations d'origine préservés
+- Commit : `4e3efb690d84`
+- Jeux protégés : 20
+- Ajouts (1) : src/proxy.ts
+- Modifications (8) : src/components/shared/hash-link.tsx, src/components/granmed-app.tsx, src/lib/app-store.ts, src/lib/i18n.ts, src/app/layout.tsx, src/app/page.tsx, public/images/og-granmed.png, src/lib/games/catalog.ts
+- Suppressions (0) : aucune
+
+## 2026-10-29 20:29 — Task 22 (ultime audit — complément après vérification E2E agent-browser) : correctif setLang — pushState avec pathname explicite, car un pushState '#/…' relatif ne remplace que le fragment et conservait une query ?lang=en obsolète après bascule EN→FR (testé : /#/fr et /?lang=en#/en désormais invariants, ?lang=en ⟺ anglais actif). Le reste du lot Task 22 est inchangé : /?lang=en 100 % anglais dans le HTML brut (proxy.ts x-granmed-lang → <html lang>, LangOverrideContext → corps, useLang dans hash-link → ancres #/en), robots de rendu → langue canonique FR, og-granmed.png vrai PNG, catalogue keywords 20 jeux FR/EN → VideoGame.keywords JSON-LD
+- Commit : `4e3efb690d84`
+- Jeux protégés : 20
+- Ajouts (0) : aucun
+- Modifications (1) : src/lib/app-store.ts
+- Suppressions (0) : aucune
+

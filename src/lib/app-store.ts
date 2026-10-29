@@ -18,6 +18,8 @@ export type View =
 interface AppState {
   lang: Lang
   view: View
+  /** Vrai dès que init() a lu l'URL — coupe l'override SSR de langue (Task 22). */
+  initialized: boolean
   /** Initialise le store depuis l'URL (hash + ?lang=) et détecte la langue. */
   init: () => void
   setLang: (lang: Lang) => void
@@ -38,6 +40,13 @@ function readStoredLang(): Lang | null {
 
 function detectLang(): Lang {
   if (typeof navigator !== 'undefined') {
+    /* Task 22 (audit ultime) : les robots de rendu (Googlebot, Bingbot, crawlers
+       IA…) reçoivent la langue canonique par défaut (FR sur `/`) — leurs
+       préférences navigateur (souvent en-US) ne doivent pas faire diverger le
+       contenu rendu de la canonique, du hreflang et du sitemap. */
+    if (/bot|crawl|spider|slurp|bingpreview|lighthouse|headlesschrome|puppeteer|playwright/i.test(navigator.userAgent)) {
+      return 'fr'
+    }
     const langs = navigator.languages ?? [navigator.language]
     for (const l of langs) {
       if (l?.toLowerCase().startsWith('fr')) return 'fr'
@@ -141,6 +150,7 @@ function viewPath(view: View, lang: Lang): string {
 export const useAppStore = create<AppState>((set, get) => ({
   lang: 'fr',
   view: { type: 'home' },
+  initialized: false,
 
   init: () => {
     // 1. Langue : ?lang= > choix mémorisé > détection navigateur (défaut : EN si non supportée, FR par défaut serveur)
@@ -158,7 +168,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // 2. Vue depuis le hash
     const { lang: hashLang, view } = parseHash(window.location.hash)
     if (hashLang) lang = hashLang
-    set({ lang, view })
+    set({ lang, view, initialized: true })
     if (!window.location.hash) {
       window.history.replaceState(null, '', buildHash(lang, view))
     }
@@ -175,7 +185,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       localStorage.setItem(LANG_KEY, lang)
     } catch {}
     const hash = buildHash(lang, get().view)
-    window.history.pushState(null, '', hash)
+    /* Task 22 : l'URL porte toujours la langue active (?lang=en ⟺ anglais) —
+       cohérence canonique/métadonnées pour les moteurs qui exécutent JS.
+       NB : pathname explicite requis — un pushState '#/…' seul ne remplacerait
+       QUE le fragment et conserverait une query ?lang=en obsolète. */
+    const search = lang === 'en' ? '?lang=en' : ''
+    window.history.pushState(null, '', `${window.location.pathname}${search}${hash}`)
     // déclenche un rendu cohérent sans recharger
     window.dispatchEvent(new HashChangeEvent('hashchange'))
   },

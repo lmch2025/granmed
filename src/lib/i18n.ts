@@ -1,9 +1,20 @@
 'use client'
 
+import { createContext, useContext } from 'react'
 import { useAppStore } from '@/lib/app-store'
 
 export type Lang = 'fr' | 'en'
 export const LANGS: Lang[] = ['fr', 'en']
+
+/**
+ * Task 22 (audit ultime SEO/GEO/AIO) : langue SSR transmise par le serveur.
+ * `/?lang=en` doit servir un HTML entièrement anglais Y COMPRIS pour les moteurs
+ * qui n'exécutent pas JavaScript (GPTBot, ClaudeBot, PerplexityBot…). Ce contexte
+ * est actif uniquement AVANT l'initialisation du routeur client (SSR + première
+ * passe d'hydratation), puis s'efface au profit du store — aucun flash, aucune
+ * divergence d'hydratation (le serveur et le client utilisent la même prop).
+ */
+export const LangOverrideContext = createContext<Lang | null>(null)
 
 /** Dictionnaire partagé (UI, gamification, dashboard, métadonnées).
  * Les textes propres à chaque jeu vivent dans le fichier du jeu (GameSEOContent + dictionnaire local). */
@@ -267,12 +278,14 @@ export function t(lang: Lang, key: string, vars?: Record<string, string | number
   return translate(lang, key, vars)
 }
 
-/** Hook : fonction de traduction liée à la langue courante. */
+/** Hook : fonction de traduction liée à la langue courante (override SSR inclus). */
 export function useT(): (key: string, vars?: Record<string, string | number>) => string {
-  const lang = useAppStore((s) => s.lang)
+  const lang = useLang()
   return (key, vars) => translate(lang, key, vars)
 }
 
 export function useLang(): Lang {
-  return useAppStore((s) => s.lang)
+  const override = useContext(LangOverrideContext)
+  const storeLang = useAppStore((s) => s.lang)
+  return override ?? storeLang
 }

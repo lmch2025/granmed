@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
 import { useAppStore } from '@/lib/app-store'
-import { useT, useLang } from '@/lib/i18n'
+import { LangOverrideContext, useT, useLang, type Lang } from '@/lib/i18n'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { HomeView } from '@/components/home/home-view'
@@ -105,9 +105,16 @@ function CurrentView() {
   }
 }
 
-export function GranmedApp() {
+export function GranmedApp({
+  /** Task 22 : langue déterminée côté serveur (/?lang=en) — le HTML servi est
+   *  déjà anglais pour les moteurs sans JavaScript (GEO/AIO). */
+  initialLang = 'fr',
+}: {
+  initialLang?: Lang
+}) {
   const init = useAppStore((s) => s.init)
   const setViewFromHash = useAppStore((s) => s.init)
+  const routerReady = useAppStore((s) => s.initialized)
 
   useEffect(() => {
     init()
@@ -115,17 +122,23 @@ export function GranmedApp() {
 
   useDocumentMeta()
 
+  /* Override de langue actif uniquement avant l'init du routeur client :
+   * SSR + première passe d'hydratation → identique serveur/client (zéro mismatch). */
+  const ssrLangOverride = routerReady ? null : initialLang
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-      <div className="flex min-h-screen flex-col">
-        <SiteHeader />
-        <main id="main-content" className="flex-1">
-          <CurrentView />
-        </main>
-        <SiteFooter />
-      </div>
-      <Toaster position="top-center" richColors closeButton />
-    </ThemeProvider>
+    <LangOverrideContext.Provider value={ssrLangOverride}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+        <div className="flex min-h-screen flex-col">
+          <SiteHeader />
+          <main id="main-content" className="flex-1">
+            <CurrentView />
+          </main>
+          <SiteFooter />
+        </div>
+        <Toaster position="top-center" richColors closeButton />
+      </ThemeProvider>
+    </LangOverrideContext.Provider>
   )
 }
 

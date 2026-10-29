@@ -18,6 +18,8 @@ export interface GameDef {
   title: Record<Lang, string>
   /** Une ligne pour les cartes de l'accueil. */
   short: Record<Lang, string>
+  /** Mots-clés SEO par langue — fort volume + longue traîne (JSON-LD VideoGame.keywords, Task 22). */
+  keywords?: Record<Lang, string[]>
   icon: string
   category: CategoryId
   /** 1 = accessible, 2 = modéré, 3 = exigeant */
@@ -107,6 +109,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'memory-match',
     paths: { fr: 'jeu-memory', en: 'memory-match' },
+    keywords: {
+      fr: ['jeu de mémoire gratuit', 'jeu de memory en ligne', 'jeu de mémoire pour adultes', 'jeu de cartes à retourner', 'entraînement de la mémoire', 'memory gratuit sans téléchargement'],
+      en: ['memory game online free', 'free memory game for adults', 'matching pairs game', 'memory card game online', 'brain memory training', 'memory game no download'],
+    },
     title: { fr: 'Memory Match — Jeu de mémoire', en: 'Memory Match — Pairs Memory Game' },
     short: {
       fr: 'Retrouvez les paires de cartes et mesurez votre QI estimé : fruits, nature, animaux, souvenirs rétro.',
@@ -123,6 +129,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'sequence-memory',
     paths: { fr: 'memoire-sequences', en: 'sequence-memory' },
+    keywords: {
+      fr: ['jeu de séquences à mémoriser', 'test de mémoire de travail', 'jeu simon en ligne gratuit', 'améliorer sa mémoire de travail', 'séquences lumineuses et sonores'],
+      en: ['sequence memory game', 'simon says game online free', 'working memory test', 'light sequence memory game', 'improve working memory'],
+    },
     title: { fr: "Gran' Mémoire — Séquences lumineuses", en: "Gran's Memory — Light Sequences" },
     short: {
       fr: 'Reproduisez des séquences qui s’allongent à chaque tour : un test de mémoire de travail qui révèle votre QI.',
@@ -139,6 +149,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'schulte-table',
     paths: { fr: 'table-schulte', en: 'schulte-table' },
+    keywords: {
+      fr: ['table de schulte gratuite', 'test de vitesse de lecture', 'exercice de concentration visuelle', 'améliorer sa vitesse de lecture', 'attention visuelle exercice', 'grilles de schulte en ligne'],
+      en: ['schulte table online free', 'visual attention training', 'speed reading exercise online', 'peripheral vision exercise', 'focus and concentration game', 'schulte grid practice'],
+    },
     title: { fr: 'Vision Active — Table de Schulte', en: 'Vision Active — Schulte Table' },
     short: {
       fr: 'Trouvez les nombres dans l’ordre le plus vite possible : vitesse de traitement et QI estimé, de 3×3 à 7×7.',
@@ -155,6 +169,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'speed-math',
     paths: { fr: 'calcul-mental-rapide', en: 'speed-math' },
+    keywords: {
+      fr: ['calcul mental en ligne', 'test de calcul mental gratuit', "s'entraîner au calcul mental", 'calcul rapide chrono', 'exercices de maths mentales', 'calcul mental pour adultes'],
+      en: ['mental math test free', 'speed math practice online', 'quick calculation exercise', 'mental arithmetic game', 'math brain training', 'fast math game no download'],
+    },
     title: { fr: 'Calcul Éclair — Calcul mental', en: 'Speed Math — Mental Arithmetic' },
     short: {
       fr: 'Résolvez un maximum d’opérations en 60 secondes : calcul mental, agilité et QI estimé à la clé.',
@@ -171,6 +189,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'mini-crossword',
     paths: { fr: 'mots-croises', en: 'mini-crossword' },
+    keywords: {
+      fr: ['mots croisés gratuits en ligne', 'petits mots croisés express', 'mots croisés faciles et courts', 'grille de mots croisés gratuite', 'jeu de mots croisés sans inscription'],
+      en: ['free crossword puzzles online', 'mini crossword online free', 'easy quick crossword', 'daily mini crossword', 'small crossword puzzle no download'],
+    },
     title: { fr: 'Culture Gran — Mots croisés express', en: 'Culture Gran — Mini Crossword' },
     short: {
       fr: 'Complétez de petites grilles construites à la main : culture générale, logique et QI estimé.',
@@ -187,6 +209,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'health-true-false',
     paths: { fr: 'quiz-sante', en: 'health-true-false' },
+    keywords: {
+      fr: ['quiz santé gratuit', 'vrai ou faux bien-être', 'test connaissances santé', 'quiz nutrition et bien-être', 'questions santé avec réponses'],
+      en: ['health quiz free', 'true or false health questions', 'wellness quiz online', 'nutrition knowledge test', 'health trivia with answers'],
+    },
     title: { fr: 'Vrai ou Faux — Santé et connaissances', en: 'True or False — Health & Knowledge' },
     short: {
       fr: 'Affirmations santé, nutrition et bien-être, avec explications sourcées : un quiz qui teste votre QI.',
@@ -203,6 +229,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'merge-garden',
     paths: { fr: 'jardin-merge', en: 'merge-garden' },
+    keywords: {
+      fr: ['jeu de fusion zen', 'jeu de jardin gratuit', 'jeu merge en ligne', 'jeu de plantes relaxant', 'fusionner des graines'],
+      en: ['merge game online free', 'zen garden game', 'relaxing merge game', 'plant merging game', 'free casual garden game'],
+    },
     title: { fr: 'Jardin de Gran — Jeu de fusion', en: "Gran's Garden — Merge Game" },
     short: {
       fr: 'Fusionnez graines et plantes pour découvrir 16 espèces : un jardin zen qui révèle votre QI estimé.',
@@ -219,6 +249,10 @@ export const GAMES: GameDef[] = [
   {
     slug: '2048-nutrition',
     paths: { fr: '2048-nutrition', en: '2048-nutrition' },
+    keywords: {
+      fr: ['2048 gratuit en ligne', 'jouer au 2048 sans téléchargement', '2048 avec annuler', 'jeu 2048 classique', 'puzzle de nombres gratuit'],
+      en: ['2048 game online free', 'play 2048 without download', '2048 with undo', 'classic 2048 puzzle', 'free sliding tile game'],
+    },
     title: { fr: '2048 Nutrition', en: '2048 Nutrition' },
     short: {
       fr: 'Le 2048 classique revisité : fusionnez les aliments et poussez votre QI estimé jusqu’au banquet complet.',
@@ -235,6 +269,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'sudoku',
     paths: { fr: 'sudoku', en: 'sudoku' },
+    keywords: {
+      fr: ['sudoku gratuit en ligne', 'jouer au sudoku gratuitement', 'sudoku avec indices et notes', 'sudoku solution unique', 'grilles de sudoku 4 niveaux', 'sudoku sans inscription'],
+      en: ['sudoku online free', 'free sudoku with hints and notes', 'unique solution sudoku puzzles', 'play sudoku no download', 'sudoku for beginners to expert', 'free sudoku 4 levels'],
+    },
     title: { fr: 'Sudoku Zen', en: 'Sudoku Zen' },
     short: {
       fr: 'Grilles à solution unique, notes et indices : la logique pure, notée en QI estimé. Quatre niveaux.',
@@ -251,6 +289,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'daily-word',
     paths: { fr: 'mot-du-jour', en: 'daily-word-game' },
+    keywords: {
+      fr: ['jeu du jour mot mystère', 'jeu de mots en ligne gratuit', 'deviner un mot en 6 essais', 'jeu de vocabulaire quotidien', 'nouveau mot chaque jour'],
+      en: ['daily word game', 'free online word game', 'guess the word in 6 tries', 'daily vocabulary game', 'word puzzle online free', 'new word every day game'],
+    },
     title: { fr: 'Mot du Jour Santé', en: 'Daily Word Game' },
     short: {
       fr: 'Devinez le mot mystère en 6 tentatives : vocabulaire, déduction et QI estimé. Un nouveau mot chaque jour !',
@@ -267,6 +309,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'minesweeper',
     paths: { fr: 'demineur', en: 'minesweeper' },
+    keywords: {
+      fr: ['démineur gratuit en ligne', 'jouer au démineur', 'démineur sans téléchargement', 'jeu de déduction logique', 'démineur 3 difficultés'],
+      en: ['minesweeper online free', 'play minesweeper no download', 'classic minesweeper game', 'logic deduction game', 'free minesweeper 3 levels'],
+    },
     title: { fr: 'Démineur Santé', en: 'Minesweeper Health' },
     short: {
       fr: 'Le démineur classique : déduction logique sous pression, chrono et QI estimé.',
@@ -283,6 +329,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'block-puzzle',
     paths: { fr: 'block-puzzle', en: 'block-puzzle' },
+    keywords: {
+      fr: ['block puzzle gratuit', 'jeu de blocs à compléter', 'compléter lignes et colonnes', 'puzzle spatial gratuit', 'jeu de blocs avec combos'],
+      en: ['block puzzle online free', 'free block puzzle games', 'clear lines block game', 'spatial reasoning puzzle', 'block game with combos'],
+    },
     title: { fr: 'Block Puzzle Équilibre', en: 'Block Puzzle Balance' },
     short: {
       fr: 'Placez les pièces pour compléter lignes et colonnes : vision spatiale et QI estimé au compteur.',
@@ -299,6 +349,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'jigsaw-puzzle',
     paths: { fr: 'puzzle-images', en: 'jigsaw-puzzle' },
+    keywords: {
+      fr: ['puzzle gratuit en ligne', 'jeu de puzzle 48 pièces', 'reconstituer une image jeu', 'puzzle relaxant gratuit', 'puzzle avec pièces aimantées'],
+      en: ['free online jigsaw puzzle', 'jigsaw puzzle 48 pieces', 'relaxing puzzle game online', 'picture puzzle game free', 'jigsaw with snapping pieces'],
+    },
     title: { fr: 'Souvenirs de Famille — Puzzle', en: 'Family Memories — Jigsaw Puzzle' },
     short: {
       fr: 'Reconstituez des illustrations originales : perception visuelle et QI estimé, de 12 à 48 pièces.',
@@ -315,6 +369,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'pill-toss',
     paths: { fr: 'lancer-de-pilules', en: 'pill-toss' },
+    keywords: {
+      fr: ['jeu de lancer de précision', "jeu d'adresse et de timing", 'lancer dans des fioles', 'jeu de physique réaliste'],
+      en: ['aim and toss game', 'precision throwing game', 'timing skill game online', 'physics based toss game'],
+    },
     title: { fr: 'Pill Toss — Lancer de pilules', en: 'Pill Toss — Pill Throwing Game' },
     short: {
       fr: 'Visez et lancez des pilules fictives dans des fioles en mouvement : adresse, timing et QI estimé.',
@@ -331,6 +389,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'fire-escape',
     paths: { fr: 'pompier-de-gran', en: 'fire-escape' },
+    keywords: {
+      fr: ['jeu de réflexes gratuit', "jeu d'arcade en ligne", 'éviter les obstacles jeu', "jeu d'anticipation et de réflexes", 'jeu à un seul geste'],
+      en: ['reflex game online free', 'one touch arcade game', 'dodge obstacles game', 'fire escape arcade game', 'fast reflex training game'],
+    },
     title: { fr: 'Le Pompier de Gran — Fire Escape', en: 'Gran’s Firefighter — Fire Escape' },
     short: {
       fr: 'Guidez le pompier à travers les flammes : réflexes, anticipation et QI estimé.',
@@ -347,6 +409,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'zen-fishing',
     paths: { fr: 'peche-zen', en: 'zen-fishing' },
+    keywords: {
+      fr: ['jeu de pêche relaxant', 'jeu zen gratuit en ligne', 'pêche zen collection', 'jeu déstressant sans inscription'],
+      en: ['relaxing fishing game', 'free zen game online', 'casual fishing collection game', 'calming game no sign-up'],
+    },
     title: { fr: 'Pêche Miraculeuse — Zen Fishing', en: 'Miraculous Fishing — Zen Fishing' },
     short: {
       fr: 'Une pêche détendante : descendez, remontez, complétez votre collection — et votre QI estimé.',
@@ -363,6 +429,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'fruit-slice',
     paths: { fr: 'decoupe-de-fruits', en: 'fruit-slice' },
+    keywords: {
+      fr: ['jeu de découpe de fruits', 'trancher les fruits au doigt', 'jeu de réflexes mobile', 'jeu de combos rapides'],
+      en: ['fruit slice game online', 'slice fruit with your finger', 'fast reflex slicing game', 'fruit cutting game free'],
+    },
     title: { fr: 'Le Verger de Gran — Fruit Slice', en: "Gran's Orchard — Fruit Slice" },
     short: {
       fr: 'Tranchez les fruits du verger au doigt et évitez les savons : réflexes et QI estimé !',
@@ -379,6 +449,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'guess-the-idiom',
     paths: { fr: 'devine-expression', en: 'guess-the-idiom' },
+    keywords: {
+      fr: ["deviner des expressions françaises", 'jeu expressions idiomatiques', 'origine des expressions', 'quiz expressions populaires', 'signification des expressions'],
+      en: ['guess the idiom game', 'idiom quiz online free', 'common idioms game', 'figure of speech quiz', 'idioms and their meanings game'],
+    },
     title: { fr: 'Devine l’Expression', en: 'Guess the Idiom' },
     short: {
       fr: 'Retrouvez les expressions populaires à partir d’indices et de définitions : langage et QI estimé.',
@@ -395,6 +469,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'longest-word',
     paths: { fr: 'mot-le-plus-long', en: 'longest-word-game' },
+    keywords: {
+      fr: ["le mot le plus long jeu", 'trouver des mots avec des lettres', 'jeu de lettres gratuit', 'former des mots à partir de 9 lettres', 'enrichir son vocabulaire jeu'],
+      en: ['longest word game', 'word builder from letters', 'free letter game online', 'make words from 9 letters', 'vocabulary builder game'],
+    },
     title: { fr: 'Le Mot le Plus Long', en: 'The Longest Word' },
     short: {
       fr: 'Formez un maximum de mots avec 9 lettres : vocabulaire, rapidité et QI estimé avant la fin du compte à rebours.',
@@ -411,6 +489,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'interactive-story',
     paths: { fr: 'histoire-interactive', en: 'interactive-story' },
+    keywords: {
+      fr: ["histoire dont vous êtes le héros", 'récit interactif gratuit', 'histoire à choix multiples', 'livre dont tu es le héros en ligne', 'histoire à plusieurs fins'],
+      en: ['interactive story game', 'choose your own adventure online', 'branching narrative game free', 'story with multiple endings', 'text adventure no download'],
+    },
     title: { fr: 'Histoire Interactive', en: 'Interactive Story' },
     short: {
       fr: 'Vos décisions changent le récit : compréhension, choix avisés et QI estimé. Plusieurs fins à découvrir.',

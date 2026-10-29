@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-29T19:23:21.887Z",
-  "reason": "Task 21 (force majeure sanctionnée par la demande utilisateur : « audit final de tout ce qui peut pénaliser notre PWA ainsi que tous ses jeux en chaque langue (en/fr) et, le cas échéant, corrigeons tout immédiatement et de façon stricte pour être aligné parfaitement SEO, GEO et AIO, ainsi que les mots-clés à forts volumes de recherches dans nos niches et les mots-clés longue traîne ») : (1) maillage interne crawlable reconstitué — nouveau composant HashLink (ajout pur) et conversion de toutes les surfaces de navigation en vraies ancres #/ (GameCard, header, footer, home, breadcrumbs, guides, dashboard) : 64 ancres dans le HTML brut vs 1 avant, 36 vues uniques atteignables ; (2) métadonnées serveur par langue via generateMetadata — /?lang=en désormais 100 % anglaise (title, description, keywords fort volume + longue traîne, OG, Twitter, canonique auto-référentielle, cluster hreflang valide fr/en/x-default) et JSON-LD entièrement localisé (FAQPage EN, ItemList EN) ; (3) corrections strictes : og:image dims réelles 1344×768, favicon.ico (ajout pur, 200 OK), manifest aligné QI + launch_handler focus-existing, robots.txt +8 crawlers IA (19 au total), sitemap.xml 2 URLs canoniques + annotations hreflang + lastmod à jour, llms.txt documentant les URLs linguistiques canoniques, script pré-hydratation lang=en ; 0 suppression de fonctionnalité — sons, scrolls et destinations d'origine préservés",
-  "baselineCommit": "61f9591b2db80bd13639708b9ddddcb8b88dfb33",
+  "generatedAt": "2026-10-29T20:29:22.503Z",
+  "reason": "Task 22 (ultime audit — complément après vérification E2E agent-browser) : correctif setLang — pushState avec pathname explicite, car un pushState '#/…' relatif ne remplace que le fragment et conservait une query ?lang=en obsolète après bascule EN→FR (testé : /#/fr et /?lang=en#/en désormais invariants, ?lang=en ⟺ anglais actif). Le reste du lot Task 22 est inchangé : /?lang=en 100 % anglais dans le HTML brut (proxy.ts x-granmed-lang → <html lang>, LangOverrideContext → corps, useLang dans hash-link → ancres #/en), robots de rendu → langue canonique FR, og-granmed.png vrai PNG, catalogue keywords 20 jeux FR/EN → VideoGame.keywords JSON-LD",
+  "baselineCommit": "4e3efb690d84deba5844549c927dcea9b31a9df9",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -532,8 +532,8 @@
       "bytes": 27360
     },
     "src/components/shared/hash-link.tsx": {
-      "sha256": "1d3547819892fe1be0f5821cb60f544ac42be4a38d52e0f7b33d02b17e51f84e",
-      "bytes": 1678
+      "sha256": "8cb11b212400f91f9577af52484878c7db8788bd49fe17a142a438c5975d72f6",
+      "bytes": 1857
     },
     "src/components/shared/confetti.tsx": {
       "sha256": "18d232b4bb9419b2206130d50255a91a4bb83ee13ffc730422d622efb31255ee",
@@ -692,8 +692,8 @@
       "bytes": 42278
     },
     "src/components/granmed-app.tsx": {
-      "sha256": "14d61c0f1c3a77dd9e14824da6f7c09c98ca9925b8629e269a416de5307d8e59",
-      "bytes": 4320
+      "sha256": "9d6ce3d45c5966b7e1114393fc6ccfce7061520289aecf84c63cd4d40a89b9b5",
+      "bytes": 4952
     },
     "src/hooks/use-toast.ts": {
       "sha256": "12f8fcd1101acdd4a1cf6952d85aa8997d2a53aa9956d3cb77a85d441e54b1a9",
@@ -728,8 +728,8 @@
       "bytes": 2990
     },
     "src/lib/app-store.ts": {
-      "sha256": "0a974292e5901f03abb3d8285e05e240be7a455f8672c34411554dd8a59c14be",
-      "bytes": 6483
+      "sha256": "10107170eb90a1b4e339c3ee1e223a9c0c58303acb525de1132519e2cfc8ba3a",
+      "bytes": 7499
     },
     "src/lib/utils.ts": {
       "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
@@ -760,8 +760,12 @@
       "bytes": 4096
     },
     "src/lib/i18n.ts": {
-      "sha256": "da7ca3415d55965ca4e944d577f17142302035a9eaafc0cf25abef493f72ca5c",
-      "bytes": 16325
+      "sha256": "8bc9f19cd8a67983f1abea1c90fe9cd9746778c46cf8f0fcf539d9de840e3b2b",
+      "bytes": 17039
+    },
+    "src/proxy.ts": {
+      "sha256": "c4e976eca527420e1bd7a81d4e164592275c2d786a1edcf292aca886bb2d6ee4",
+      "bytes": 1383
     },
     "src/app/favicon.ico": {
       "sha256": "50fe0ceb944f871352d4e6d00dd802c515b48630119017ca1ad4e1eba1dcc753",
@@ -772,16 +776,16 @@
       "bytes": 134
     },
     "src/app/layout.tsx": {
-      "sha256": "b63fb507f28348c197ffe46cb885f08693d2d84b617d0a9aba1430bf2c1fbdfa",
-      "bytes": 5397
+      "sha256": "b357fe98446b8ccafed940d908f6b562eced3f692eb96ddb13a3e5f72f2b0968",
+      "bytes": 5913
     },
     "src/app/globals.css": {
       "sha256": "2769299d8e5836a421c530099592188d0a04a6748987009c703696dfac7666c2",
       "bytes": 24141
     },
     "src/app/page.tsx": {
-      "sha256": "f25f53eaabbf3f94caab9ad1452092317f1d7f14de8fb669b59a5cf9ddfe17d6",
-      "bytes": 9707
+      "sha256": "91bf548a55d8374551d72b8ae379c9e2b77e91a7f296302b969efdba72a29582",
+      "bytes": 10206
     },
     "public/sitemap.xml": {
       "sha256": "fd952d512fc2c13c63275464763a07318d500d8ef1a4d7b9a4daaf384ed47bc1",
@@ -940,8 +944,8 @@
       "bytes": 168613
     },
     "public/images/og-granmed.png": {
-      "sha256": "3dfde721ee93743c8af280afde96937c89772f52121f4caa044f94bdf07bbc91",
-      "bytes": 114200
+      "sha256": "a7f487d39f85be1c722d309ac7040e9a652b51f8f3d88b4b916d3ffa4961b961",
+      "bytes": 453475
     },
     "public/images/jigsaw-lake.png": {
       "sha256": "5bd66c303792f0606078f5f85b156cdf5ebd8a2faf2077cf784262f5076cf4d7",
@@ -990,14 +994,32 @@
   },
   "appendOnly": {
     "src/lib/games/catalog.ts": {
-      "sha256": "30003b84bee928f30e873548980b7d83ea5ddb8c8ad4262d2eee483e193118e5",
-      "bytes": 18655,
+      "sha256": "03e8b685b192760b6e317b0223f3d553d59f2e01a6aedfe973c2040ecf5c1460",
+      "bytes": 25573,
       "games": [
         {
           "slug": "memory-match",
           "paths": {
             "fr": "jeu-memory",
             "en": "memory-match"
+          },
+          "keywords": {
+            "fr": [
+              "jeu de mémoire gratuit",
+              "jeu de memory en ligne",
+              "jeu de mémoire pour adultes",
+              "jeu de cartes à retourner",
+              "entraînement de la mémoire",
+              "memory gratuit sans téléchargement"
+            ],
+            "en": [
+              "memory game online free",
+              "free memory game for adults",
+              "matching pairs game",
+              "memory card game online",
+              "brain memory training",
+              "memory game no download"
+            ]
           },
           "title": {
             "fr": "Memory Match — Jeu de mémoire",
@@ -1025,6 +1047,22 @@
             "fr": "memoire-sequences",
             "en": "sequence-memory"
           },
+          "keywords": {
+            "fr": [
+              "jeu de séquences à mémoriser",
+              "test de mémoire de travail",
+              "jeu simon en ligne gratuit",
+              "améliorer sa mémoire de travail",
+              "séquences lumineuses et sonores"
+            ],
+            "en": [
+              "sequence memory game",
+              "simon says game online free",
+              "working memory test",
+              "light sequence memory game",
+              "improve working memory"
+            ]
+          },
           "title": {
             "fr": "Gran' Mémoire — Séquences lumineuses",
             "en": "Gran's Memory — Light Sequences"
@@ -1050,6 +1088,24 @@
           "paths": {
             "fr": "table-schulte",
             "en": "schulte-table"
+          },
+          "keywords": {
+            "fr": [
+              "table de schulte gratuite",
+              "test de vitesse de lecture",
+              "exercice de concentration visuelle",
+              "améliorer sa vitesse de lecture",
+              "attention visuelle exercice",
+              "grilles de schulte en ligne"
+            ],
+            "en": [
+              "schulte table online free",
+              "visual attention training",
+              "speed reading exercise online",
+              "peripheral vision exercise",
+              "focus and concentration game",
+              "schulte grid practice"
+            ]
           },
           "title": {
             "fr": "Vision Active — Table de Schulte",
@@ -1077,6 +1133,24 @@
             "fr": "calcul-mental-rapide",
             "en": "speed-math"
           },
+          "keywords": {
+            "fr": [
+              "calcul mental en ligne",
+              "test de calcul mental gratuit",
+              "s'entraîner au calcul mental",
+              "calcul rapide chrono",
+              "exercices de maths mentales",
+              "calcul mental pour adultes"
+            ],
+            "en": [
+              "mental math test free",
+              "speed math practice online",
+              "quick calculation exercise",
+              "mental arithmetic game",
+              "math brain training",
+              "fast math game no download"
+            ]
+          },
           "title": {
             "fr": "Calcul Éclair — Calcul mental",
             "en": "Speed Math — Mental Arithmetic"
@@ -1102,6 +1176,22 @@
           "paths": {
             "fr": "mots-croises",
             "en": "mini-crossword"
+          },
+          "keywords": {
+            "fr": [
+              "mots croisés gratuits en ligne",
+              "petits mots croisés express",
+              "mots croisés faciles et courts",
+              "grille de mots croisés gratuite",
+              "jeu de mots croisés sans inscription"
+            ],
+            "en": [
+              "free crossword puzzles online",
+              "mini crossword online free",
+              "easy quick crossword",
+              "daily mini crossword",
+              "small crossword puzzle no download"
+            ]
           },
           "title": {
             "fr": "Culture Gran — Mots croisés express",
@@ -1129,6 +1219,22 @@
             "fr": "quiz-sante",
             "en": "health-true-false"
           },
+          "keywords": {
+            "fr": [
+              "quiz santé gratuit",
+              "vrai ou faux bien-être",
+              "test connaissances santé",
+              "quiz nutrition et bien-être",
+              "questions santé avec réponses"
+            ],
+            "en": [
+              "health quiz free",
+              "true or false health questions",
+              "wellness quiz online",
+              "nutrition knowledge test",
+              "health trivia with answers"
+            ]
+          },
           "title": {
             "fr": "Vrai ou Faux — Santé et connaissances",
             "en": "True or False — Health & Knowledge"
@@ -1154,6 +1260,22 @@
           "paths": {
             "fr": "jardin-merge",
             "en": "merge-garden"
+          },
+          "keywords": {
+            "fr": [
+              "jeu de fusion zen",
+              "jeu de jardin gratuit",
+              "jeu merge en ligne",
+              "jeu de plantes relaxant",
+              "fusionner des graines"
+            ],
+            "en": [
+              "merge game online free",
+              "zen garden game",
+              "relaxing merge game",
+              "plant merging game",
+              "free casual garden game"
+            ]
           },
           "title": {
             "fr": "Jardin de Gran — Jeu de fusion",
@@ -1181,6 +1303,22 @@
             "fr": "2048-nutrition",
             "en": "2048-nutrition"
           },
+          "keywords": {
+            "fr": [
+              "2048 gratuit en ligne",
+              "jouer au 2048 sans téléchargement",
+              "2048 avec annuler",
+              "jeu 2048 classique",
+              "puzzle de nombres gratuit"
+            ],
+            "en": [
+              "2048 game online free",
+              "play 2048 without download",
+              "2048 with undo",
+              "classic 2048 puzzle",
+              "free sliding tile game"
+            ]
+          },
           "title": {
             "fr": "2048 Nutrition",
             "en": "2048 Nutrition"
@@ -1206,6 +1344,24 @@
           "paths": {
             "fr": "sudoku",
             "en": "sudoku"
+          },
+          "keywords": {
+            "fr": [
+              "sudoku gratuit en ligne",
+              "jouer au sudoku gratuitement",
+              "sudoku avec indices et notes",
+              "sudoku solution unique",
+              "grilles de sudoku 4 niveaux",
+              "sudoku sans inscription"
+            ],
+            "en": [
+              "sudoku online free",
+              "free sudoku with hints and notes",
+              "unique solution sudoku puzzles",
+              "play sudoku no download",
+              "sudoku for beginners to expert",
+              "free sudoku 4 levels"
+            ]
           },
           "title": {
             "fr": "Sudoku Zen",
@@ -1233,6 +1389,23 @@
             "fr": "mot-du-jour",
             "en": "daily-word-game"
           },
+          "keywords": {
+            "fr": [
+              "jeu du jour mot mystère",
+              "jeu de mots en ligne gratuit",
+              "deviner un mot en 6 essais",
+              "jeu de vocabulaire quotidien",
+              "nouveau mot chaque jour"
+            ],
+            "en": [
+              "daily word game",
+              "free online word game",
+              "guess the word in 6 tries",
+              "daily vocabulary game",
+              "word puzzle online free",
+              "new word every day game"
+            ]
+          },
           "title": {
             "fr": "Mot du Jour Santé",
             "en": "Daily Word Game"
@@ -1258,6 +1431,22 @@
           "paths": {
             "fr": "demineur",
             "en": "minesweeper"
+          },
+          "keywords": {
+            "fr": [
+              "démineur gratuit en ligne",
+              "jouer au démineur",
+              "démineur sans téléchargement",
+              "jeu de déduction logique",
+              "démineur 3 difficultés"
+            ],
+            "en": [
+              "minesweeper online free",
+              "play minesweeper no download",
+              "classic minesweeper game",
+              "logic deduction game",
+              "free minesweeper 3 levels"
+            ]
           },
           "title": {
             "fr": "Démineur Santé",
@@ -1285,6 +1474,22 @@
             "fr": "block-puzzle",
             "en": "block-puzzle"
           },
+          "keywords": {
+            "fr": [
+              "block puzzle gratuit",
+              "jeu de blocs à compléter",
+              "compléter lignes et colonnes",
+              "puzzle spatial gratuit",
+              "jeu de blocs avec combos"
+            ],
+            "en": [
+              "block puzzle online free",
+              "free block puzzle games",
+              "clear lines block game",
+              "spatial reasoning puzzle",
+              "block game with combos"
+            ]
+          },
           "title": {
             "fr": "Block Puzzle Équilibre",
             "en": "Block Puzzle Balance"
@@ -1310,6 +1515,22 @@
           "paths": {
             "fr": "puzzle-images",
             "en": "jigsaw-puzzle"
+          },
+          "keywords": {
+            "fr": [
+              "puzzle gratuit en ligne",
+              "jeu de puzzle 48 pièces",
+              "reconstituer une image jeu",
+              "puzzle relaxant gratuit",
+              "puzzle avec pièces aimantées"
+            ],
+            "en": [
+              "free online jigsaw puzzle",
+              "jigsaw puzzle 48 pieces",
+              "relaxing puzzle game online",
+              "picture puzzle game free",
+              "jigsaw with snapping pieces"
+            ]
           },
           "title": {
             "fr": "Souvenirs de Famille — Puzzle",
@@ -1337,6 +1558,20 @@
             "fr": "lancer-de-pilules",
             "en": "pill-toss"
           },
+          "keywords": {
+            "fr": [
+              "jeu de lancer de précision",
+              "jeu d'adresse et de timing",
+              "lancer dans des fioles",
+              "jeu de physique réaliste"
+            ],
+            "en": [
+              "aim and toss game",
+              "precision throwing game",
+              "timing skill game online",
+              "physics based toss game"
+            ]
+          },
           "title": {
             "fr": "Pill Toss — Lancer de pilules",
             "en": "Pill Toss — Pill Throwing Game"
@@ -1362,6 +1597,22 @@
           "paths": {
             "fr": "pompier-de-gran",
             "en": "fire-escape"
+          },
+          "keywords": {
+            "fr": [
+              "jeu de réflexes gratuit",
+              "jeu d'arcade en ligne",
+              "éviter les obstacles jeu",
+              "jeu d'anticipation et de réflexes",
+              "jeu à un seul geste"
+            ],
+            "en": [
+              "reflex game online free",
+              "one touch arcade game",
+              "dodge obstacles game",
+              "fire escape arcade game",
+              "fast reflex training game"
+            ]
           },
           "title": {
             "fr": "Le Pompier de Gran — Fire Escape",
@@ -1389,6 +1640,20 @@
             "fr": "peche-zen",
             "en": "zen-fishing"
           },
+          "keywords": {
+            "fr": [
+              "jeu de pêche relaxant",
+              "jeu zen gratuit en ligne",
+              "pêche zen collection",
+              "jeu déstressant sans inscription"
+            ],
+            "en": [
+              "relaxing fishing game",
+              "free zen game online",
+              "casual fishing collection game",
+              "calming game no sign-up"
+            ]
+          },
           "title": {
             "fr": "Pêche Miraculeuse — Zen Fishing",
             "en": "Miraculous Fishing — Zen Fishing"
@@ -1414,6 +1679,20 @@
           "paths": {
             "fr": "decoupe-de-fruits",
             "en": "fruit-slice"
+          },
+          "keywords": {
+            "fr": [
+              "jeu de découpe de fruits",
+              "trancher les fruits au doigt",
+              "jeu de réflexes mobile",
+              "jeu de combos rapides"
+            ],
+            "en": [
+              "fruit slice game online",
+              "slice fruit with your finger",
+              "fast reflex slicing game",
+              "fruit cutting game free"
+            ]
           },
           "title": {
             "fr": "Le Verger de Gran — Fruit Slice",
@@ -1441,6 +1720,22 @@
             "fr": "devine-expression",
             "en": "guess-the-idiom"
           },
+          "keywords": {
+            "fr": [
+              "deviner des expressions françaises",
+              "jeu expressions idiomatiques",
+              "origine des expressions",
+              "quiz expressions populaires",
+              "signification des expressions"
+            ],
+            "en": [
+              "guess the idiom game",
+              "idiom quiz online free",
+              "common idioms game",
+              "figure of speech quiz",
+              "idioms and their meanings game"
+            ]
+          },
           "title": {
             "fr": "Devine l’Expression",
             "en": "Guess the Idiom"
@@ -1467,6 +1762,22 @@
             "fr": "mot-le-plus-long",
             "en": "longest-word-game"
           },
+          "keywords": {
+            "fr": [
+              "le mot le plus long jeu",
+              "trouver des mots avec des lettres",
+              "jeu de lettres gratuit",
+              "former des mots à partir de 9 lettres",
+              "enrichir son vocabulaire jeu"
+            ],
+            "en": [
+              "longest word game",
+              "word builder from letters",
+              "free letter game online",
+              "make words from 9 letters",
+              "vocabulary builder game"
+            ]
+          },
           "title": {
             "fr": "Le Mot le Plus Long",
             "en": "The Longest Word"
@@ -1492,6 +1803,22 @@
           "paths": {
             "fr": "histoire-interactive",
             "en": "interactive-story"
+          },
+          "keywords": {
+            "fr": [
+              "histoire dont vous êtes le héros",
+              "récit interactif gratuit",
+              "histoire à choix multiples",
+              "livre dont tu es le héros en ligne",
+              "histoire à plusieurs fins"
+            ],
+            "en": [
+              "interactive story game",
+              "choose your own adventure online",
+              "branching narrative game free",
+              "story with multiple endings",
+              "text adventure no download"
+            ]
           },
           "title": {
             "fr": "Histoire Interactive",

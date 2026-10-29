@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -122,13 +123,20 @@ const PWA_EARLY_CAPTURE = `(function(){try{var W=window;W.__granmedPwa={bip:null
 /* SEO : la version anglaise dédiée (?lang=en) porte <html lang="en"> avant même l'hydratation. */
 const LANG_EARLY = `(function(){try{if(new URLSearchParams(window.location.search).get('lang')==='en')document.documentElement.lang='en';}catch(e){}})();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /* Task 22 (audit ultime SEO/GEO/AIO) : <html lang> correct dans le HTML BRUT —
+     le proxy (src/proxy.ts) propage `?lang` en en-tête `x-granmed-lang`, lisible ici via
+     headers(). Les crawlers sans JavaScript (GPTBot, ClaudeBot, PerplexityBot…)
+     voient la déclaration de langue exacte sur `/?lang=en`. LANG_EARLY demeure
+     en ceinture de sécurité côté client. */
+  const lang = (await headers()).get("x-granmed-lang") === "en" ? "en" : "fr";
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable} antialiased bg-background text-foreground`}>
         {/* PWA : capture précoce de beforeinstallprompt avant l'hydratation React. */}
         <script dangerouslySetInnerHTML={{ __html: PWA_EARLY_CAPTURE }} />

@@ -15,6 +15,10 @@ import { GUIDES } from "@/lib/content/guides";
  * anglaise dédiée `/?lang=en` (title, description, keywords, OG, canonical
  * auto-référentiel et cluster hreflang valide) — les moteurs de réponse IA qui
  * n'exécutent pas JavaScript voient enfin des métadonnées anglaises sur l'URL EN.
+ *
+ * Task 22 (audit ultime) : le CORPS aussi est anglais — `initialLang` est transmis
+ * à GranmedApp (override SSR) et les VideoGame du JSON-LD portent désormais leurs
+ * mots-clés fort volume + longue traîne par langue (catalogue `keywords`).
  */
 
 const SITE_URL = "https://granmed.store";
@@ -214,6 +218,8 @@ function gamesJsonLd(lang: PageLang) {
         name: g.title[lang],
         alternateName: g.title[other],
         description: g.short[lang],
+        /* Task 22 : mots-clés fort volume + longue traîne par jeu et par langue. */
+        keywords: g.keywords?.[lang].join(', '),
         url: `${SITE_URL}/#/${lang}/${g.paths[lang]}`,
         genre: CATEGORIES.find((c) => c.id === g.category)?.name[lang],
         gamePlatform: ["Web browser", "Mobile", "Desktop"],
@@ -264,7 +270,8 @@ export default async function Page({
       <JsonLd data={organizationJsonLd(lang)} />
       <JsonLd data={gamesJsonLd(lang)} />
       <JsonLd data={faqJsonLd(lang)} />
-      <GranmedApp />
+      {/* Task 22 : le HTML servi est déjà dans la langue de l'URL (GEO/AIO sans JS). */}
+      <GranmedApp initialLang={lang} />
       <PwaInstall />
     </>
   );
