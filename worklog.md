@@ -1284,3 +1284,17 @@ Stage Summary:
 - ROBOTS DE RENDU = LANGUE CANONIQUE : plus de divergence Googlebot/canonical sur « / » ; invariant URL ?lang=en⟺EN garanti en navigation comme en rechargement.
 - LONGUE TRAÎNE STRUCTURÉE : VideoGame.keywords par jeu × par langue dans le JSON-LD (20×2 jeux de mots-clés fort volume + longue traîne).
 - PWA INTÈGRE : og:image vrai PNG, manifest/SW/icônes vérifiés, composant d'installation E2E-vert sur les 4 parcours (affichage, refus session, retour prochaine ouverture, courtoisie en jeu, synchro langue).
+
+## Task 23 — Publication GitHub : projet dédié lmch2025/granmed
+
+- PRÉPARATION SÉCURITAIRE AVANT PUSH : sweep secrets du contenu versionné (0 pattern ghp_/sk-/api_key/Bearer dans 377 fichiers suivis) ; .env suivi détecté (DATABASE_URL=file:.../custom.db — chemin local, non secret mais mauvaise pratique) → dé-versionné ; idem db/custom.db (24 Ko, schéma vide, régénérable via db:push ; 0 usage @/lib/db dans src — les jeux utilisent localStorage).
+- DÉ-VERSIONNAGE DES ARTEFACTS (221 entrées git rm --cached, fichiers conservés sur disque) : .env, db/custom.db, tool-results/ (161 logs d'outils), upload/ (3 collages), tests/ + examples/ + .zscripts/ (échafaudages bac à sable, 0 référence dans package.json), download/ (README résiduel), 15 captures QA tool*.png à la racine. Caddyfile CONSERVÉ (fichier gelé du manifeste d'intégrité). .gitignore durci (/db/, /upload/, /tests/, /examples/, /download/, /.zscripts/, /tool*.png) pour interdire tout retour.
+- README.md BILINGUE (FR principal + EN) : concept moteur QI, tableau des 20 jeux par catégorie, fonctionnalités clés (bilingue serveur, PWA offline, SEO/GEO/AIO, sons libres), stack (Next.js 16, TS 5, Tailwind 4, shadcn/ui, Prisma, Bun), structure, lancement local (bun install && bun run dev), système de protection SHA-256, crédits. Ajout pur — légal.
+- DÉPÔT DÉDIÉ CRÉÉ VIA API : lmch2025/granmed (public, description bilingue, auto_init=false pour push d'historique existant) + 13 topics (pwa, brain-games, iq-test, nextjs, typescript, tailwindcss, shadcn-ui, seo, french, english, games, offline-first, bilingual).
+- PUSH : credential.helper store (jeton hors de .git/config, ~/.git-credentials chmod 600) ; remote origin propre https://github.com/lmch2025/granmed.git ; push -u origin main — historique complet 4421d66…90532a8 (24 commits, toutes les tâches 1→23), remote HEAD = 90532a8 = HEAD local.
+- INTÉGRITÉ POST-OPÉRATION : ACQUIS INTÈGRE (168 gelés, 20 sons, 8 images) — le dé-versionnage ne touche que l'index git, jamais les fichiers disque.
+
+Stage Summary:
+- Le projet Granmed vit désormais sur GitHub en dépôt dédié propre : https://github.com/lmch2025/granmed — 180 fichiers, 0 secret, 0 artefact d'agent, README vitrine bilingue.
+- worklog.md et protection/CHANGELOG.md sont presenceOnly (aucun gel de hash) : entréesappend sans force majeure.
+- CONSEIL SÉCURITÉ donné à l'utilisateur : le PAT ayant circulé en clair dans la conversation, rotation recommandée (Settings → Developer settings → Personal access tokens).
