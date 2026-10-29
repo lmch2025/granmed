@@ -32,7 +32,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const SITE_ORIGIN = 'https://granmed.store'
+const SITE_ORIGIN = 'https://www.granmed.store'
 const LOCAL_ORIGIN = process.env.SITEMAP_CHECK_ORIGIN ?? 'http://localhost:3000'
 const ROOT = join(import.meta.dir, '..')
 

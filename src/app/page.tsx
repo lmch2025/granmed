@@ -21,7 +21,7 @@ import { GUIDES } from "@/lib/content/guides";
  * mots-clés fort volume + longue traîne par langue (catalogue `keywords`).
  */
 
-const SITE_URL = "https://granmed.store";
+const SITE_URL = "https://www.granmed.store";
 type PageLang = "fr" | "en";
 
 /** Métadonnées localisées par langue (volume fort + longue traîne par niche). */

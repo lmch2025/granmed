@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-29T22:28:46.786Z",
-  "reason": "Task 24 (force majeure, bug signalé par l'utilisateur + fuite découverte en E2E) : bouton « Quitter » de fin de manche enfin fonctionnel — le popup RoundEndActions restait monté au-dessus de la page et masquait la sortie (correctif : état dismissed, fermeture sur Quitter et Échap, les deux variantes) ; game-shell : init paresseuse du compteur exitRequests (l'auto-immersif mobile était cassé pour tout jeu ouvert après une première sortie) + Échap courtois si dialog modal ouvert ; pwa-install + game-shell : verrou de scroll à compteur partagé (scroll-lock.ts, ajout pur) — la course invite-PWA/immersif laissait body.overflow=hidden à vie sans overlay ; sitemap.xml + llms.txt : alignement du canonique racine sur la forme déclarée par la page (sans slash), exigé par le nouveau garde-fou sitemap:check (18/18 vert) — 0 suppression, comportements d'origine préservés",
-  "baselineCommit": "d1e0a69125bf0412c5e9d8e5e19af7e608281079",
+  "generatedAt": "2026-10-29T22:42:32.092Z",
+  "reason": "Task 25 (force majeure, activation Google Search Console demandée par l'utilisateur + réalité production découverte au diagnostic) : dépôt du fichier de vérification GSC googlec5dc6c64480779bb.html (ajout pur, 53 octets exacts) ; alignement canonique complet sur www.granmed.store — hôte réellement servi par Vercel (l'apex 308-redirige vers www) — car sitemap/canonical sur l'apex = « URLs not allowed » à la soumission GSC + signaux canoniques contradictoires : sitemap.xml (loc + hreflang), robots.txt (directive Sitemap), llms.txt (URLs de navigation), layout.tsx + page.tsx (SITE_URL/metadataBase), sitemap-check.ts (SITE_ORIGIN du garde-fou) — 0 suppression, comportements d'origine préservés, sitemap:check 19/19 verts",
+  "baselineCommit": "5a2b92d920f13a700eb23e3529df94daa4ea9c42",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -780,20 +780,20 @@
       "bytes": 134
     },
     "src/app/layout.tsx": {
-      "sha256": "b357fe98446b8ccafed940d908f6b562eced3f692eb96ddb13a3e5f72f2b0968",
-      "bytes": 5913
+      "sha256": "7cdefa65288ab43ac5e4d287e3c9e2a601e4d0e9335852cc243428a429fb4d47",
+      "bytes": 5917
     },
     "src/app/globals.css": {
       "sha256": "2769299d8e5836a421c530099592188d0a04a6748987009c703696dfac7666c2",
       "bytes": 24141
     },
     "src/app/page.tsx": {
-      "sha256": "91bf548a55d8374551d72b8ae379c9e2b77e91a7f296302b969efdba72a29582",
-      "bytes": 10206
+      "sha256": "2d7f6341459f7820be19bf061f09ce74dc27070297c1db1a69f3b96a22f4cf4d",
+      "bytes": 10210
     },
     "public/sitemap.xml": {
-      "sha256": "c08d417f3b6bfcf7e46f173c4aad58d234571a866d345fe80b91e05ba0a2f676",
-      "bytes": 960
+      "sha256": "4c1c4a7dc5213c542a8661f9d466ee0b264b06dc33d1cc69c756f6ee78bf223c",
+      "bytes": 992
     },
     "public/icons/icon-512.png": {
       "sha256": "ed2615eb022a2b8df25ba489a9ae3b81f12e5fd3c5f8e16967428011179a20ff",
@@ -828,8 +828,12 @@
       "bytes": 1065
     },
     "public/robots.txt": {
-      "sha256": "63b11c1bca5fecba42218fb4489ebcb8d48dc8ffadd030e5d4058f62f02b4648",
-      "bytes": 828
+      "sha256": "8369393ea64b4978b20dc1d28dfd8716787af552ff3eea45841b896590b1b57b",
+      "bytes": 832
+    },
+    "public/googlec5dc6c64480779bb.html": {
+      "sha256": "44a36c53d5ca3d144fcbae05fb6c6d6b9b57c293848204c5a79fd9ce200bfcbd",
+      "bytes": 53
     },
     "public/manifest.webmanifest": {
       "sha256": "4b6f6aecc5cb5c2607fdfef8a53fafd8c19fa3d990acb2af03f6a84d488795f3",
@@ -920,8 +924,8 @@
       "bytes": 3957
     },
     "public/llms.txt": {
-      "sha256": "edf480fba3fc299d775d182cc659fcf7bdc93f94ad443b75aad7c67820ae78cc",
-      "bytes": 10265
+      "sha256": "313504419b9c5c6cd77ecbbeb0e9b0fa598529b2fc3739dde609bb033bc7ca3a",
+      "bytes": 10285
     },
     "public/images/jigsaw-market.png": {
       "sha256": "07a9b3a7f9bdb7e9ab6a1a26b40147b9bb690608f87a2d182d13ba3c37aee270",

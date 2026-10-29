@@ -1314,3 +1314,16 @@ Stage Summary:
 Stage Summary:
 - « Quitter » en fin de manche est enfin VRAIMENT fonctionnel sur les 20 jeux × 2 langues : le popup se referme, l'immersif se lève, la page défile vers les jeux similaires, le défilement reste vivant — y compris dans la course invite-PWA/immersif qui figeait la page à vie.
 - Le sitemap est certifié robuste par un garde-fou exécutable (bun run sitemap:check) : 18 contrôles statiques + live, tous verts, chaînes d'URL EXACTEMENT identiques entre sitemap, canoniques, hreflang et llms.txt.
+
+## Task 25 — Vérification Google Search Console + alignement canonique www
+
+- CONTEXTE (demande utilisateur : ajout du site à GSC) : fichier de vérification HTML googlec5dc6c64480779bb.html uploadé (token lié au compte Google de l'utilisateur, valable pour toute propriété de ce compte) — déposé octet pour octet (53 o, zéro transformation) dans public/ sous le nom EXACT attendu par Google (suffixe « (3) » du téléchargement retiré) ; servi en 200 text/html localement.
+- DIAGNOSTIC PRODUCTION (curl direct) : granmed.store est EN LIGNE sur Vercel ; l'apex renvoie 308 → www.granmed.store (www = domaine principal Vercel), et www sert l'app en 200 — MAIS l'écosystème SEO (sitemap.xml, robots.txt, llms.txt, canonical/hreflang/OG via SITE_URL) était intégralement calé sur l'apex granmed.store SANS www.
+- RISQUE BLOQUANT POUR GSC : soumettre un sitemap à URLs apex depuis la propriété www (ou l'inverse) produit l'erreur « URLs not allowed » ; pire, canonical ≠ hôte servi = signaux canoniques contradictoires pour Google. La vérification par fichier sur l'apex aurait en plus buté sur la 308.
+- FORCE MAJEURE (alignement sur l'hôte réellement servi, zéro suppression, comportements préservés) : sitemap.xml (2 loc + 6 hreflang → www), robots.txt (directive Sitemap → www), llms.txt (2 URLs de navigation canoniques ligne 38 + ligne Site 86 → www ; mentions de marque sans protocole intactes), src/app/layout.tsx + src/app/page.tsx (SITE_URL → https://www.granmed.store — metadataBase propage automatiquement canoniques, hreflang et OG absolus), protection/sitemap-check.ts (SITE_ORIGIN du garde-fou → www). Ajout pur : public/googlec5dc6c64480779bb.html.
+- VALIDATION : bun run sitemap:check 19/19 verts (statique + live : sitemap octet-pour-octet, canonical == loc sur les 2 URLs, robots meta index, hreflang HTML == sitemap, robots.txt servi) ; lint propre ; fichier Google servi 200 text/html contenu exact en local.
+- DÉPLOIEMENT : commit + push GitHub → Vercel redéploie → vérification production (fichier Google 200 sur www, sitemap www servi).
+
+Stage Summary:
+- La propriété GSC à créer : https://www.granmed.store (préfixe URL) — le fichier de vérification déjà déployé la validera immédiatement ; soumettre ensuite sitemap.xml.
+- Tout l'écosystème SEO est désormais cohérent avec l'hôte servi par Vercel : www.granmed.store en canonique unique (sitemap, robots, llms.txt, canonical, hreflang, OG) — zéro signal contradictoire.

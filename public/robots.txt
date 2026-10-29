@@ -59,4 +59,4 @@ Allow: /
 User-agent: DuckAssistBot
 Allow: /
 
-Sitemap: https://granmed.store/sitemap.xml
+Sitemap: https://www.granmed.store/sitemap.xml

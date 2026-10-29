@@ -81,3 +81,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (6) : src/components/shared/pwa-install.tsx, src/components/game/round-end.tsx, src/components/game/game-shell.tsx, public/sitemap.xml, public/llms.txt, package.json
 - Suppressions (0) : aucune
 
+## 2026-10-29 22:42 — Task 25 (force majeure, activation Google Search Console demandée par l'utilisateur + réalité production découverte au diagnostic) : dépôt du fichier de vérification GSC googlec5dc6c64480779bb.html (ajout pur, 53 octets exacts) ; alignement canonique complet sur www.granmed.store — hôte réellement servi par Vercel (l'apex 308-redirige vers www) — car sitemap/canonical sur l'apex = « URLs not allowed » à la soumission GSC + signaux canoniques contradictoires : sitemap.xml (loc + hreflang), robots.txt (directive Sitemap), llms.txt (URLs de navigation), layout.tsx + page.tsx (SITE_URL/metadataBase), sitemap-check.ts (SITE_ORIGIN du garde-fou) — 0 suppression, comportements d'origine préservés, sitemap:check 19/19 verts
+- Commit : `5a2b92d920f1`
+- Jeux protégés : 20
+- Ajouts (1) : public/googlec5dc6c64480779bb.html
+- Modifications (5) : src/app/layout.tsx, src/app/page.tsx, public/sitemap.xml, public/robots.txt, public/llms.txt
+- Suppressions (0) : aucune
+
