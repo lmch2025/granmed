@@ -56,5 +56,14 @@ server.log
 /.backups/
 /tool-results/
 
+# Artefacts locaux & d'exécution — jamais versionnés (GitHub propre)
+/db/
+/upload/
+/tests/
+/examples/
+/download/
+/.zscripts/
+/tool*.png
+
 # Skills directory
 /skills/
