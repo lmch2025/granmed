@@ -64,7 +64,7 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     id: 'words',
-    icon: '✨',
+    icon: '📚',
     name: { fr: 'Mots et culture', en: 'Words & culture' },
     tagline: { fr: 'Langage, culture générale et QI estimé', en: 'Language, general knowledge and estimated IQ' },
     description: {

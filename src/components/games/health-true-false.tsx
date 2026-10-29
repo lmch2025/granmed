@@ -16,6 +16,7 @@ import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
 import { DifficultyDots } from '@/components/shared/ui-bits'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'health-true-false'
 
@@ -222,6 +223,11 @@ export default function HealthTrueFalseGame() {
   const nextBtnRef = useRef<HTMLButtonElement>(null)
   const replayBtnRef = useRef<HTMLButtonElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  /* Effet « juice » (Task 20) — rebond du bouton choisi sur bonne réponse
+     (WAAPI imperatif, sans re-render, n'ajoute aucun délai). */
+  const juice = useJuice()
+  const trueBtnRef = useRef<HTMLButtonElement>(null)
+  const falseBtnRef = useRef<HTMLButtonElement>(null)
 
   const L = {
     fr: {
@@ -340,6 +346,7 @@ export default function HealthTrueFalseGame() {
       if (isCorrect) sfx.play('correct')
       else sfx.play('wrong', { volume: 0.5 })
       buzz(10)
+      if (isCorrect) juice.pop(c === 'true' ? trueBtnRef.current : falseBtnRef.current)
       setChoice(c)
       setCorrect(isCorrect)
       setResults((r) => [...r, isCorrect])
@@ -349,7 +356,7 @@ export default function HealthTrueFalseGame() {
       setStreak(nextStreak)
       if (nextStreak >= 15) unlockBadge('quiz-streak-15')
     },
-    [phase, choice, series, idx, unlockBadge],
+    [phase, choice, series, idx, unlockBadge, juice],
   )
 
   /* --- Fin de série (appelée depuis le handler « suivant ») --- */
@@ -633,6 +640,7 @@ export default function HealthTrueFalseGame() {
           {/* Boutons VRAI / FAUX — min-h-16 côte à côte, toujours au-dessus de la correction */}
           <div className="mt-3 grid grid-cols-2 gap-2.5 sm:gap-3">
             <button
+              ref={trueBtnRef}
               type="button"
               disabled={choice !== null}
               aria-keyshortcuts="ArrowLeft t v"
@@ -649,6 +657,7 @@ export default function HealthTrueFalseGame() {
               {L.trueLabel}
             </button>
             <button
+              ref={falseBtnRef}
               type="button"
               disabled={choice !== null}
               aria-keyshortcuts="ArrowRight f"

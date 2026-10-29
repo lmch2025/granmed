@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'fire-escape'
 
@@ -457,10 +458,15 @@ export default function FireEscapeGame() {
   const lastStartRef = useRef(0)
   const replayBtnRef = useRef<HTMLButtonElement>(null)
 
+  /* Effets « juice » (Task 20) — helpers visuels décoratifs, sans re-render. */
+  const juice = useJuice()
+  const juiceRef = useRef(juice)
+
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { langRef.current = lang }, [lang])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+  useEffect(() => { juiceRef.current = juice }, [juice])
 
   /* Focus clavier sur « Rejouer » dès l'écran de fin de course. */
   useEffect(() => {
@@ -836,6 +842,10 @@ export default function FireEscapeGame() {
           sfx.play('coin', { volume: 0.7 })
           buzz(8)
           w.pops.push({ x: dx, y: sy, text: '+50', life: 0.8, max: 0.8, color: '#eafaf1', size: 16 })
+          // Effet « juice » (Task 20) : respiration douce du plateau à la
+          // goutte collectée. Pulse sur le CANVAS (pas le conteneur) : le
+          // onAnimationEnd du conteneur pilote la secousse de fin de course.
+          juiceRef.current.pulse(cv, 1.012, 240)
           pushHud()
         }
       }

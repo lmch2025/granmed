@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'fruit-slice'
 
@@ -321,10 +322,15 @@ export default function FruitSliceGame() {
   const lastStartRef = useRef(0)
   const replayBtnRef = useRef<HTMLButtonElement | null>(null)
 
+  /* Effets « juice » (Task 20) — helpers visuels décoratifs, sans re-render. */
+  const juice = useJuice()
+  const juiceRef = useRef(juice)
+
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { langRef.current = lang }, [lang])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
+  useEffect(() => { juiceRef.current = juice }, [juice])
 
   /* Focus clavier sur « Rejouer » dès l'écran de fin */
   useEffect(() => {
@@ -540,6 +546,9 @@ export default function FruitSliceGame() {
             text: `COMBO ×${w.chain} +${bonus}`,
             life: 1.1, max: 1.1, color: '#b45309', size: 19,
           })
+          // Effet « juice » (Task 20) : micro-pulse du plateau sur un combo —
+          // le canvas dessine déjà lame, jus et moitiés volantes, on reste discret.
+          juiceRef.current.pulse(wrap, 1.01, 240)
         } else {
           sfx.play('slice')
         }

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { FxCellBurst } from '@/components/game/fx'
 
 export const gameId = 'schulte-table'
 
@@ -252,6 +253,8 @@ export default function SchulteTableGame() {
   const [elapsed, setElapsed] = useState(0)
   const [wrongAt, setWrongAt] = useState<number | null>(null)
   const [popAt, setPopAt] = useState<number | null>(null)
+  /* Effet « juice » (Task 20) — micro éclat blanc sur la case validée. */
+  const [burstAt, setBurstAt] = useState<number | null>(null)
   const [won, setWon] = useState<WonInfo | null>(null)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [confettiKey, setConfettiKey] = useState(0)
@@ -379,6 +382,7 @@ export default function SchulteTableGame() {
     setElapsed(0)
     setWrongAt(null)
     setPopAt(null)
+    setBurstAt(null)
     startRef.current = 0
     accRef.current = 0
     setWon(null)
@@ -426,6 +430,7 @@ export default function SchulteTableGame() {
     if (v === nextRef.current) {
       sfx.play('pop', { volume: 0.7 })
       flash(setPopAt, v, 340)
+      flash(setBurstAt, v, 620)
       if (v === cells.length) {
         finishWin()
         return
@@ -661,7 +666,7 @@ export default function SchulteTableGame() {
                 aria-disabled={v < next}
                 onClick={() => tap(v)}
                 className={cn(
-                  'flex min-h-0 min-w-0 touch-manipulation items-center justify-center rounded-md border font-display font-bold no-select transition-all duration-150 focus-visible:outline-2 focus-visible:outline-ring active:scale-95',
+                  'relative flex min-h-0 min-w-0 touch-manipulation items-center justify-center rounded-md border font-display font-bold no-select transition-all duration-150 focus-visible:outline-2 focus-visible:outline-ring active:scale-95',
                   fontSizeClass(gridSize),
                   display === 'contrast' && 'font-black',
                   styles.cell,
@@ -670,6 +675,7 @@ export default function SchulteTableGame() {
                   wrongAt === v && 'anim-shake border-red-500 bg-red-500 text-white',
                 )}
               >
+                {burstAt === v ? <FxCellBurst colorClass="bg-white/60" particles={1} /> : null}
                 {v}
               </button>
             ))}

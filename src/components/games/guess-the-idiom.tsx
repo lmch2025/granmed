@@ -30,6 +30,7 @@ import { DifficultyDots } from '@/components/shared/ui-bits'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice, FxCellBurst } from '@/components/game/fx'
 
 export const gameId = 'guess-the-idiom'
 
@@ -326,6 +327,10 @@ export default function GuessTheIdiomGame() {
   const submitLockRef = useRef(0)
   const restoreTriedRef = useRef(false)
 
+  /* Effets « juice » (Task 20) — helpers visuels sans re-render, fire-and-forget. */
+  const juice = useJuice()
+  const defCardRef = useRef<HTMLDivElement>(null)
+
   const L = {
     fr: {
       freeGame: 'Partie libre',
@@ -605,6 +610,8 @@ export default function GuessTheIdiomGame() {
 
     setFactData({ solved: true, points, speed, noHint: hintCost === 0 })
     setPhase('fact')
+    /* Effet « juice » (Task 20) — la carte de l'expression pope à la résolution. */
+    juice.pop(defCardRef.current)
   }
 
   function onSkip() {
@@ -966,11 +973,14 @@ export default function GuessTheIdiomGame() {
 
           {/* Carte définition (compacte) */}
           {entry ? (
-            <div className="rounded-2xl border bg-secondary/40 p-3 sm:p-4">
+            <div ref={defCardRef} className="rounded-2xl border bg-secondary/40 p-3 sm:p-4">
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                <span className="relative flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
                   <span aria-hidden="true">{CATEGORIES[entry.category].icon}</span>
                   {CATEGORIES[entry.category].label[lang]}
+                  {phase === 'fact' && factData?.solved ? (
+                    <FxCellBurst colorClass="bg-emerald-400/60" particles={1} size="30%" />
+                  ) : null}
                 </span>
                 <DifficultyDots level={entry.difficulty} />
                 {parsed ? (
@@ -1210,7 +1220,7 @@ export default function GuessTheIdiomGame() {
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.score} value={endData.score} />
             <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={L.solvedCount} value={`${endData.solved}/${endData.total}`} />
-            {endData.xp > 0 ? <StatPill icon={<span aria-hidden="true">✨</span>} label={L.xpEarned} value={`+${endData.xp}`} /> : null}
+            {endData.xp > 0 ? <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.xpEarned} value={`+${endData.xp}`} /> : null}
             {endData.isRecord ? (
               <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
                 <Trophy className="h-4 w-4" aria-hidden="true" /> {L.newRecord}

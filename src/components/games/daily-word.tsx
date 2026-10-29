@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 import {
   answersFor,
   buildDictionary,
@@ -471,6 +472,11 @@ export default function DailyWordGame() {
 
   const REVEAL_STEP = reduce ? 60 : 200
 
+  /* Effets « juice » (Task 20) — helpers visuels sans re-render, fire-and-forget. */
+  const juice = useJuice()
+  const boardRef = useRef<HTMLDivElement>(null)
+  const streakPillRef = useRef<HTMLSpanElement>(null)
+
   function applyStats(s: DWStats) {
     statsRef.current = s
     setStats(s)
@@ -613,6 +619,15 @@ export default function DailyWordGame() {
       () => {
         lockRef.current = false
         if (won || lost) finishGame(won, nextGuesses.length, nextGuesses)
+        /* Effets « juice » (Task 20) — cascade décorative sur la ligne gagnante
+           (pops étagés ≈ anim-fx-pop, sans conflit CSS avec anim-flip-in) et pop
+           du pill de série. Aucun verrou : les animations s'achèvent seules. */
+        if (won) {
+          const tiles = boardRef.current?.children[nextGuesses.length - 1]?.children
+          for (let i = 0; i < 5; i++)
+            schedule(() => juice.pop(tiles?.[i] as HTMLElement | undefined, 1.12, 320), i * 70)
+          schedule(() => juice.pop(streakPillRef.current), 520)
+        }
       },
       REVEAL_STEP * 5 + 350,
     )
@@ -824,6 +839,7 @@ export default function DailyWordGame() {
         )}
         {mode === 'daily' && effStreak > 0 ? (
           <span
+            ref={streakPillRef}
             title={L.currentStreak}
             className="flex h-9 items-center gap-1 rounded-full bg-secondary/70 px-2.5 text-xs font-semibold tabular-nums"
           >
@@ -859,7 +875,7 @@ export default function DailyWordGame() {
       ) : null}
 
       {/* Grille 6 × 5 — compacte, jamais de scroll horizontal */}
-      <div className="mt-2 flex flex-col items-center gap-1" role="grid" aria-label={L.boardLabel}>
+      <div ref={boardRef} className="mt-2 flex flex-col items-center gap-1" role="grid" aria-label={L.boardLabel}>
         {Array.from({ length: 6 }, (_, r) => {
           const submitted = r < guesses.length
           const isCurrentRow = r === guesses.length && phase === 'playing'

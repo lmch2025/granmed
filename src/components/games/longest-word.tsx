@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Play, CalendarCheck, RotateCcw, Timer, Trophy, Zap, Home, Delete, Check, FastForward, Sparkles, Type } from 'lucide-react'
+import { Play, CalendarCheck, RotateCcw, Timer, Trophy, Zap, Home, Delete, Check, FastForward, Lightbulb, Type } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'longest-word'
 
@@ -285,6 +286,13 @@ export default function LongestWordGame() {
   const lastValidAtRef = useRef(0)
   const lastStartRef = useRef(0)
   const flashTimerRef = useRef<number | null>(null)
+
+  /* Effets « juice » (Task 20) — helpers visuels sans re-render, fire-and-forget. */
+  const juice = useJuice()
+  const tilesBoxRef = useRef<HTMLDivElement>(null)
+  const scorePillRef = useRef<HTMLSpanElement>(null)
+  /** Indices des pastilles du dernier mot validé (cascade décorative Task 20). */
+  const lastWordIdxsRef = useRef<number[]>([])
 
   const L = {
     fr: {
@@ -565,6 +573,7 @@ export default function LongestWordGame() {
     if (endedRef.current) return
     const w = pickedRef.current.map((i) => lettersRef.current[i]).join('')
     if (!w) return
+    lastWordIdxsRef.current = pickedRef.current // pour la cascade décorative (Task 20)
     pickedRef.current = []
     setPicked([])
     const fail = (key: ErrorKey) => {
@@ -606,6 +615,21 @@ export default function LongestWordGame() {
     }
     if (len >= 7) unlockBadge('longest-7')
   }, [lang, unlockBadge])
+
+  /* Effets « juice » (Task 20) — à chaque mot validé (lastGain change), les
+     pastilles du mot bondissent en cascade + pop du pill de score. Purement
+     décoratif, fire-and-forget, aucun verrou : le tirage reste immédiatement
+     jouable ; le léger décalage laisse finir la restauration des pastilles. */
+  useEffect(() => {
+    if (!lastGain) return
+    const tiles = tilesBoxRef.current?.children
+    lastWordIdxsRef.current.forEach((ti, k) => {
+      window.setTimeout(() => {
+        if (!endedRef.current) juice.pop(tiles?.[ti] as HTMLElement | undefined, 1.12, 280)
+      }, 80 + k * 55)
+    })
+    juice.pop(scorePillRef.current, 1.08, 240)
+  }, [lastGain])
 
   /* --- Clavier physique : lettres, retour arrière, entrée --- */
   useEffect(() => {
@@ -748,7 +772,7 @@ export default function LongestWordGame() {
         <div key={round} className="anim-rise">
           {/* HUD compact sur une ligne : score, mots, chrono, défi, recommencer, terminer */}
           <div className="flex flex-wrap items-center justify-center gap-1.5">
-            <span className="flex h-9 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-semibold">
+            <span ref={scorePillRef} className="flex h-9 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-semibold">
               <Zap className="h-4 w-4 text-amber-500" aria-hidden="true" />
               <span className="sr-only">{L.score}</span>
               <span key={score} className="anim-pop-in font-bold tabular-nums">
@@ -825,7 +849,7 @@ export default function LongestWordGame() {
           </div>
 
           {/* Lettres tirées : grosses pastilles cliquables (clavier maison, jamais le clavier système) */}
-          <div className="mx-auto mt-3 flex flex-wrap justify-center gap-1.5 sm:mt-4 sm:gap-2" role="group" aria-label={L.letters}>
+          <div ref={tilesBoxRef} className="mx-auto mt-3 flex flex-wrap justify-center gap-1.5 sm:mt-4 sm:gap-2" role="group" aria-label={L.letters}>
             {letters.map((l, i) => {
               const used = picked.includes(i)
               return (
@@ -948,7 +972,7 @@ export default function LongestWordGame() {
             <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.score} value={endData.score} />
             <StatPill icon={<Type className="h-4 w-4" aria-hidden="true" />} label={L.longest} value={endData.longest ?? '—'} />
             <StatPill icon={<Trophy className="h-4 w-4" aria-hidden="true" />} label={L.wordsFound} value={endData.count} />
-            <StatPill icon={<Sparkles className="h-4 w-4" aria-hidden="true" />} label={L.xp} value={`+${endData.xp}`} />
+            <StatPill icon={<Zap className="h-4 w-4" aria-hidden="true" />} label={L.xp} value={`+${endData.xp}`} />
             {endData.isRecord ? (
               <span className="flex h-11 items-center gap-1.5 rounded-full bg-amber-100 px-3.5 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
                 <Trophy className="h-4 w-4" aria-hidden="true" /> {L.newRecord}
@@ -960,7 +984,7 @@ export default function LongestWordGame() {
           {endData.solutions.length > 0 ? (
             <div className="mx-auto mt-3 max-w-md rounded-xl border border-amber-300/50 bg-card/70 p-3">
               <p className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                <Lightbulb className="h-3.5 w-3.5" aria-hidden="true" />
                 {L.solutionTitle} · {endData.solutions[0].length} {L.lettersCount}
               </p>
               <p className="mt-1 font-display text-2xl font-extrabold tracking-wide">{endData.solutions[0]}</p>

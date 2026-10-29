@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, ChevronLeft, ChevronRight, History, Library, RotateCcw, Sparkles } from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, History, Library, RotateCcw, Drama } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useLang } from '@/lib/i18n'
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 import { STORIES, type Story } from '@/components/games/data/interactive-story-data'
 
 export const gameId = 'interactive-story'
@@ -291,6 +292,14 @@ export default function InteractiveStoryGame() {
   const typedRef = useRef(0)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const lastStartRef = useRef(0)
+
+  /* Effets « juice » (Task 20) — helpers visuels sans re-render, fire-and-forget.
+     Miroir « latest ref » (même pattern que handlersRef) pour que le handler
+     mémoïsé choose() reste stable pour le compilateur React. */
+  const juice = useJuice()
+  const juiceRef = useRef(juice)
+  const choicesRef = useRef<HTMLDivElement>(null)
+  const newEndRef = useRef<HTMLParagraphElement>(null)
   const handlersRef = useRef<{ choose: (i: number) => void; skip: () => void }>({
     choose: () => {},
     skip: () => {},
@@ -465,6 +474,9 @@ export default function InteractiveStoryGame() {
       if (!nextNode) return
       sfx.play('click', { volume: 0.45 })
       navigator.vibrate?.(10)
+      /* Effet « juice » (Task 20) — micro-pulse du bouton de décision cliqué
+         (souris, tactile et clavier 1-3) : purement décoratif. */
+      juiceRef.current.pulse(choicesRef.current?.children[idx] as HTMLElement | undefined)
 
       const newHistory = [...history, { node: nodeId, idx }]
       setHistory(newHistory)
@@ -569,6 +581,18 @@ export default function InteractiveStoryGame() {
   }, [choose, skipTyping])
 
   useEffect(() => {
+    juiceRef.current = juice
+  })
+
+  /* Effet « juice » (Task 20) — pop du badge « nouvelle fin » une fois l'écran
+     de fin monté (après l'entrée anim-rise). Décoratif, fire-and-forget. */
+  useEffect(() => {
+    if (!endingIsNew) return
+    const id = window.setTimeout(() => juice.pop(newEndRef.current), 420)
+    return () => window.clearTimeout(id)
+  }, [endingIsNew])
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
       if (document.querySelector('[role="dialog"], [data-radix-popper-content-wrapper]')) return
@@ -619,7 +643,7 @@ export default function InteractiveStoryGame() {
               className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
               aria-label={L.endingsAria(totalFound, totalEndings)}
             >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <Drama className="h-4 w-4" aria-hidden="true" />
               {totalFound}/{totalEndings}
             </span>
           </div>
@@ -660,7 +684,7 @@ export default function InteractiveStoryGame() {
                     </span>
                     <span className="mt-auto flex flex-wrap items-center gap-2 pt-0.5">
                       <span className="flex h-6 items-center gap-1 rounded-full bg-white/60 px-2 text-[11px] font-bold text-foreground/80 dark:bg-white/10">
-                        <span aria-hidden="true">✨</span>
+                        <span aria-hidden="true">🎭</span>
                         {found}/{total} {L.endingsFound}
                       </span>
                       <span className="flex gap-1.5" aria-hidden="true">
@@ -708,7 +732,7 @@ export default function InteractiveStoryGame() {
               className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-3 text-sm font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
               aria-label={L.endingsAria(storyFound, storyTotal)}
             >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              <Drama className="h-4 w-4" aria-hidden="true" />
               {storyFound}/{storyTotal}
             </span>
             <Popover
@@ -839,8 +863,8 @@ export default function InteractiveStoryGame() {
               </div>
 
               {endingIsNew ? (
-                <p className="mt-2 text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                  ✨ {L.newEnding} · {L.xpGain(ENDING_XP)}
+                <p ref={newEndRef} className="mt-2 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+                  🎭 {L.newEnding} · {L.xpGain(ENDING_XP)}
                 </p>
               ) : (
                 <p className="mt-2 text-xs font-semibold text-muted-foreground">{L.knownEnding}</p>
@@ -860,7 +884,7 @@ export default function InteractiveStoryGame() {
                           : 'border border-dashed border-foreground/25 text-muted-foreground',
                       )}
                     >
-                      <span aria-hidden="true">{found ? '✨' : '❓'}</span>
+                      <span aria-hidden="true">{found ? '🎭' : '❓'}</span>
                       <span className="max-w-36 truncate">
                         {found && endNode?.ending ? endNode.ending.name : L.mysteryEnding}
                       </span>
@@ -894,7 +918,7 @@ export default function InteractiveStoryGame() {
               <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 {L.whatDoYouDo}
               </p>
-              <div className="space-y-2">
+              <div ref={choicesRef} className="space-y-2">
                 {node.choices.map((c, idx) => (
                   <button
                     key={idx}

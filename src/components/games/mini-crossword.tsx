@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'mini-crossword'
 
@@ -234,6 +235,9 @@ export default function MiniCrosswordGame() {
   const [solvedIq, setSolvedIq] = useState<number | null>(null)
 
   const boardRef = useRef<HTMLDivElement>(null)
+  /* Effets « juice » (Task 20) — décoratifs : vague de micro-pops sur un mot complété. */
+  const juice = useJuice()
+  const cellRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const startRef = useRef(0) // Date.now() de la dernière reprise du chrono
   const accRef = useRef(0) // temps accumulé avant la dernière reprise
   const phaseRef = useRef<Phase>('picker')
@@ -536,11 +540,18 @@ export default function MiniCrosswordGame() {
         if (w && !isWordComplete(w, before) && isWordComplete(w, after)) {
           sfx.play('correct')
           navigator.vibrate?.(10)
+          /* « juice » (Task 20) : pulse successif (~40 ms d'écart) des cases du mot,
+             fire-and-forget — aucun verrou, aucune incidence sur la saisie. */
+          for (let i = 0; i < w.answer.length; i++) {
+            const rr = w.row + (w.dir === 'down' ? i : 0)
+            const cc = w.col + (w.dir === 'across' ? i : 0)
+            window.setTimeout(() => juice.pop(cellRefs.current[cellKey(rr, cc)], 1.12, 220), i * 40)
+          }
           return
         }
       }
     },
-    [wordAtCell],
+    [wordAtCell, juice],
   )
 
   const typeLetter = useCallback(
@@ -959,7 +970,7 @@ export default function MiniCrosswordGame() {
           <Timer className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
           {formatMs(elapsed)}
         </span>
-        <span className="flex items-center gap-1 rounded-full bg-secondary/70 px-2.5 py-1 tabular-nums" title={L.wordsTitle}>
+        <span key={completedWords.size} className="anim-fx-pop flex items-center gap-1 rounded-full bg-secondary/70 px-2.5 py-1 tabular-nums" title={L.wordsTitle}>
           {completedWords.size}/{puzzle.words.length} {L.wordsShort}
         </span>
       </div>
@@ -1016,6 +1027,9 @@ export default function MiniCrosswordGame() {
                   return (
                     <button
                       key={isWrong ? `${key}-w${shakeNonce}` : key}
+                      ref={(el) => {
+                        cellRefs.current[key] = el
+                      }}
                       type="button"
                       role="gridcell"
                       aria-label={`${L.cell} ${r + 1}·${c + 1}${val ? ` : ${val}` : ''}`}
@@ -1182,7 +1196,7 @@ export default function MiniCrosswordGame() {
                           >
                             <span className="font-bold tabular-nums">{num}.</span>
                             <span className="min-w-0 flex-1">{w.clue[lang]}</span>
-                            {done ? <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" /> : null}
+                            {done ? <Check className="anim-fx-pop mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" /> : null}
                             <span className="shrink-0 text-[11px] font-normal tabular-nums text-muted-foreground">{w.answer.length}</span>
                           </button>
                         </li>

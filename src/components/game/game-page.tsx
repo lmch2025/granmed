@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   ChevronRight,
-  Sparkles,
+  ListChecks,
   CheckCircle2,
   Lightbulb,
   CalendarCheck,
@@ -192,11 +192,11 @@ export function GamePage({ slug }: { slug: string }) {
             </div>
           </GuideSection>
 
-          <GuideSection id="features-game" icon={Sparkles} title={t('game.features')}>
+          <GuideSection id="features-game" icon={ListChecks} title={t('game.features')}>
             <ul className="grid gap-2.5 sm:grid-cols-2">
               {content.features[lang].map((f, i) => (
                 <li key={i} className="flex items-start gap-2.5 rounded-xl border bg-card p-3.5 text-sm">
-                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <ListChecks className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                   <span>{f}</span>
                 </li>
               ))}

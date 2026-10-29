@@ -1,6 +1,6 @@
 'use client'
 
-import { Heart, ShieldCheck, Sparkles } from 'lucide-react'
+import { Heart, ShieldCheck, Languages } from 'lucide-react'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { useAppStore } from '@/lib/app-store'
@@ -82,7 +82,7 @@ export function SiteFooter() {
             {t('footer.terms')}
           </button>
           <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
             FR / EN — {t('common.noSignup')}
           </p>
         </nav>

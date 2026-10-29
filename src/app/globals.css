@@ -161,6 +161,44 @@
 .anim-rise { animation: rise-fade 0.4s ease-out both; }
 .anim-score { animation: score-float 0.9s ease-out both; }
 
+/* ---------- Effets « juice » (Task 20) — 100 % décoratifs, zéro impact gameplay ----------
+   Le kit src/components/game/fx.tsx (useJuice + FxCellBurst) s'appuie sur ces classes :
+   éclats de cases, particules, flash lumineux, pop de récompense. */
+@keyframes fx-burst {
+  0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+  30%  { transform: scale(1.18) rotate(calc(var(--fx-rot, 8deg) * 0.4)); opacity: 1; }
+  100% { transform: scale(0.15) rotate(var(--fx-rot, 8deg)); opacity: 0; }
+}
+@keyframes fx-flash {
+  0%   { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+@keyframes fx-particle {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--dy, -18px)) scale(0.25) rotate(var(--fx-rot, 120deg)); opacity: 0; }
+}
+@keyframes fx-glow {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes fx-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.anim-fx-burst {
+  animation: fx-burst 0.38s cubic-bezier(0.3, 0.9, 0.4, 1) both;
+}
+.anim-fx-flash { animation: fx-flash 0.26s ease-out both; }
+.anim-fx-part  { animation: fx-particle 0.52s cubic-bezier(0.12, 0.8, 0.35, 1) both; }
+.anim-fx-glow {
+  animation: fx-glow 0.42s ease-out both;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 65%);
+}
+.anim-fx-pop   { animation: fx-pop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
 /* ---------- Aperçus animés des jeux (GamePreview / cartes) ---------- */
 @keyframes pv-flip {
   0%, 18% { transform: rotateY(0deg); }
@@ -503,6 +541,10 @@
   .gc-shine { animation: none !important; }
   .animate-immersive-in,
   .anim-win-medal, .anim-win-star, .anim-win-glow, .anim-win-rise, .anim-burst-fade { animation: none !important; }
+  /* Juice (Task 20) : pas de particules ni de mouvement — simple fondu discret */
+  .anim-fx-part { animation: none !important; opacity: 0 !important; }
+  .anim-fx-burst { animation-duration: 0.16s !important; }
+  .anim-fx-pop { animation: none !important; }
   html { scroll-behavior: auto; }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame, ArrowRight, Gamepad2, Trophy, CalendarCheck, Sparkles, BookOpen, ShieldCheck } from 'lucide-react'
+import { Flame, ArrowRight, Gamepad2, Trophy, CalendarCheck, Brain, BookOpen, ShieldCheck } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
@@ -38,7 +38,7 @@ export function HomeView() {
         <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              <Brain className="h-3.5 w-3.5" aria-hidden="true" />
               {t('brand.name')} · {t('brand.tagline')}
             </p>
             <h1 id="hero-title" className="font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
@@ -306,7 +306,7 @@ export function HomeView() {
         {[
           { icon: <ShieldCheck className="h-6 w-6 text-emerald-500" aria-hidden="true" />, key: 'trust1' },
           { icon: <Gamepad2 className="h-6 w-6 text-primary" aria-hidden="true" />, key: 'trust2' },
-          { icon: <Sparkles className="h-6 w-6 text-amber-500" aria-hidden="true" />, key: 'trust3' },
+          { icon: <Trophy className="h-6 w-6 text-amber-500" aria-hidden="true" />, key: 'trust3' },
         ].map(({ icon, key }) => (
           <div key={key} className="rounded-2xl border bg-card p-5 shadow-sm">
             {icon}

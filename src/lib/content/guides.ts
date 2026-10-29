@@ -246,7 +246,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: 'jeux-de-mots-vocabulaire',
-    icon: '✨',
+    icon: '📖',
     date: '2025-04-28',
     readMinutes: 5,
     title: {

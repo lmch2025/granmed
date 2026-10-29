@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'minesweeper'
 
@@ -488,6 +489,9 @@ export default function MinesweeperGame() {
   const pressRef = useRef<Press | null>(null)
   const lastLongPressRef = useRef<{ idx: number; t: number } | null>(null)
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([])
+  /* Effets « juice » (Task 20) — décoratifs : secousse + flash du plateau sur défaite. */
+  const juice = useJuice()
+  const gridElRef = useRef<HTMLDivElement>(null)
 
   const cfg = DIFFS[diff]
   const isExpert = diff === 'expert'
@@ -700,6 +704,8 @@ export default function MinesweeperGame() {
     setFinalTime(seconds)
     addGameXp(gameId, 10)
     sfx.play('lose')
+    // « juice » (Task 20) : le plateau encaisse l'explosion (pur transform, 370 ms).
+    juice.shake(gridElRef.current, 2)
     buzz()
     setTipIdx((i) => (i + 1) % HEALTH_TIPS.length)
     setTipOpen(true)
@@ -1033,32 +1039,38 @@ export default function MinesweeperGame() {
           {isExpert ? (
             <div className="nice-scroll overscroll-x-contain overflow-x-auto pb-1">
               <div
+                ref={gridElRef}
                 role="grid"
                 aria-label={L.boardLabel}
                 onKeyDown={onBoardKeyDown}
                 onContextMenu={(e) => e.preventDefault()}
                 className={cn(
-                  'grid w-fit touch-manipulation select-none gap-[2px]',
+                  'relative grid w-fit touch-manipulation select-none gap-[2px]',
                   phase === 'won' && 'anim-glow rounded-xl',
                 )}
                 style={{ gridTemplateColumns: `repeat(${cfg.w}, 30px)` }}
               >
                 {cells}
+                {/* Flash « juice » (Task 20) au moment de la défaite. */}
+                {phase === 'lost' ? <div className="anim-fx-glow pointer-events-none absolute inset-0 z-10 rounded-xl" aria-hidden="true" /> : null}
               </div>
             </div>
           ) : (
             <div
+              ref={gridElRef}
               role="grid"
               aria-label={L.boardLabel}
               onKeyDown={onBoardKeyDown}
               onContextMenu={(e) => e.preventDefault()}
               className={cn(
-                '@container grid -mx-2 w-[calc(100%+1rem)] max-w-[calc(100dvh-250px)] touch-manipulation select-none gap-[2px] sm:mx-auto sm:w-full',
+                '@container relative grid -mx-2 w-[calc(100%+1rem)] max-w-[calc(100dvh-250px)] touch-manipulation select-none gap-[2px] sm:mx-auto sm:w-full',
                 phase === 'won' && 'anim-glow rounded-xl',
               )}
               style={{ gridTemplateColumns: `repeat(${cfg.w}, minmax(0,1fr))` }}
             >
               {cells}
+              {/* Flash « juice » (Task 20) au moment de la défaite. */}
+              {phase === 'lost' ? <div className="anim-fx-glow pointer-events-none absolute inset-0 z-10 rounded-xl" aria-hidden="true" /> : null}
             </div>
           )}
 

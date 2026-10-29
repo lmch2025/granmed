@@ -16,6 +16,7 @@ import { Confetti } from '@/components/shared/confetti'
 import { VictoryBurst } from '@/components/game/round-end'
 import { IqCard, IqChip } from '@/components/game/iq-card'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 
@@ -427,10 +428,15 @@ export default function ZenFishingGame() {
   const bannerTimerRef = useRef(0)
   const timersRef = useRef<Set<number>>(new Set())
 
+  /* Effets « juice » (Task 20) — helpers visuels décoratifs, sans re-render. */
+  const juice = useJuice()
+  const juiceRef = useRef(juice)
+
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { dailyDoneRef.current = dailyDone }, [dailyDone])
   useEffect(() => { langRef.current = lang }, [lang])
+  useEffect(() => { juiceRef.current = juice }, [juice])
 
   /* Minuteurs suivis — tous purgés au démontage */
   const later = useCallback((fn: () => void, ms: number) => {
@@ -812,6 +818,9 @@ export default function ZenFishingGame() {
               f.hooked = true
               f.slot = w.castCount
               w.castCount++
+              // Effet « juice » (Task 20) : respiration à peine perceptible du
+              // plateau à la capture — zen avant tout, aucun shake ni particule.
+              juiceRef.current.pulse(wrap, 1.006, 350)
               if (spec.rarity === 'legendary') {
                 sfx.play('reveal', { volume: 0.55 })
                 buzz([10, 40, 10])
@@ -1006,7 +1015,7 @@ export default function ZenFishingGame() {
         ctx.fillText(spec.emoji, 0, 0)
         if (spec.rarity === 'legendary') {
           ctx.font = emojiFont(12 * w.scale)
-          ctx.fillText('✨', -size * 0.55, -size * 0.45)
+          ctx.fillText('⭐', -size * 0.55, -size * 0.45)
         }
         ctx.restore()
       }
@@ -1186,7 +1195,7 @@ export default function ZenFishingGame() {
             <div className="anim-rise flex items-center gap-3 rounded-2xl border border-amber-300/70 bg-card/95 px-4 py-3 shadow-xl">
               <span className="text-4xl" aria-hidden="true">{discovery.emoji}</span>
               <div className="text-left">
-                <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">✨ {T.newSpecies}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">🎣 {T.newSpecies}</p>
                 <p className="font-display text-lg font-extrabold leading-tight">{discovery.name[lang]}</p>
                 <span className={cn('mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold', rarityChip(discovery.rarity))}>
                   {T.rarity[discovery.rarity]}
@@ -1203,7 +1212,7 @@ export default function ZenFishingGame() {
               {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
               <IqChallengeBanner gameId={gameId} />
               <div className="flex gap-2" aria-hidden="true">
-                {['⛵', '🐟', '✨'].map((e, i) => (
+                {['⛵', '🐟', '🌊'].map((e, i) => (
                   <span key={i} className="text-3xl anim-floaty" style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
                 ))}
               </div>

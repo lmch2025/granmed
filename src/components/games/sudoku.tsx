@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 import { toast } from 'sonner'
 
 export const gameId = 'sudoku'
@@ -421,6 +422,10 @@ export default function SudokuGame() {
   const pauseRef = useRef<() => void>(() => {})
   const keyRef = useRef<(e: KeyboardEvent) => void>(() => {})
   const genTimerRef = useRef<number | null>(null)
+  /* Effets « juice » (Task 20) — décoratifs : secousse sur erreur, micro-pop sur placement juste. */
+  const juice = useJuice()
+  const boardRef = useRef<HTMLDivElement>(null)
+  const cellRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   const canAct = phase === 'playing' && running
 
@@ -628,6 +633,7 @@ export default function SudokuGame() {
     if (phase !== 'playing' || !running || sel < 0) return
     if (givens[sel] !== 0 || hinted.includes(sel)) {
       sfx.play('wrong', { volume: 0.25 })
+      juice.shake(boardRef.current, 1)
       buzz(10)
       return
     }
@@ -657,8 +663,10 @@ export default function SudokuGame() {
     } else if (placed !== solution[sel]) {
       setMistakes((m) => m + 1)
       sfx.play('wrong', { volume: 0.35 })
+      juice.shake(boardRef.current, 1)
     } else {
       sfx.play('pop', { volume: 0.6 })
+      juice.pop(cellRefs.current[sel], 1.08, 220)
     }
     checkWin(ng)
   }
@@ -945,6 +953,7 @@ export default function SudokuGame() {
 
       {/* Grille — largeur/plafonnée pour tenir à l'écran sans scroll */}
       <div
+        ref={boardRef}
         className={cn('relative mx-auto w-full overflow-hidden rounded-xl border-2 border-foreground/70 bg-card shadow-inner [container-type:inline-size]', BOARD_MAX)}
         role="grid"
         aria-label={L.board}
@@ -963,6 +972,9 @@ export default function SudokuGame() {
             return (
               <button
                 key={i}
+                ref={(el) => {
+                  cellRefs.current[i] = el
+                }}
                 type="button"
                 role="gridcell"
                 aria-label={`${L.cell} ${r + 1}-${c + 1}${v ? ` : ${v}` : given ? ` (${L.given})` : ''}`}

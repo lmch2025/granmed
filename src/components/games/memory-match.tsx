@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { FxCellBurst } from '@/components/game/fx'
 
 export const gameId = 'memory-match'
 
@@ -244,6 +245,8 @@ export default function MemoryMatchGame() {
   const [confettiKey, setConfettiKey] = useState(0)
   const [burstKey, setBurstKey] = useState(0)
   const [deal, setDeal] = useState(0)
+  /* Effet « juice » (Task 20) — éclat éphémère sur les 2 cartes d'une paire trouvée. */
+  const [pairFx, setPairFx] = useState<number[] | null>(null)
   const lockRef = useRef(false)
   const genRef = useRef(0)
   const startRef = useRef(0)
@@ -279,6 +282,7 @@ export default function MemoryMatchGame() {
       setFlipped([])
       setMatched(new Set())
       setWrongPair(null)
+      setPairFx(null)
       setMoves(0)
       setMistakes(0)
       setElapsed(0)
@@ -381,6 +385,13 @@ export default function MemoryMatchGame() {
         nextMatched.add(b)
         setMatched(nextMatched)
         setFlipped([])
+        /* Effet « juice » (Task 20) — éclat décoratif sur la paire (le pop existe
+           déjà via anim-pop-in ; rien n'est bloqué, l'input reprend aussitôt). */
+        const pair = [a, b]
+        setPairFx(pair)
+        window.setTimeout(() => {
+          if (genRef.current === gen) setPairFx((cur) => (cur === pair ? null : cur))
+        }, 700)
         lockRef.current = false
         if (nextMatched.size === deck.length) {
           finishWin(newMoves, mistakes)
@@ -581,7 +592,7 @@ export default function MemoryMatchGame() {
                   disabled={isMatched}
                   onClick={() => flip(idx)}
                   className={cn(
-                    'flip-scene aspect-square w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    'flip-scene relative aspect-square w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                     isWrong && 'anim-shake',
                     isMatched && 'anim-pop-in',
                   )}
@@ -608,6 +619,7 @@ export default function MemoryMatchGame() {
                       </span>
                     </div>
                   </div>
+                  {pairFx?.includes(idx) ? <FxCellBurst colorClass="bg-emerald-400/60" particles={2} /> : null}
                 </button>
               )
             })}
@@ -627,7 +639,7 @@ export default function MemoryMatchGame() {
             <StatChip icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} value={`+${won.xp} XP`} />
             {won.mistakes === 0 ? (
               <span className="flex h-9 items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                ✨ {L.flawless}
+                🎯 {L.flawless}
               </span>
             ) : null}
             {won.isRecord ? (

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'speed-math'
 
@@ -253,6 +254,10 @@ export default function SpeedMathGame() {
   const pendingTRef = useRef(0)
   const startAtRef = useRef(0)
   const hideAtRef = useRef(0)
+  /* Effet « juice » (Task 20) — respiration du score sur bonne réponse
+     (WAAPI imperatif, ≤ 240 ms, aucun verrou). */
+  const juice = useJuice()
+  const scorePillRef = useRef<HTMLSpanElement>(null)
 
   /* Défi du jour : calculé une seule fois par date (jamais à chaque rendu). */
   const dailyKey = todayKey()
@@ -414,6 +419,7 @@ export default function SpeedMathGame() {
       setCorrect(statsRef.current.correct)
       setStreak(ns)
       setGain({ amount, seq: statsRef.current.correct })
+      juice.pulse(scorePillRef.current, 1.05, 240)
     } else {
       sfx.play('wrong', { volume: 0.4 })
       navigator.vibrate?.(20)
@@ -625,7 +631,7 @@ export default function SpeedMathGame() {
         <div className="touch-manipulation">
           {/* HUD compact */}
           <div className="mb-2 flex items-center gap-1.5 sm:gap-2">
-            <span className="relative flex h-10 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-bold tabular-nums" title={t('common.score')}>
+            <span ref={scorePillRef} className="relative flex h-10 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-bold tabular-nums" title={t('common.score')}>
               <Target className="h-4 w-4 text-primary" aria-hidden="true" />
               <span key={score} className="anim-pop-in">
                 {score}

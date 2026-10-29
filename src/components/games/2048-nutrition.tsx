@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice, FxCellBurst } from '@/components/game/fx'
 import { toast } from 'sonner'
 
 export const gameId = '2048-nutrition'
@@ -358,6 +359,9 @@ export default function Game2048() {
   const moveRef = useRef<(d: Dir) => void>(() => {})
   const lockedRef = useRef(true)
   const fxKey = useRef(0)
+  /* Effets « juice » (Task 20) — purement décoratifs (pulse plateau / éclat de fusion). */
+  const juice = useJuice()
+  const boardRef = useRef<HTMLDivElement>(null)
 
   /* --- Restauration au montage (callback asynchrone, conforme set-state-in-effect) --- */
   useEffect(() => {
@@ -483,6 +487,8 @@ export default function Game2048() {
 
     sfx.play('swish', { volume: 0.25 })
     if (mergedIdx.length > 0) sfx.play('merge')
+    // Onde « juice » (Task 20) : pulse du plateau quand une fusion crée une tuile ≥ 128.
+    if (mergedIdx.some((i) => next[i] >= 128)) juice.pulse(boardRef.current, 1.015, 300)
 
     // Spawn d'une nouvelle tuile (2 ou 4) sur une case LIBRE uniquement.
     const rng = makeRng(game.rngState)
@@ -703,7 +709,7 @@ export default function Game2048() {
       <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
         <div className="relative flex h-11 min-w-[72px] flex-col items-center justify-center rounded-xl bg-secondary/70 px-2.5">
           <span className="text-[10px] font-bold uppercase leading-none tracking-wider text-muted-foreground">{L.score}</span>
-          <span className={cn('mt-1 text-lg font-extrabold leading-none tabular-nums', recordLive && 'text-emerald-600 dark:text-emerald-400')}>
+          <span key={game.score} className={cn('anim-fx-pop mt-1 text-lg font-extrabold leading-none tabular-nums', recordLive && 'text-emerald-600 dark:text-emerald-400')}>
             {formatNum(game.score, lang)}
           </span>
           {gainFx ? (
@@ -776,6 +782,7 @@ export default function Game2048() {
 
       {/* Plateau fluide : carré, borné par la largeur ET la hauteur disponible (aucun scroll requis) */}
       <div
+        ref={boardRef}
         role="group"
         aria-label={L.board}
         className="relative mx-auto grid aspect-square w-full max-w-[calc(100dvh-240px)] touch-none select-none grid-cols-4 grid-rows-4 gap-1.5 rounded-2xl border-2 border-amber-200/70 bg-amber-100/60 p-1.5 [container-type:inline-size] sm:gap-2 sm:p-2 dark:border-amber-500/20 dark:bg-secondary/60"
@@ -814,6 +821,15 @@ export default function Game2048() {
                   </>
                 )}
               </div>
+            ) : null}
+            {/* Éclat « juice » (Task 20) sur la tuile issue d'une fusion — la 1re classe
+                de TILE_STYLE est le fond de la tuile ; rejoué via la key « bumps ». */}
+            {animKind[i] === 'merged' ? (
+              <FxCellBurst
+                key={`m-${bumps[i]}`}
+                colorClass={(TILE_STYLE[v] ?? TILE_STYLE_BIG).split(' ')[0]}
+                particles={v >= 128 ? 2 : 1}
+              />
             ) : null}
           </div>
         ))}

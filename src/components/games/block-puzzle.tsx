@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Play, RotateCcw, CalendarCheck, Trophy, Zap, Sparkles, Flame, Grid2x2, Flower2 } from 'lucide-react'
+import { Play, RotateCcw, CalendarCheck, Trophy, Zap, Eraser, Flame, Grid2x2, Flower2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice, FxCellBurst } from '@/components/game/fx'
 import { loadSave, saveSave, clearSave } from '@/lib/save'
 
 export const gameId = 'block-puzzle'
@@ -328,6 +329,14 @@ const STR = {
   },
 }
 
+/** Effets d'effacement « juice » (Task 20) — purement décoratifs : l'état du
+ *  plateau est déjà nettoyé au moment où ils se jouent, le rythme ne change pas. */
+interface ClearFxData {
+  key: number
+  n: number
+  byCell: Record<number, { fam: number; delay: number }>
+}
+
 /* ================= Composant principal ================= */
 export default function BlockPuzzleGame() {
   const t = useT()
@@ -347,7 +356,7 @@ export default function BlockPuzzleGame() {
   const [saved, setSaved] = useState<GameState | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [ghost, setGhost] = useState<GhostPreview | null>(null)
-  const [clearing, setClearing] = useState<Set<number>>(() => new Set())
+  const [clearFx, setClearFx] = useState<ClearFxData | null>(null)
   const [flash, setFlash] = useState(0)
   const [comboFx, setComboFx] = useState<{ n: number; pts: number; key: number } | null>(null)
   const [comboBest, setComboBest] = useState(0)
@@ -355,6 +364,9 @@ export default function BlockPuzzleGame() {
   const [finalIq, setFinalIq] = useState<number | null>(null)
   const [confettiFire, setConfettiFire] = useState(0)
   const [dragUi, setDragUi] = useState<DragUi | null>(null)
+
+  /* Effets « juice » (Task 20) — helpers visuels sans re-render */
+  const juice = useJuice()
 
   const lockRef = useRef(false)
   /** Génération de partie : invalide les timeouts périmés après restart/reprise/démontage. */
@@ -463,7 +475,7 @@ export default function BlockPuzzleGame() {
     setSaved(null)
     setSelected(null)
     setGhost(null)
-    setClearing(new Set())
+    setClearFx(null)
     setComboFx(null)
     setFlash(0)
     setComboBest(0)
@@ -484,7 +496,7 @@ export default function BlockPuzzleGame() {
     setSaved(null)
     setSelected(null)
     setGhost(null)
-    setClearing(new Set())
+    setClearFx(null)
     setComboFx(null)
     setFlash(0)
     setComboBest(0)
@@ -618,12 +630,25 @@ export default function BlockPuzzleGame() {
     })
 
     if (cleared.size > 0) {
-      // Flash visuel des cases effacées (l'état est déjà nettoyé)
-      setClearing(cleared)
+      /* Effets « juice » (Task 20) — purement visuels : l'état est déjà nettoyé,
+         le verrou reste de 340 ms (rythme inchangé), les animations s'achèvent
+         seules sans jamais gêner le coup suivant. */
+      const cr = r + s.h / 2
+      const cc = c + s.w / 2
+      const byCell: ClearFxData['byCell'] = {}
+      for (const i of cleared) {
+        const dr = Math.floor(i / 10) + 0.5 - cr
+        const dc = (i % 10) + 0.5 - cc
+        byCell[i] = { fam: board[i], delay: Math.min(170, Math.round(Math.hypot(dr, dc) * 24)) }
+      }
+      setClearFx({ key: Date.now(), n: nLines, byCell })
+      // Onde de choc du plateau : pulse pour une ligne, secousse pour un combo
+      if (nLines === 1) juice.pulse(gridRef.current, 1.015, 280)
+      else juice.shake(gridRef.current, nLines)
       sched(() => {
-        setClearing(new Set())
         lockRef.current = false
       }, 340)
+      sched(() => setClearFx(null), 760)
       if (nLines >= 2) {
         setComboFx({ n: nLines, pts: 10 * nLines * mult, key: Date.now() })
         sched(() => setComboFx(null), 950)
@@ -758,8 +783,10 @@ export default function BlockPuzzleGame() {
       {/* HUD en jeu (une ligne compacte) / configuration sinon */}
       {playing ? (
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          <Pill compact icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.score} value={game.score} />
-          <Pill compact icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
+          <span key={game.score} className={game.score > 0 ? 'anim-fx-pop inline-flex' : 'inline-flex'}>
+            <Pill compact icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.score} value={game.score} />
+          </span>
+          <Pill compact icon={<Eraser className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
           <Pill compact icon={<Flame className="h-3.5 w-3.5" aria-hidden="true" />} label={L.combo} value={comboBest >= 2 ? `×${comboBest}` : '—'} />
           {game.daily ? (
             <span
@@ -857,7 +884,7 @@ export default function BlockPuzzleGame() {
               if (!dragRef.current) setGhost(null)
             }}
             className={cn(
-              'grid aspect-square grid-cols-10 gap-[2px] rounded-xl border-2 bg-card p-[3px] shadow-inner',
+              'relative grid aspect-square grid-cols-10 gap-[2px] rounded-xl border-2 bg-card p-[3px] shadow-inner',
               flash > 0 ? 'anim-shake border-red-400 ring-2 ring-red-400/60' : 'border-border/70',
             )}
           >
@@ -881,12 +908,24 @@ export default function BlockPuzzleGame() {
                     selectedShapeId != null && 'cursor-pointer hover:brightness-110',
                   )}
                 >
-                  {clearing.has(i) ? (
-                    <span className="anim-pop-in absolute inset-0 rounded-[3px] bg-white/85" aria-hidden="true" />
+                  {clearFx?.byCell[i] ? (
+                    <FxCellBurst
+                      key={clearFx.key}
+                      colorClass={cn('bg-gradient-to-br', FAM_GRAD[clearFx.byCell[i].fam] ?? FAM_GRAD[1])}
+                      delay={clearFx.byCell[i].delay}
+                      particles={clearFx.n >= 3 ? 1 : 2}
+                    />
                   ) : null}
                 </div>
               )
             })}
+            {clearFx ? (
+              <div
+                key={clearFx.key}
+                className="anim-fx-glow pointer-events-none absolute inset-0 z-10 rounded-[10px]"
+                aria-hidden="true"
+              />
+            ) : null}
           </div>
 
           {/* Combo flottant */}
@@ -957,7 +996,7 @@ export default function BlockPuzzleGame() {
               <p className="font-display text-xl font-extrabold">{L.gameOver}</p>
               <div className="flex flex-wrap justify-center gap-1.5">
                 <Pill icon={<Zap className="h-3.5 w-3.5" aria-hidden="true" />} label={L.score} value={game.score} />
-                <Pill icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
+                <Pill icon={<Eraser className="h-3.5 w-3.5" aria-hidden="true" />} label={L.lines} value={game.lines} />
                 {comboBest >= 2 ? (
                   <Pill icon={<Flame className="h-3.5 w-3.5" aria-hidden="true" />} label={L.combo} value={`×${comboBest}`} />
                 ) : null}

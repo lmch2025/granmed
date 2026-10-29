@@ -775,7 +775,7 @@ export default function MergeGardenGame() {
         </Button>
 
         <span className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-sm font-semibold" title={L.merges}>
-          <span aria-hidden="true">✨</span>
+          <span aria-hidden="true">🌿</span>
           <span className="tabular-nums">{merges}</span>
           <span className="sr-only">{L.merges}</span>
         </span>

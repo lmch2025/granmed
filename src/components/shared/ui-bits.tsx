@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarCheck, Flame, Heart, Play, Sparkles } from 'lucide-react'
+import { CalendarCheck, Flame, Heart, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useAppStore } from '@/lib/app-store'
@@ -199,7 +199,7 @@ export function GameCard({ game, className }: { game: GameDef; className?: strin
           </span>
           {stats > 0 ? (
             <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              <Play className="h-3.5 w-3.5" aria-hidden="true" />
               {stats}
             </span>
           ) : game.popularity >= 90 ? (

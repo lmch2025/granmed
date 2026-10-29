@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice, FxCellBurst } from '@/components/game/fx'
 import { loadSave, saveSave } from '@/lib/save'
 
 export const gameId = 'jigsaw-puzzle'
@@ -323,6 +324,8 @@ export default function JigsawPuzzleGame() {
   const timersRef = useRef<Set<number>>(new Set())
   const genRef = useRef(0)
   const lastStartRef = useRef(0)
+  /* Effets « juice » (Task 20) — décoratifs : rebond + éclat blanc sur l'aimantation. */
+  const juice = useJuice()
   /* Aperçu œil utilisé pendant la manche (3 étoiles uniquement sans aide). */
   const usedPreviewRef = useRef(false)
 
@@ -798,6 +801,8 @@ export default function JigsawPuzzleGame() {
         updateGame({ ...g2, pieces })
         setBumpId(piece.id)
         setSnapFx(piece.id)
+        // « juice » (Task 20) : la pièce atterrit avec un léger rebond (pur transform).
+        juice.pop(el)
         setTimer(() => setSnapFx(null), 500)
         if (pieces.every((x) => x.locked)) {
           // Petit délai pour laisser voir la dernière pièce se verrouiller.
@@ -1159,7 +1164,10 @@ export default function JigsawPuzzleGame() {
                       backgroundSize: `${dims.cols * 100}% ${dims.rows * 100}%`,
                       backgroundPosition: `${(p.col / (dims.cols - 1)) * 100}% ${(p.row / (dims.rows - 1)) * 100}%`,
                     }}
-                  />
+                  >
+                    {/* Éclat « juice » (Task 20) : flash blanc discret au verrouillage. */}
+                    {snapFx === p.id ? <FxCellBurst colorClass="bg-white/70" particles={1} /> : null}
+                  </div>
                 ))}
               </Fragment>
             ) : null}

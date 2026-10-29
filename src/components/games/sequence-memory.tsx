@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice } from '@/components/game/fx'
 
 export const gameId = 'sequence-memory'
 
@@ -189,6 +190,11 @@ export default function SequenceMemoryGame() {
   const modeRef = useRef<Mode>('classic')
   const pausedRef = useRef(false)
   const lastStartRef = useRef(0)
+  /* Effets « juice » (Task 20) — rebond de la pastille réussie, frisson du
+     plateau sur erreur ; imperatifs (WAAPI), aucun re-render ni verrou. */
+  const juice = useJuice()
+  const padsRef = useRef<(HTMLButtonElement | null)[]>([])
+  const boardRef = useRef<HTMLDivElement>(null)
 
   const L = {
     fr: {
@@ -349,6 +355,7 @@ export default function SequenceMemoryGame() {
     const idx = inputIdxRef.current
     if (seq[idx] === i) {
       navigator.vibrate?.(10)
+      juice.pop(padsRef.current[i], 1.06, 200)
       if (idx + 1 >= seq.length) {
         // Séquence complète : niveau suivant, la séquence s'allonge d'une couleur.
         sfx.play('coin', { volume: 0.6 })
@@ -368,6 +375,7 @@ export default function SequenceMemoryGame() {
     } else {
       sfx.play('wrong', { volume: 0.5 })
       navigator.vibrate?.(10)
+      juice.shake(boardRef.current, 1)
       setShakeIdx(i)
       failRun(idx, i)
     }
@@ -510,13 +518,16 @@ export default function SequenceMemoryGame() {
       {/* ---- Plateau 2×2 : carré, pleine largeur disponible, borné au budget
               vertical mobile (100dvh − chrome/HUD) — jamais de scroll horizontal ---- */}
       <div className="mx-auto w-full max-w-[min(calc(100dvh_-_250px),28rem)]">
-        <div className="relative grid aspect-square grid-cols-2 grid-rows-2 gap-2.5 sm:gap-3" role="group" aria-label={L.board}>
+        <div ref={boardRef} className="relative grid aspect-square grid-cols-2 grid-rows-2 gap-2.5 sm:gap-3" role="group" aria-label={L.board}>
           {PADS.map((pad, i) => {
             const active = lit === i || tapFlash === i
             const isShake = shakeIdx === i
             return (
               <button
                 key={i}
+                ref={(el) => {
+                  padsRef.current[i] = el
+                }}
                 type="button"
                 disabled={phase !== 'input'}
                 aria-label={`${pad.name[lang]} (${i + 1})`}

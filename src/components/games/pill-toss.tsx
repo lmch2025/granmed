@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Confetti } from '@/components/shared/confetti'
 import { RoundEndActions, VictoryBurst } from '@/components/game/round-end'
 import { IqChallengeBanner } from '@/components/game/iq-banner'
+import { useJuice, FxCellBurst } from '@/components/game/fx'
 
 export const gameId = 'pill-toss'
 
@@ -451,9 +452,16 @@ export default function PillTossGame() {
   const lastStartRef = useRef(0)
   const nextBtnRef = useRef<HTMLButtonElement>(null)
 
+  /* Effets « juice » (Task 20) — helpers visuels décoratifs, sans re-render. */
+  const juice = useJuice()
+  const juiceRef = useRef(juice)
+  /* Éclat blanc au point d'impact d'un touché (overlay DOM au-dessus du canvas). */
+  const [hitFx, setHitFx] = useState<{ key: number; x: number; y: number } | null>(null)
+
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { reduceRef.current = reduce }, [reduce])
   useEffect(() => { langRef.current = lang }, [lang])
+  useEffect(() => { juiceRef.current = juice }, [juice])
 
   /* Focus clavier sur « Manche suivante » dès le résumé de fin de manche. */
   useEffect(() => {
@@ -801,6 +809,10 @@ export default function PillTossGame() {
             color: w.streak >= 3 ? '#b45309' : '#7c4a1e',
             size: w.streak >= 3 ? 19 : 16,
           })
+          // Effets « juice » (Task 20) : micro-pulse du plateau + éclat blanc
+          // positionné à l'impact (jx/jy en px CSS = % exact du conteneur).
+          juiceRef.current.pulse(wrap, 1.012, 240)
+          if (!reduceRef.current) setHitFx({ key: Date.now(), x: jx / w.W, y: jy / w.H })
           if (w.streak >= 8) unlockBadge('toss-combo-8')
           w.hudDirty = true
           resolvePill(true)
@@ -1076,6 +1088,19 @@ export default function PillTossGame() {
           aria-label={T.canvasLabel}
         />
 
+        {/* Effet « juice » (Task 20) : éclat d'impact d'un touché — rejoué par
+            key, purement décoratif, ne capte jamais le pointeur. */}
+        {hitFx ? (
+          <div
+            key={hitFx.key}
+            aria-hidden="true"
+            className="pointer-events-none absolute z-10 h-12 w-12"
+            style={{ left: `${hitFx.x * 100}%`, top: `${hitFx.y * 100}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            <FxCellBurst colorClass="bg-white" particles={2} size="26%" />
+          </div>
+        ) : null}
+
         {/* Mention permanente : pilules fictives (pointer-events-none : la
             zone de traction vers le bas-droite reste saisissable) */}
         <span className="pointer-events-none absolute bottom-1.5 right-2 z-10 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold text-stone-600 shadow-sm backdrop-blur-sm dark:bg-stone-800/80 dark:text-stone-300">
@@ -1089,7 +1114,7 @@ export default function PillTossGame() {
               {/* Défi QI bienveillant — mis en avant dès l'ouverture (Task 19) */}
               <IqChallengeBanner gameId={gameId} />
               <div className="flex gap-2 [@media(max-height:420px)]:hidden" aria-hidden="true">
-                {['💊', '✨', '🎯'].map((e, i) => (
+                {['💊', '🧪', '🎯'].map((e, i) => (
                   <span key={i} className={cn('text-3xl', !reduce && 'anim-floaty')} style={{ animationDelay: `${i * 0.4}s` }}>{e}</span>
                 ))}
               </div>
@@ -1135,7 +1160,7 @@ export default function PillTossGame() {
               </div>
               {summary.bonus > 0 ? (
                 <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  ✨ {T.bonus} : +{summary.bonus}
+                  💥 {T.bonus} : +{summary.bonus}
                 </p>
               ) : null}
               <p className="mt-2 text-xs text-muted-foreground">

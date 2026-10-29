@@ -62,14 +62,15 @@ export function GamePreview({ slug, className }: { slug: string; className?: str
         <Scene slug={slug} fallback={game?.icon ?? '🎮'} />
       </div>
 
-      {/* étincelles scintillantes */}
-      <span className="anim-pv-spark absolute left-[9%] top-[16%] text-[10px]" style={{ animationDelay: '0.4s' }}>✨</span>
+      {/* éclats lumineux scintillants (points CSS — subtils, sans émoji) */}
       <span
-        className="anim-pv-spark absolute right-[10%] top-[12%] text-[9px]"
+        className="anim-pv-spark absolute left-[9%] top-[16%] block h-[7px] w-[7px] rounded-full bg-white shadow-[0_0_8px_3px_rgba(255,255,255,0.65)]"
+        style={{ animationDelay: '0.4s' }}
+      />
+      <span
+        className="anim-pv-spark absolute right-[10%] top-[12%] block h-[6px] w-[6px] rounded-full bg-amber-100 shadow-[0_0_8px_3px_rgba(254,243,199,0.6)]"
         style={{ animationDelay: '1.7s', animationDuration: '4.1s' }}
-      >
-        ✨
-      </span>
+      />
     </div>
   )
 }
@@ -288,7 +289,7 @@ function MergeGardenScene() {
       <span className="anim-pv-ml absolute bottom-2 left-4 text-xl">🌱</span>
       <span className="anim-pv-mr absolute bottom-2 right-4 text-xl">🌱</span>
       <span className="anim-pv-bloom absolute bottom-2 text-3xl">🌷</span>
-      <span className="anim-pv-spark absolute bottom-10 left-1/2 text-xs" style={{ animationDelay: '2s' }}>✨</span>
+      <span className="anim-pv-spark absolute bottom-10 left-1/2 text-xs" style={{ animationDelay: '2s' }}>🌸</span>
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { RotateCcw, LogOut, ChevronRight, Sparkles, Share2 } from 'lucide-react'
+import { RotateCcw, LogOut, ChevronRight, Gamepad2, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
@@ -307,7 +307,7 @@ export function NextGameChip({ gameId, className }: { gameId: string; className?
   return (
     <div className={cn('flex flex-col items-center gap-1 pt-0.5', className)}>
       <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
-        <Sparkles className="h-3 w-3" aria-hidden="true" />
+        <Gamepad2 className="h-3 w-3" aria-hidden="true" />
         {t('game.nextUp')}
       </p>
       <button
