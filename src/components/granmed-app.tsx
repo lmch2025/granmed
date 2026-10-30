@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
-import { useAppStore } from '@/lib/app-store'
+import { useAppStore, type View } from '@/lib/app-store'
 import { LangOverrideContext, useT, useLang, type Lang } from '@/lib/i18n'
+import { SsrGameContentContext, SsrViewContext } from '@/lib/ssr-context'
+import type { GameSEOContent } from '@/lib/games/types'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { HomeView } from '@/components/home/home-view'
@@ -82,7 +84,11 @@ function useDocumentMeta() {
 }
 
 function CurrentView() {
-  const view = useAppStore((s) => s.view)
+  /* Task 27 : avant l'init du routeur (SSR + hydratation), la vue SERVIE par la
+   * page réelle (page jeu) prime — le HTML brut montre le JEU, pas l'accueil. */
+  const ssrView = useContext(SsrViewContext)
+  const storeView = useAppStore((s) => s.view)
+  const view = ssrView ?? storeView
   switch (view.type) {
     case 'home':
       return <HomeView />
@@ -109,8 +115,16 @@ export function GranmedApp({
   /** Task 22 : langue déterminée côté serveur (/?lang=en) — le HTML servi est
    *  déjà anglais pour les moteurs sans JavaScript (GEO/AIO). */
   initialLang = 'fr',
+  /** Task 27 : vue servie par le serveur sur une page jeu réelle — rendue
+   *  avant l'init du routeur (HTML brut = jeu, pas accueil). */
+  initialView,
+  /** Task 27 : contenu SEO du jeu servi (SSR) — même source que le module
+   *  client, zéro dérive ; garde-fou par slug dans GamePage. */
+  initialGameContent = null,
 }: {
   initialLang?: Lang
+  initialView?: View
+  initialGameContent?: { slug: string; content: GameSEOContent } | null
 }) {
   const init = useAppStore((s) => s.init)
   const setViewFromHash = useAppStore((s) => s.init)
@@ -125,19 +139,26 @@ export function GranmedApp({
   /* Override de langue actif uniquement avant l'init du routeur client :
    * SSR + première passe d'hydratation → identique serveur/client (zéro mismatch). */
   const ssrLangOverride = routerReady ? null : initialLang
+  /* Task 27 : idem pour la vue — PATH_EARLY superpose le hash AVANT l'hydratation,
+   * donc init() ouvre exactement le même jeu : transition invisible. */
+  const ssrViewOverride = routerReady ? null : (initialView ?? null)
 
   return (
     <LangOverrideContext.Provider value={ssrLangOverride}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main id="main-content" className="flex-1">
-            <CurrentView />
-          </main>
-          <SiteFooter />
-        </div>
-        <Toaster position="top-center" richColors closeButton />
-      </ThemeProvider>
+      <SsrViewContext.Provider value={ssrViewOverride}>
+        <SsrGameContentContext.Provider value={initialGameContent}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+            <div className="flex min-h-screen flex-col">
+              <SiteHeader />
+              <main id="main-content" className="flex-1">
+                <CurrentView />
+              </main>
+              <SiteFooter />
+            </div>
+            <Toaster position="top-center" richColors closeButton />
+          </ThemeProvider>
+        </SsrGameContentContext.Provider>
+      </SsrViewContext.Provider>
     </LangOverrideContext.Provider>
   )
 }

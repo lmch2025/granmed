@@ -213,7 +213,7 @@ export const GAMES: GameDef[] = [
       fr: ['quiz santé gratuit', 'vrai ou faux bien-être', 'test connaissances santé', 'quiz nutrition et bien-être', 'questions santé avec réponses'],
       en: ['health quiz free', 'true or false health questions', 'wellness quiz online', 'nutrition knowledge test', 'health trivia with answers'],
     },
-    title: { fr: 'Vrai ou Faux — Santé et connaissances', en: 'True or False — Health & Knowledge' },
+    title: { fr: 'Quiz Santé — Vrai ou Faux', en: 'Health Quiz — True or False' },
     short: {
       fr: 'Affirmations santé, nutrition et bien-être, avec explications sourcées : un quiz qui teste votre QI.',
       en: 'Health, nutrition and wellbeing statements with sourced explanations: a quiz that tests your IQ.',
@@ -229,8 +229,9 @@ export const GAMES: GameDef[] = [
   {
     slug: 'merge-garden',
     paths: { fr: 'jardin-merge', en: 'merge-garden' },
+    /* Task 27 : « jeu de fusion gratuit » ajouté (tête de la niche FR). */
     keywords: {
-      fr: ['jeu de fusion zen', 'jeu de jardin gratuit', 'jeu merge en ligne', 'jeu de plantes relaxant', 'fusionner des graines'],
+      fr: ['jeu de fusion gratuit', 'jeu de fusion zen', 'jeu de jardin gratuit', 'jeu merge en ligne', 'jeu de plantes relaxant', 'fusionner des graines'],
       en: ['merge game online free', 'zen garden game', 'relaxing merge game', 'plant merging game', 'free casual garden game'],
     },
     title: { fr: 'Jardin de Gran — Jeu de fusion', en: "Gran's Garden — Merge Game" },
@@ -409,11 +410,14 @@ export const GAMES: GameDef[] = [
   {
     slug: 'zen-fishing',
     paths: { fr: 'peche-zen', en: 'zen-fishing' },
+    /* Task 27 : mots-clés tête ajoutés — « jeu de pêche » (FR) / « fishing game » (EN)
+     * sont les requêtes à fort volume de la niche ; les longue traîne existantes
+     * (relaxant, zen, collection) restent toutes en place. */
     keywords: {
-      fr: ['jeu de pêche relaxant', 'jeu zen gratuit en ligne', 'pêche zen collection', 'jeu déstressant sans inscription'],
-      en: ['relaxing fishing game', 'free zen game online', 'casual fishing collection game', 'calming game no sign-up'],
+      fr: ['jeu de pêche gratuit', 'jeu de pêche en ligne', 'jeu de pêche relaxant', 'jeu zen gratuit en ligne', 'pêche zen collection', 'jeu déstressant sans inscription'],
+      en: ['fishing game online free', 'relaxing fishing game', 'free zen game online', 'casual fishing collection game', 'calming game no sign-up'],
     },
-    title: { fr: 'Pêche Miraculeuse — Zen Fishing', en: 'Miraculous Fishing — Zen Fishing' },
+    title: { fr: 'Pêche Miraculeuse — Jeu de pêche zen', en: 'Zen Fishing — Relaxing Fishing Game' },
     short: {
       fr: 'Une pêche détendante : descendez, remontez, complétez votre collection — et votre QI estimé.',
       en: 'Relaxed fishing: drop your hook, reel up and grow your collection — and your estimated IQ.',

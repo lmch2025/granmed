@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { GranmedApp } from "@/components/granmed-app";
 import { PwaInstall } from "@/components/shared/pwa-install";
 import { GAMES, CATEGORIES, gameByRealPath, gameRealPath, type GameDef } from "@/lib/games/catalog";
+import { getGameContent } from "@/lib/games/content-registry";
+import type { GameSEOContent } from "@/lib/games/types";
 import { HOME_FAQ } from "@/lib/content/home-faq";
 import { GUIDES } from "@/lib/content/guides";
 
@@ -323,6 +325,22 @@ function gameVideoJsonLd(lang: PageLang, g: GameDef) {
   };
 }
 
+/** Task 27 — FAQ structurée du jeu (page réelle) : questions/réponses réelles
+ *  du contenu éditorial — données immédiatement exploitables par les moteurs
+ *  de réponse IA (AIO/GEO) et les résultats enrichis. */
+function gameFaqJsonLd(lang: PageLang, content: GameSEOContent) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    inLanguage: lang,
+    mainEntity: content.faq[lang].map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
+
 /** Task 26 — fil d'Ariane (Accueil → jeu) pour résultats enrichis Google. */
 function gameBreadcrumbJsonLd(lang: PageLang, g: GameDef) {
   const homeNames = {
@@ -385,19 +403,29 @@ export default async function Page({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  /* Task 26 — page jeu individuelle : métadonnées et JSON-LD dédiés au jeu. */
+  /* Task 26 — page jeu individuelle : métadonnées et JSON-LD dédiés au jeu.
+   * Task 27 — double vérification : la vue JEU est aussi rendue dans le HTML
+   * brut (GranmedApp initialView) avec son contenu éditorial complet
+   * (initialGameContent, même source que le module client) — les moteurs sans
+   * JavaScript voient enfin le jeu, son H1 dédié, ses règles et sa FAQ. */
   const h = await headers();
   const realPath = h.get("x-granmed-path");
   const found = realPath ? gameByRealPath(realPath) : undefined;
   if (found) {
     const { lang, game } = found;
+    const gameContent = getGameContent(game.slug);
     return (
       <>
         <script dangerouslySetInnerHTML={{ __html: PATH_EARLY }} />
         <JsonLd data={gameVideoJsonLd(lang, game)} />
         <JsonLd data={gameBreadcrumbJsonLd(lang, game)} />
+        {gameContent ? <JsonLd data={gameFaqJsonLd(lang, gameContent)} /> : null}
         {/* Le HTML servi est déjà dans la langue du chemin (GEO/AIO sans JS). */}
-        <GranmedApp initialLang={lang} />
+        <GranmedApp
+          initialLang={lang}
+          initialView={{ type: "game", slug: game.slug }}
+          initialGameContent={gameContent ? { slug: game.slug, content: gameContent } : null}
+        />
         <PwaInstall />
       </>
     );

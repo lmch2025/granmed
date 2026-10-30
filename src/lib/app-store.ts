@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import type { Lang } from '@/lib/i18n'
-import { CATEGORIES, GAMES, GAMES_BY_SLUG, getGame } from '@/lib/games/catalog'
+import { CATEGORIES, GAMES, GAMES_BY_SLUG, gameRealPath, getGame } from '@/lib/games/catalog'
 
 export type View =
   | { type: 'home' }
@@ -184,13 +184,19 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       localStorage.setItem(LANG_KEY, lang)
     } catch {}
-    const hash = buildHash(lang, get().view)
+    const view = get().view
+    const hash = buildHash(lang, view)
     /* Task 22 : l'URL porte toujours la langue active (?lang=en ⟺ anglais) —
        cohérence canonique/métadonnées pour les moteurs qui exécutent JS.
        NB : pathname explicite requis — un pushState '#/…' seul ne remplacerait
-       QUE le fragment et conserverait une query ?lang=en obsolète. */
-    const search = lang === 'en' ? '?lang=en' : ''
-    window.history.pushState(null, '', `${window.location.pathname}${search}${hash}`)
+       QUE le fragment et conserverait une query ?lang=en obsolète.
+       Task 27 : sur une page jeu réelle, le chemin suit la langue cible
+       (/fr/jeu-memory ⟷ /en/memory-match) — l'URL partagée reste toujours
+       cohérente avec le contenu et le canonique servis par le proxy. */
+    const realPath = view.type === 'game' ? gameRealPath(lang, view.slug) : ''
+    const search = realPath ? '' : lang === 'en' ? '?lang=en' : ''
+    const base = realPath || window.location.pathname
+    window.history.pushState(null, '', `${base}${search}${hash}`)
     // déclenche un rendu cohérent sans recharger
     window.dispatchEvent(new HashChangeEvent('hashchange'))
   },

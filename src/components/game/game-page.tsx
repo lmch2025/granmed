@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import {
   ChevronRight,
   ListChecks,
@@ -17,6 +17,7 @@ import { sfx } from '@/lib/sound'
 import { useT, useLang } from '@/lib/i18n'
 import { CATEGORIES, CATEGORY_STYLES, getGame } from '@/lib/games/catalog'
 import { GameLoader, useGameContent } from '@/lib/games/registry'
+import { SsrGameContentContext } from '@/lib/ssr-context'
 import { GameShell } from '@/components/game/game-shell'
 import { GameErrorBoundary } from '@/components/shared/error-boundary'
 import { HashLink } from '@/components/shared/hash-link'
@@ -28,7 +29,14 @@ export function GamePage({ slug }: { slug: string }) {
   const t = useT()
   const lang = useLang()
   const game = getGame(slug)
-  const content = useGameContent(slug)
+  /* Task 27 : contenu SSR de la page jeu réelle — le registre serveur importe le
+   * MÊME export `content` que le module chargé à la demande côté client : zéro
+   * dérive, transition invisible quand le module arrive. Garde-fou par slug :
+   * après une navigation hash vers un AUTRE jeu, ce fallback ne s'applique plus
+   * (comportement inchangé : sections éditoriales dès que le module arrive). */
+  const loadedContent = useGameContent(slug)
+  const ssrContent = useContext(SsrGameContentContext)
+  const content = loadedContent ?? (ssrContent?.slug === slug ? ssrContent.content : null)
   const category = CATEGORIES.find((c) => c.id === game?.category)
 
   /* Métadonnées dynamiques (partage + historique) */

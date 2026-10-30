@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-30T14:45:17.614Z",
-  "reason": "Task 26 (force majeure, demande utilisateur explicite : chaque jeu × langue servi individuellement pour le référencement GSC — le sitemap 2 URLs était la réalité technique du SPA hash mais sous-optimale) : 40 pages jeu réelles indexables — proxy.ts réécrit les chemins canoniques vers / avec x-granmed-path/lang, page.tsx sert métadonnées dédiées (title/desc/keywords/canonical/hreflang/OG/JSON-LD VideoGame+Breadcrumb) + script précoce hash avant hydratation, hash-link.tsx rend les liens jeu en URLs réelles (clic simple = navigation hash identique), catalog.ts ajout pur de 2 helpers (gameRealPath/gameByRealPath), sitemap.xml 42 URLs générées depuis le catalogue, llms.txt navigation + 20 lignes jeux en URLs réelles — 0 suppression, routes hash et comportements d'origine intégralement préservés, sitemap:check 42/42 verts, E2E Quitter OK",
-  "baselineCommit": "52aadd302e6f79f6d7cfef891fe11105247a87e9",
+  "generatedAt": "2026-10-30T19:34:31.565Z",
+  "reason": "Task 27 (force majeure, demande utilisateur explicite : double vérification pas-à-pas de la Task 26 et correction de tous les manquements SEO/GEO/AIO) : corps des 40 pages jeu rendu SSR dédié — le HTML brut contenait la vue accueil (H1 portail, corps identique ×40) invisible aux crawlers IA sans JS ; 20 composants de jeu : objet content déplacé verbatim en données pures data/<jeu>-seo.ts + ré-export (comportement de jeu inchangé), granmed-app.tsx initialView/initialGameContent (miroir LangOverrideContext), game-page.tsx fallback contenu SSR garde-fou par slug, page.tsx props SSR + FAQPage JSON-LD par jeu, catalog.ts 2 titles mots-clés tête (Quiz Santé/Pêche) + 3 ajouts keywords (0 suppression), hash-link.tsx accueil en URL réelle, app-store.ts setLang chemin cohérent sur page jeu, llms.txt 2 lignes alignées — ajouts ssr-context.tsx + content-registry.ts + 20 fichiers -seo.ts ; 0 suppression, 40/40 pages vérifiées (title/canonical/hreflang/lang/H1/3 JSON-LD/contenu éditorial brut), E2E navigateur 0 erreur, lint propre, sitemap:check 42/42",
+  "baselineCommit": "c7ea0930e986a4efa8c4b0c6f4e1cc7b788ffda6",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -340,20 +340,20 @@
       "bytes": 7756
     },
     "src/components/game/game-page.tsx": {
-      "sha256": "5452e4fe0f322405c406299d2b1517abeaf347517b8a2b63afaa2e47a27b3b44",
-      "bytes": 12193
+      "sha256": "0af9cfca5586ad30462789b5acb61b8199d635ad3ac7096513fca614658db9ab",
+      "bytes": 12832
     },
     "src/components/game/game-shell.tsx": {
       "sha256": "5f0689a1540a4f1e190232f6cafe8a67de26b388ccc1cda8c43ad3579fa2c2dd",
       "bytes": 20422
     },
     "src/components/granmed-app.tsx": {
-      "sha256": "9d6ce3d45c5966b7e1114393fc6ccfce7061520289aecf84c63cd4d40a89b9b5",
-      "bytes": 4952
+      "sha256": "97859f01698284ae261612c71c77fbe4c9b677b439af2df84979e558528aacb4",
+      "bytes": 6250
     },
     "src/components/shared/hash-link.tsx": {
-      "sha256": "596429eae41d21efc392a5ac1898d937f2a0cbd32e79f7c9fb59bb9b89d405f1",
-      "bytes": 2976
+      "sha256": "ff85442b8d8aabdff207690b100a2ab8093f7707acfcaa6a76832ceffca7580b",
+      "bytes": 3304
     },
     "src/components/shared/pwa-install.tsx": {
       "sha256": "04cd25af23b03b74549487112334c7de9323c4549ffe48339439de7cd581129f",
@@ -376,80 +376,124 @@
       "bytes": 9116
     },
     "src/components/games/2048-nutrition.tsx": {
-      "sha256": "18943417c4913ab642fb5dd8c8b3a94a9734d72bd21b5d21b1df0ef854f0d6d7",
-      "bytes": 42278
+      "sha256": "4991c9f21432daa25307b2f6e51d88167d4bd308d1291216639e19046effe0b8",
+      "bytes": 33399
     },
     "src/components/games/sequence-memory.tsx": {
-      "sha256": "63c9d0c8902007f40158c0bd96f4c839e82e2433d95976e397ad4ff2a2d1b884",
-      "bytes": 32409
+      "sha256": "c052b7b86e3376034d75aedefc0d1d31c4c388247f0a36e9896e7b7e36244570",
+      "bytes": 23080
     },
     "src/components/games/fruit-slice.tsx": {
-      "sha256": "9595fdc700ced821115a41001fefc4cdf79dbff30a7e5ba5dbabf5c11168dc16",
-      "bytes": 45717
+      "sha256": "ff7e16592f60e41d183c473b113ea30cd443a0bfaed61fa55c2584c1dc90071d",
+      "bytes": 35516
     },
     "src/components/games/fire-escape.tsx": {
-      "sha256": "2babb42ae027858ec13a5126d4246df00793709af335367790ca841248fa1b30",
-      "bytes": 49218
+      "sha256": "fb634440bb8d3b0c417f6534d433f37445d17e7ebd8acef3d5f8560332fd0bbf",
+      "bytes": 38521
     },
     "src/components/games/health-true-false.tsx": {
-      "sha256": "aaa4921195d92fe99deb5473d290097b154bc664c1e14d7d22f2c246599b2344",
-      "bytes": 43156
+      "sha256": "592c9df1cf4b1ba551d4aa849844921488dbd6fbb17bbe6237085279e9b76279",
+      "bytes": 33194
     },
     "src/components/games/block-puzzle.tsx": {
-      "sha256": "08833156d16dadf34dd5e6ff6b3d17dbcfc11f454edcfd25145eb7bb11acbeb1",
-      "bytes": 50125
+      "sha256": "6c5d900e60f36a6fbb197c2ea66db174adb9687aeab1f61958669c01da72f8a7",
+      "bytes": 38407
     },
     "src/components/games/guess-the-idiom.tsx": {
-      "sha256": "4deda6a9ff80652b5169f1994dea77b8e99728fc466a667936d89dfddf90918a",
-      "bytes": 64102
+      "sha256": "e3c3e2520df52fae85cc39e82ee1201817d3c9c9d4a26835dcc1eb9df9b4d71b",
+      "bytes": 50828
     },
     "src/components/games/speed-math.tsx": {
-      "sha256": "a8fff4fa646f5cc7dd40990e0cce898430604f16af12be5f83110bfe2c189fb0",
-      "bytes": 40985
+      "sha256": "b9bf6036f8f4a9477b9099b9844127560bc5652b6353b11439b18f94d7b62c9d",
+      "bytes": 30046
     },
     "src/components/games/zen-fishing.tsx": {
-      "sha256": "85515fba90b119a7c2747b786e3e0a26943a4ece7bc697f246ca163772118b10",
-      "bytes": 56149
+      "sha256": "1c92b674e00f76f8e984231785f5eb66c7e196d94ad27c21317aa3a2c1cfda28",
+      "bytes": 46920
     },
     "src/components/games/mini-crossword.tsx": {
-      "sha256": "ca7dfde305884b2a08a4b240a2df17d29f878eab4f0177bc18f476792ee74bf1",
-      "bytes": 57896
+      "sha256": "a1aff8069081092fea38b0b380151d30f1b587c49f987c2d7d91639033df7da2",
+      "bytes": 47969
     },
     "src/components/games/memory-match.tsx": {
-      "sha256": "7393029747e9c56ec8f4ec2f385b2cc5ae74e48845b1b1ed07f6af94f4bd3d5b",
-      "bytes": 35577
+      "sha256": "929945d6545ea56ab858f8b42f1989f881464924a80f171b3353f29c01e29811",
+      "bytes": 26426
     },
     "src/components/games/merge-garden.tsx": {
-      "sha256": "23df1cba925027a99009393f176a1d8785a661d783d49f9497f46aa2a26eb0b3",
-      "bytes": 45737
+      "sha256": "d646573638d5f872161d1ed9d5f401e80c5176b368b8c0c87239fc1944ea330a",
+      "bytes": 36060
     },
     "src/components/games/minesweeper.tsx": {
-      "sha256": "2746a193fc3f8aa5fc732b1266cccc46c0eb70c68e41bcaeb007cc72befa1f1b",
-      "bytes": 52036
+      "sha256": "78e195420114b11ef711ca2436c43780ae3ef3085d841b48a623524529debaee",
+      "bytes": 40802
     },
     "src/components/games/daily-word.tsx": {
-      "sha256": "7ddba69aaa838eb5cbf17e0db79898f87933b060853c241d54b4066fd273d2cc",
-      "bytes": 48263
+      "sha256": "de1e4358388c272998602bd5c2456030bbb1ef6fa3daa654337d931478d63986",
+      "bytes": 37492
     },
     "src/components/games/jigsaw-puzzle.tsx": {
-      "sha256": "50248806479e49788c96c1126337428b547af741b52c5b7a1644240bcc27f8b4",
-      "bytes": 56327
+      "sha256": "e50c8514c75333de1fc1aea109e0c1a92cc9ac80ae8ea39bf38ae2c71773335b",
+      "bytes": 44667
     },
     "src/components/games/schulte-table.tsx": {
-      "sha256": "204f3a36783e0dffa6cacf6eb8704492c71bbb7aa2bba5ab61e22104f7574480",
-      "bytes": 38026
+      "sha256": "940914a1ba615773afc9dfe00aa8948590ee354c391b5d423e140357faab6a03",
+      "bytes": 27244
+    },
+    "src/components/games/data/sequence-memory-seo.ts": {
+      "sha256": "5ad6cef3354aafc0906b2e2a8d7e49e37fdbcce46a61cdae98de568c31712b3a",
+      "bytes": 10169
     },
     "src/components/games/data/longest-word-data.ts": {
       "sha256": "2e2997ca59479b690d390ca9407fe5e27ef467e7327e625716bab8b5bdaba30f",
       "bytes": 46769
     },
+    "src/components/games/data/block-puzzle-seo.ts": {
+      "sha256": "dd68f2c0f959e7928d36c0ca799305624f81fffe484fa02d7dfad47130abc95c",
+      "bytes": 12540
+    },
+    "src/components/games/data/2048-nutrition-seo.ts": {
+      "sha256": "7c98b741fdee37e5be3a1908217077edd127d10ab1b23c2a3294220067eef595",
+      "bytes": 9716
+    },
+    "src/components/games/data/fruit-slice-seo.ts": {
+      "sha256": "155c798424f8c565e2dbb5ecc27bfcdc9ba417e5075f2534f5a28e223b9faa74",
+      "bytes": 11017
+    },
+    "src/components/games/data/health-true-false-seo.ts": {
+      "sha256": "44bc86c9aa4a1415cfd8618888d3208e8c67d9147287270ea89630c4c68b2df2",
+      "bytes": 10811
+    },
     "src/components/games/data/interactive-story-data.ts": {
       "sha256": "b54710697036efcc1ec2a7ce54fe00d1af2e752e02d0e08c59232bc1625f74d1",
       "bytes": 50524
     },
+    "src/components/games/data/guess-the-idiom-seo.ts": {
+      "sha256": "11ece636d9866b9b0d55bcafca35f78d20054d6b05884ce32c571e8d991c876e",
+      "bytes": 14111
+    },
+    "src/components/games/data/minesweeper-seo.ts": {
+      "sha256": "d4e02930400900b10962aaebc35eaab1669b66b955f576def12c67727ccd8660",
+      "bytes": 12053
+    },
+    "src/components/games/data/speed-math-seo.ts": {
+      "sha256": "70801704b8d2522e84b3620b01ffcbbadb48dce294160a1f1c1622fa3d23f98a",
+      "bytes": 11749
+    },
     "src/components/games/data/guess-the-idiom-data.ts": {
       "sha256": "f8f484251b5d27fedab9be3bda695f256309929ec875cda3e4ce7fe2e6861218",
       "bytes": 60629
+    },
+    "src/components/games/data/jigsaw-puzzle-seo.ts": {
+      "sha256": "125d06e733b12a71f22bf0d37c3254daacb4e4d6ac27abd740d157f1f161cbac",
+      "bytes": 12488
+    },
+    "src/components/games/data/mini-crossword-seo.ts": {
+      "sha256": "3a66bb8c325263ef907caaafc49bd76268298a7f41bc2732cf6af78ae6fe3c8b",
+      "bytes": 10761
+    },
+    "src/components/games/data/zen-fishing-seo.ts": {
+      "sha256": "2904f00fa132e34259aeda071466000c6a059165e6bd07f751c1883ff90f0868",
+      "bytes": 10045
     },
     "src/components/games/data/daily-word-data.ts": {
       "sha256": "2eced3042000b14bb0a6c4a158fa8af76cfa2dbd7f68b0080505186fd85e305b",
@@ -459,25 +503,61 @@
       "sha256": "a658183ee37dd116274011e8e5d95dcc7c0bc774232f242aceb66f9a9c27e7b4",
       "bytes": 14035
     },
+    "src/components/games/data/merge-garden-seo.ts": {
+      "sha256": "c86587fcfab3feed467595ae151d3e0fcf54c0601b660d002e4ad4e524c20d46",
+      "bytes": 10499
+    },
+    "src/components/games/data/longest-word-seo.ts": {
+      "sha256": "8949e7ca207864a80f1a96ca3e65d19894d4d0304c544ecabaf8af17ded49c7b",
+      "bytes": 14106
+    },
+    "src/components/games/data/daily-word-seo.ts": {
+      "sha256": "b6f8e0a35a07cf4325154daaea3fd302378a6c6bbc28f83a1786f809b6618509",
+      "bytes": 11581
+    },
+    "src/components/games/data/fire-escape-seo.ts": {
+      "sha256": "8ba8a5a1c470f2af241b9013f2af5a4415aa3046d7b16aa3fab984a16da11da6",
+      "bytes": 11513
+    },
+    "src/components/games/data/pill-toss-seo.ts": {
+      "sha256": "64a3c9f0f3f8abef2b1f00b59728969a694d534a1ff78ddbefa8af6b8349d780",
+      "bytes": 11376
+    },
+    "src/components/games/data/schulte-table-seo.ts": {
+      "sha256": "a62decc8073f81759cfc7311327609b3dc3b5cb2ea13a72253a74423f760441c",
+      "bytes": 11610
+    },
+    "src/components/games/data/memory-match-seo.ts": {
+      "sha256": "3f08162c9736a4a9754db73d2184a2c8d70ca8647ac72c4ae84e093cc3362184",
+      "bytes": 10009
+    },
+    "src/components/games/data/interactive-story-seo.ts": {
+      "sha256": "22955ef570f034317cb9bd489079b54b3456ae301b6fc10e8502e94266021fb8",
+      "bytes": 10552
+    },
+    "src/components/games/data/sudoku-seo.ts": {
+      "sha256": "f526fe7e6f11610836166daafad62589ca3a54dcfd960e26264ba65fdfcf1934",
+      "bytes": 10196
+    },
     "src/components/games/data/health-true-false-data.ts": {
       "sha256": "1a52c81f7e0d28d7014971b693ec475022740b4c064c5a1df6d428608dc4a65a",
       "bytes": 46735
     },
     "src/components/games/pill-toss.tsx": {
-      "sha256": "e7bdf352ea62a15763b660ff3f9865d289c6f499c64141dbf6ef74d87c74a68b",
-      "bytes": 53507
+      "sha256": "992ac36822a5efc5a124b2bf52c50824ff30a564e9b16bb138a918f375149db6",
+      "bytes": 42935
     },
     "src/components/games/longest-word.tsx": {
-      "sha256": "5f662ecfe0b2d4fff5ea1ba1ecc541ab88cf2724af26aeb98dfc81b3dc5d9436",
-      "bytes": 56751
+      "sha256": "967296572201e5990565b48df3a8e1381d14aea243d3a1b136bc109a82587beb",
+      "bytes": 43467
     },
     "src/components/games/sudoku.tsx": {
-      "sha256": "f494d23c835738b9f5c0636dca5a523995e071cf8cf8fd38b1564dd5ce6eeb0f",
-      "bytes": 49520
+      "sha256": "0b1322f2a310e4f6b52084476169d649e912e6f9910d8313b22a3d7da24e7e0b",
+      "bytes": 40113
     },
     "src/components/games/interactive-story.tsx": {
-      "sha256": "44af83b26b0a92eadb3696d850c43f412d5e9c441fc6c05f03209b27e884ef6b",
-      "bytes": 49072
+      "sha256": "54cd14620705f1366604e60dff519d2d52fcf5e7811e617e28ca8e21a22237c0",
+      "bytes": 39372
     },
     "src/components/layout/site-footer.tsx": {
       "sha256": "3b101351a5402b6a9cf5069d7f4dc211d1ba8bc21684c3904e860ff6dece4795",
@@ -699,6 +779,10 @@
       "sha256": "fd0237b371f45ddcf9fd97f3995397b76eb822db0091c8947c1301ba1bc4413b",
       "bytes": 16063
     },
+    "src/lib/ssr-context.tsx": {
+      "sha256": "52e8a763ddd33f623d14bbf67ac91b7de81c7b12c580bb0cfb75e6de65016988",
+      "bytes": 1481
+    },
     "src/lib/game-session.ts": {
       "sha256": "a6745c1af7108819363079346f09a0f532e19081031425a2e0f3d7108ffc4fd7",
       "bytes": 828
@@ -735,6 +819,10 @@
       "sha256": "305ee0df49ed1fdfd5db7d2c7cebf996bc4bc87afb48083fe45b6dadefd27a0d",
       "bytes": 7340
     },
+    "src/lib/games/content-registry.ts": {
+      "sha256": "4d96c6fc850bc8035bf7d28ada5b8790796fb8079c9ecf2c5833fabfdce9bd18",
+      "bytes": 4247
+    },
     "src/lib/games/iq.ts": {
       "sha256": "d85354505625b5f88da4621bd5d81153bea9727f2b263436f39c38feb19e5318",
       "bytes": 6531
@@ -760,8 +848,8 @@
       "bytes": 1678
     },
     "src/lib/app-store.ts": {
-      "sha256": "10107170eb90a1b4e339c3ee1e223a9c0c58303acb525de1132519e2cfc8ba3a",
-      "bytes": 7499
+      "sha256": "1fee5bbd579f5433e42686a69a55247e350c6d2d2e9bec15ca8503836b8d0f43",
+      "bytes": 7889
     },
     "src/hooks/use-mobile.ts": {
       "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
@@ -788,8 +876,8 @@
       "bytes": 24141
     },
     "src/app/page.tsx": {
-      "sha256": "ee93405e50db4a0b59fff98375eed05a73092a158448a58551cd0d0e7e0945ff",
-      "bytes": 15580
+      "sha256": "113d0cb9e12d812b39a8da02d62aea233a9dac31290eb0bcace95918dda4ecb2",
+      "bytes": 16876
     },
     "public/images/jigsaw-lavender.png": {
       "sha256": "de4be829df6b72aeeda3de404c98b70e5e7521213cad7672c5e84047777555bb",
@@ -952,8 +1040,8 @@
       "bytes": 3957
     },
     "public/llms.txt": {
-      "sha256": "96b91db02f98a33f83919b633a1eca04a9123541d7c3b301edbc4171fe88cdbc",
-      "bytes": 11446
+      "sha256": "62b26b86c86967eea1ba028d7f4c77cea436f7dce69a685ba70b0075d109b2c3",
+      "bytes": 11515
     },
     "public/sitemap.xml": {
       "sha256": "d56ac89db373ac17b0bf947fc816132f3a8de421c1c3081f15fbaf1730dd8466",
@@ -1002,8 +1090,8 @@
   },
   "appendOnly": {
     "src/lib/games/catalog.ts": {
-      "sha256": "ba8a2323737215cede315e73562b1acebdd3b89bcae20ae94b128a8726b5af86",
-      "bytes": 26865,
+      "sha256": "5d5d17f006131cc8dc3fcc39ef451cc8f0fad9b3c41a2d720b5593dd8aaa7a22",
+      "bytes": 27285,
       "games": [
         {
           "slug": "memory-match",
@@ -1244,8 +1332,8 @@
             ]
           },
           "title": {
-            "fr": "Vrai ou Faux — Santé et connaissances",
-            "en": "True or False — Health & Knowledge"
+            "fr": "Quiz Santé — Vrai ou Faux",
+            "en": "Health Quiz — True or False"
           },
           "short": {
             "fr": "Affirmations santé, nutrition et bien-être, avec explications sourcées : un quiz qui teste votre QI.",
@@ -1271,6 +1359,7 @@
           },
           "keywords": {
             "fr": [
+              "jeu de fusion gratuit",
               "jeu de fusion zen",
               "jeu de jardin gratuit",
               "jeu merge en ligne",
@@ -1650,12 +1739,15 @@
           },
           "keywords": {
             "fr": [
+              "jeu de pêche gratuit",
+              "jeu de pêche en ligne",
               "jeu de pêche relaxant",
               "jeu zen gratuit en ligne",
               "pêche zen collection",
               "jeu déstressant sans inscription"
             ],
             "en": [
+              "fishing game online free",
               "relaxing fishing game",
               "free zen game online",
               "casual fishing collection game",
@@ -1663,8 +1755,8 @@
             ]
           },
           "title": {
-            "fr": "Pêche Miraculeuse — Zen Fishing",
-            "en": "Miraculous Fishing — Zen Fishing"
+            "fr": "Pêche Miraculeuse — Jeu de pêche zen",
+            "en": "Zen Fishing — Relaxing Fishing Game"
           },
           "short": {
             "fr": "Une pêche détendante : descendez, remontez, complétez votre collection — et votre QI estimé.",

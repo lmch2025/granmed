@@ -44,7 +44,7 @@ Chaque jeu possède sa page dédiée servie individuellement — règles, FAQ, r
 - Vision Active (Schulte Table) — retrouver les nombres dans l'ordre le plus vite possible, grilles 3×3 à 7×7 ; vitesse de traitement visuelle. FR : https://www.granmed.store/fr/table-schulte · EN : https://www.granmed.store/en/schulte-table
 - Calcul Éclair (Speed Math) — calcul mental en sprint de 60 secondes, difficulté adaptative, bonus de série. FR : https://www.granmed.store/fr/calcul-mental-rapide · EN : https://www.granmed.store/en/speed-math
 - Culture Gran (Mini Crossword) — mots croisés express construits à la main (nature, expressions, culture générale), indices et validation. FR : https://www.granmed.store/fr/mots-croises · EN : https://www.granmed.store/en/mini-crossword
-- Vrai ou Faux Santé (Health True/False) — affirmations santé et bien-être avec explications sourcées après chaque réponse. FR : https://www.granmed.store/fr/quiz-sante · EN : https://www.granmed.store/en/health-true-false
+- Quiz Santé — Vrai ou Faux (Health Quiz — True or False) — affirmations santé et bien-être avec explications sourcées après chaque réponse. FR : https://www.granmed.store/fr/quiz-sante · EN : https://www.granmed.store/en/health-true-false
 
 ### Puzzles et logique / Puzzles & logic
 
@@ -60,7 +60,7 @@ Chaque jeu possède sa page dédiée servie individuellement — règles, FAQ, r
 
 - Pill Toss — lancer de pilules fictives vers des fioles mobiles, physique réaliste, combos ; adresse et timing. FR : https://www.granmed.store/fr/lancer-de-pilules · EN : https://www.granmed.store/en/pill-toss
 - Le Pompier de Gran (Fire Escape) — guider un pompier à travers les flammes d'un seul geste, score de distance ; réflexes et anticipation. FR : https://www.granmed.store/fr/pompier-de-gran · EN : https://www.granmed.store/en/fire-escape
-- Pêche Miraculeuse (Zen Fishing) — pêche détendante : descendre l'hameçon, remonter les poissons, compléter la collection d'espèces ; QI estimé lié à la collection. FR : https://www.granmed.store/fr/peche-zen · EN : https://www.granmed.store/en/zen-fishing
+- Pêche Miraculeuse — Jeu de pêche zen (Zen Fishing — Relaxing Fishing Game) — pêche détendante : descendre l'hameçon, remonter les poissons, compléter la collection d'espèces ; QI estimé lié à la collection. FR : https://www.granmed.store/fr/peche-zen · EN : https://www.granmed.store/en/zen-fishing
 - Le Verger de Gran (Fruit Slice) — trancher les fruits au doigt, éviter les objets interdits, combos ; réflexes. FR : https://www.granmed.store/fr/decoupe-de-fruits · EN : https://www.granmed.store/en/fruit-slice
 
 ### Mots et culture / Words & culture

@@ -41,8 +41,16 @@ export function HashLink({
   /* Task 22 : useLang (et non le store brut) afin que les ancres SSR de `/?lang=en`
      pointent vers `#/en/…` — maillage interne cohérent avec la langue servie. */
   const lang = useLang()
-  /* Task 26 : les vues jeu portent leur URL réelle indexable. */
-  const realPath = view.type === 'game' ? gameRealPath(lang, view.slug) : ''
+  /* Task 26 : les vues jeu portent leur URL réelle indexable.
+   * Task 27 : l'accueil aussi — `/` (FR) ou `/?lang=en` (EN) — si bien que le
+   * fil d'Ariane « Accueil » de chaque page jeu devient un VRAI lien interne
+   * vers les 2 pages d'accueil canoniques (découvrabilité + PageRank). */
+  const realPath =
+    view.type === 'game'
+      ? gameRealPath(lang, view.slug)
+      : view.type === 'home'
+        ? lang === 'en' ? '/?lang=en' : '/'
+        : ''
 
   return (
     <a
