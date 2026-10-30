@@ -35,39 +35,39 @@ How Granmed's free IQ test works: every round computes an estimated IQ from thre
 
 ## Les 20 jeux / The 20 games
 
-Chaque jeu possède sa page dédiée, ses règles, sa FAQ et ses records (dont le « meilleur QI estimé »). Navigation par hash : `https://www.granmed.store/#/fr/<chemin>` (français) ou `https://www.granmed.store/#/en/<path>` (anglais). Deux versions linguistiques canoniques existent pour les moteurs : `https://www.granmed.store` (français) et `https://www.granmed.store/?lang=en` (anglais — métadonnées, FAQ et données structurées en anglais).
+Chaque jeu possède sa page dédiée servie individuellement — règles, FAQ, records (dont le « meilleur QI estimé ») et métadonnées propres — à une URL réelle canonique : `https://www.granmed.store/fr/<chemin>` (français) ou `https://www.granmed.store/en/<path>` (anglais), soit 40 URLs de jeux listées dans le sitemap. La navigation interne du portail utilise des ancres hash équivalentes (`#/fr/…`, `#/en/…`) qui ouvrent le même jeu sans rechargement. Deux pages d'accueil canoniques : `https://www.granmed.store` (français) et `https://www.granmed.store/?lang=en` (anglais — métadonnées, FAQ et données structurées en anglais).
 
 ### Mémoire et entraînement cérébral / Memory & brain training
 
-- Memory Match — jeu de mémoire par paires de cartes (5 thèmes, 4 tailles de grille, défi quotidien) ; QI estimé fonction de la précision et de la rapidité. FR : #/fr/jeu-memory · EN : #/en/memory-match
-- Gran' Mémoire (Sequence Memory) — reproduction de séquences lumineuses et sonores qui s'allongent à chaque tour ; test de mémoire de travail, modes classique et rapide. FR : #/fr/memoire-sequences · EN : #/en/sequence-memory
-- Vision Active (Schulte Table) — retrouver les nombres dans l'ordre le plus vite possible, grilles 3×3 à 7×7 ; vitesse de traitement visuelle. FR : #/fr/table-schulte · EN : #/en/schulte-table
-- Calcul Éclair (Speed Math) — calcul mental en sprint de 60 secondes, difficulté adaptative, bonus de série. FR : #/fr/calcul-mental-rapide · EN : #/en/speed-math
-- Culture Gran (Mini Crossword) — mots croisés express construits à la main (nature, expressions, culture générale), indices et validation. FR : #/fr/mots-croises · EN : #/en/mini-crossword
-- Vrai ou Faux Santé (Health True/False) — affirmations santé et bien-être avec explications sourcées après chaque réponse. FR : #/fr/quiz-sante · EN : #/en/health-true-false
+- Memory Match — jeu de mémoire par paires de cartes (5 thèmes, 4 tailles de grille, défi quotidien) ; QI estimé fonction de la précision et de la rapidité. FR : https://www.granmed.store/fr/jeu-memory · EN : https://www.granmed.store/en/memory-match
+- Gran' Mémoire (Sequence Memory) — reproduction de séquences lumineuses et sonores qui s'allongent à chaque tour ; test de mémoire de travail, modes classique et rapide. FR : https://www.granmed.store/fr/memoire-sequences · EN : https://www.granmed.store/en/sequence-memory
+- Vision Active (Schulte Table) — retrouver les nombres dans l'ordre le plus vite possible, grilles 3×3 à 7×7 ; vitesse de traitement visuelle. FR : https://www.granmed.store/fr/table-schulte · EN : https://www.granmed.store/en/schulte-table
+- Calcul Éclair (Speed Math) — calcul mental en sprint de 60 secondes, difficulté adaptative, bonus de série. FR : https://www.granmed.store/fr/calcul-mental-rapide · EN : https://www.granmed.store/en/speed-math
+- Culture Gran (Mini Crossword) — mots croisés express construits à la main (nature, expressions, culture générale), indices et validation. FR : https://www.granmed.store/fr/mots-croises · EN : https://www.granmed.store/en/mini-crossword
+- Vrai ou Faux Santé (Health True/False) — affirmations santé et bien-être avec explications sourcées après chaque réponse. FR : https://www.granmed.store/fr/quiz-sante · EN : https://www.granmed.store/en/health-true-false
 
 ### Puzzles et logique / Puzzles & logic
 
-- Jardin de Gran (Merge Garden) — jeu zen de fusion : graines et plantes, 16 espèces à découvrir ; QI estimé lié à la collection. FR : #/fr/jardin-merge · EN : #/en/merge-garden
-- 2048 Nutrition — le 2048 classique habillé alimentairement, annulations limitées, sauvegarde de partie ; logique et vision spatiale. FR : #/fr/2048-nutrition · EN : #/en/2048-nutrition
-- Sudoku Zen — grilles à solution unique garantie, notes, vérification d'erreurs, indices, 4 niveaux ; la logique pure notée en QI estimé. FR : #/fr/sudoku · EN : #/en/sudoku
-- Mot du Jour Santé (Daily Word Game) — deviner le mot mystère en 6 tentatives, un mot par jour, dictionnaires FR et EN distincts. FR : #/fr/mot-du-jour · EN : #/en/daily-word-game
-- Démineur Santé (Minesweeper) — démineur classique : 3 tailles, 3 difficultés, marquage des mines, chronomètre ; déduction sous pression. FR : #/fr/demineur · EN : #/en/minesweeper
-- Block Puzzle Équilibre — placer des pièces pour compléter lignes et colonnes, combos et records ; vision spatiale. FR : #/fr/block-puzzle · EN : #/en/block-puzzle
-- Souvenirs de Famille (Jigsaw Puzzle) — reconstituer des illustrations originales (12/24/48 pièces), magnétisme des pièces, galerie. FR : #/fr/puzzle-images · EN : #/en/jigsaw-puzzle
+- Jardin de Gran (Merge Garden) — jeu zen de fusion : graines et plantes, 16 espèces à découvrir ; QI estimé lié à la collection. FR : https://www.granmed.store/fr/jardin-merge · EN : https://www.granmed.store/en/merge-garden
+- 2048 Nutrition — le 2048 classique habillé alimentairement, annulations limitées, sauvegarde de partie ; logique et vision spatiale. FR : https://www.granmed.store/fr/2048-nutrition · EN : https://www.granmed.store/en/2048-nutrition
+- Sudoku Zen — grilles à solution unique garantie, notes, vérification d'erreurs, indices, 4 niveaux ; la logique pure notée en QI estimé. FR : https://www.granmed.store/fr/sudoku · EN : https://www.granmed.store/en/sudoku
+- Mot du Jour Santé (Daily Word Game) — deviner le mot mystère en 6 tentatives, un mot par jour, dictionnaires FR et EN distincts. FR : https://www.granmed.store/fr/mot-du-jour · EN : https://www.granmed.store/en/daily-word-game
+- Démineur Santé (Minesweeper) — démineur classique : 3 tailles, 3 difficultés, marquage des mines, chronomètre ; déduction sous pression. FR : https://www.granmed.store/fr/demineur · EN : https://www.granmed.store/en/minesweeper
+- Block Puzzle Équilibre — placer des pièces pour compléter lignes et colonnes, combos et records ; vision spatiale. FR : https://www.granmed.store/fr/block-puzzle · EN : https://www.granmed.store/en/block-puzzle
+- Souvenirs de Famille (Jigsaw Puzzle) — reconstituer des illustrations originales (12/24/48 pièces), magnétisme des pièces, galerie. FR : https://www.granmed.store/fr/puzzle-images · EN : https://www.granmed.store/en/jigsaw-puzzle
 
 ### Adresse et réflexes / Skill & reflexes
 
-- Pill Toss — lancer de pilules fictives vers des fioles mobiles, physique réaliste, combos ; adresse et timing. FR : #/fr/lancer-de-pilules · EN : #/en/pill-toss
-- Le Pompier de Gran (Fire Escape) — guider un pompier à travers les flammes d'un seul geste, score de distance ; réflexes et anticipation. FR : #/fr/pompier-de-gran · EN : #/en/fire-escape
-- Pêche Miraculeuse (Zen Fishing) — pêche détendante : descendre l'hameçon, remonter les poissons, compléter la collection d'espèces ; QI estimé lié à la collection. FR : #/fr/peche-zen · EN : #/en/zen-fishing
-- Le Verger de Gran (Fruit Slice) — trancher les fruits au doigt, éviter les objets interdits, combos ; réflexes. FR : #/fr/decoupe-de-fruits · EN : #/en/fruit-slice
+- Pill Toss — lancer de pilules fictives vers des fioles mobiles, physique réaliste, combos ; adresse et timing. FR : https://www.granmed.store/fr/lancer-de-pilules · EN : https://www.granmed.store/en/pill-toss
+- Le Pompier de Gran (Fire Escape) — guider un pompier à travers les flammes d'un seul geste, score de distance ; réflexes et anticipation. FR : https://www.granmed.store/fr/pompier-de-gran · EN : https://www.granmed.store/en/fire-escape
+- Pêche Miraculeuse (Zen Fishing) — pêche détendante : descendre l'hameçon, remonter les poissons, compléter la collection d'espèces ; QI estimé lié à la collection. FR : https://www.granmed.store/fr/peche-zen · EN : https://www.granmed.store/en/zen-fishing
+- Le Verger de Gran (Fruit Slice) — trancher les fruits au doigt, éviter les objets interdits, combos ; réflexes. FR : https://www.granmed.store/fr/decoupe-de-fruits · EN : https://www.granmed.store/en/fruit-slice
 
 ### Mots et culture / Words & culture
 
-- Devine l'Expression (Guess the Idiom) — retrouver des expressions populaires à partir de définitions et d'indices progressifs, avec origines. FR : #/fr/devine-expression · EN : #/en/guess-the-idiom
-- Le Mot le Plus Long (Longest Word Game) — former un maximum de mots avec 9 lettres, compte à rebours, dictionnaires par langue. FR : #/fr/mot-le-plus-long · EN : #/en/longest-word-game
-- Histoire Interactive — récits à embranchements : vos choix modifient l'histoire, plusieurs fins à découvrir ; compréhension et choix avisés. FR : #/fr/histoire-interactive · EN : #/en/interactive-story
+- Devine l'Expression (Guess the Idiom) — retrouver des expressions populaires à partir de définitions et d'indices progressifs, avec origines. FR : https://www.granmed.store/fr/devine-expression · EN : https://www.granmed.store/en/guess-the-idiom
+- Le Mot le Plus Long (Longest Word Game) — former un maximum de mots avec 9 lettres, compte à rebours, dictionnaires par langue. FR : https://www.granmed.store/fr/mot-le-plus-long · EN : https://www.granmed.store/en/longest-word-game
+- Histoire Interactive — récits à embranchements : vos choix modifient l'histoire, plusieurs fins à découvrir ; compréhension et choix avisés. FR : https://www.granmed.store/fr/histoire-interactive · EN : https://www.granmed.store/en/interactive-story
 
 ## Gamification
 

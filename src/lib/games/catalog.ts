@@ -533,3 +533,30 @@ export function dailyFeaturedGame(dateKey: string): GameDef {
   for (let i = 0; i < dateKey.length; i++) h = (h * 31 + dateKey.charCodeAt(i)) >>> 0
   return dailies[h % dailies.length]
 }
+
+/* ============================================================
+ * Task 26 — Pages jeu individuelles indexables (SEO / GSC).
+ *
+ * Chaque jeu × langue possède une URL RÉELLE servie par le proxy :
+ *   `/fr/jeu-memory` · `/en/memory-match` … (40 URLs canoniques).
+ * Le proxy réécrit ces chemins vers `/` en propageant `x-granmed-path`,
+ * page.tsx sert les métadonnées dédiées (title, canonical, hreflang,
+ * JSON-LD) et un script précoce rebascule le routeur sur le hash
+ * équivalent AVANT l'hydratation — zéro changement du routeur.
+ * Les navigations internes conservent le hash (#/fr/…).
+ * ============================================================ */
+
+/** Chemin réel canonique d'un jeu (`/fr/jeu-memory`) — `''` si slug inconnu. */
+export function gameRealPath(lang: Lang, slug: string): string {
+  const g = GAMES_BY_SLUG[slug]
+  return g ? `/${lang}/${g.paths[lang]}` : ''
+}
+
+/** Jeu servi par un chemin réel donné — `undefined` si non canonique. */
+export function gameByRealPath(realPath: string): { lang: Lang; game: GameDef } | undefined {
+  const m = /^\/(fr|en)\/([^/]+)$/.exec(realPath)
+  if (!m) return undefined
+  const lang = m[1] as Lang
+  const game = GAMES.find((g) => g.paths[lang] === m[2])
+  return game ? { lang, game } : undefined
+}

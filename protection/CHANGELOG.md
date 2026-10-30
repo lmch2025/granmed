@@ -88,3 +88,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (5) : src/app/layout.tsx, src/app/page.tsx, public/sitemap.xml, public/robots.txt, public/llms.txt
 - Suppressions (0) : aucune
 
+## 2026-10-30 14:45 — Task 26 (force majeure, demande utilisateur explicite : chaque jeu × langue servi individuellement pour le référencement GSC — le sitemap 2 URLs était la réalité technique du SPA hash mais sous-optimale) : 40 pages jeu réelles indexables — proxy.ts réécrit les chemins canoniques vers / avec x-granmed-path/lang, page.tsx sert métadonnées dédiées (title/desc/keywords/canonical/hreflang/OG/JSON-LD VideoGame+Breadcrumb) + script précoce hash avant hydratation, hash-link.tsx rend les liens jeu en URLs réelles (clic simple = navigation hash identique), catalog.ts ajout pur de 2 helpers (gameRealPath/gameByRealPath), sitemap.xml 42 URLs générées depuis le catalogue, llms.txt navigation + 20 lignes jeux en URLs réelles — 0 suppression, routes hash et comportements d'origine intégralement préservés, sitemap:check 42/42 verts, E2E Quitter OK
+- Commit : `52aadd302e6f`
+- Jeux protégés : 20
+- Ajouts (0) : aucun
+- Modifications (6) : src/proxy.ts, src/components/shared/hash-link.tsx, src/app/page.tsx, public/llms.txt, public/sitemap.xml, src/lib/games/catalog.ts
+- Suppressions (0) : aucune
+

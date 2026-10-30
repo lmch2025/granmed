@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { GranmedApp } from "@/components/granmed-app";
 import { PwaInstall } from "@/components/shared/pwa-install";
-import { GAMES, CATEGORIES } from "@/lib/games/catalog";
+import { GAMES, CATEGORIES, gameByRealPath, gameRealPath, type GameDef } from "@/lib/games/catalog";
 import { HOME_FAQ } from "@/lib/content/home-faq";
 import { GUIDES } from "@/lib/content/guides";
 
@@ -19,6 +20,14 @@ import { GUIDES } from "@/lib/content/guides";
  * Task 22 (audit ultime) : le CORPS aussi est anglais — `initialLang` est transmis
  * à GranmedApp (override SSR) et les VideoGame du JSON-LD portent désormais leurs
  * mots-clés fort volume + longue traîne par langue (catalogue `keywords`).
+ *
+ * Task 26 (pages jeu individuelles indexables) : le proxy réécrit les 40 chemins
+ * réels canoniques (`/fr/jeu-memory`, `/en/memory-match`…) vers `/` en propageant
+ * `x-granmed-path` — cette page sert alors les métadonnées DÉDIÉES au jeu
+ * (title, description, keywords, OG, canonical, cluster hreflang fr/en/x-default,
+ * JSON-LD VideoGame + BreadcrumbList). Le script précoce PATH_EARLY superpose le
+ * hash du routeur AVANT l'hydratation : le jeu s'ouvre sans rechargement, zéro
+ * changement du routeur, navigations internes inchangées (hash).
  */
 
 const SITE_URL = "https://www.granmed.store";
@@ -112,12 +121,69 @@ const PAGE_META: Record<
  *  - `/` (défaut FR) : canonique auto-référentielle, hreflang fr → `/`
  *  - `/?lang=en` : canonique auto-référentielle, hreflang en → `/?lang=en`
  *  - x-default → `/` (version par défaut, français)
+ *
+ * Task 26 — pages jeu individuelles : si `x-granmed-path` est présent (réécriture
+ * proxy d'un chemin réel canonique), métadonnées DÉDIÉES au jeu servi :
+ *  - canonical auto-référentiel = le chemin réel (`/fr/jeu-memory`) ;
+ *  - cluster hreflang fr/en/x-default → la paire localisée du MÊME jeu ;
+ *  - title/description/keywords OG et Twitter depuis le catalogue SEO.
  */
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
+  const h = await headers();
+  const realPath = h.get("x-granmed-path");
+  const found = realPath ? gameByRealPath(realPath) : undefined;
+
+  if (found) {
+    const { lang, game } = found;
+    const isEn = lang === "en";
+    const frPath = gameRealPath("fr", game.slug);
+    const enPath = gameRealPath("en", game.slug);
+    const title = `${game.title[lang]} | Granmed`;
+    const portalKeywords = isEn
+      ? ["free IQ games", "brain training", "free online game", "no download", "Granmed"]
+      : ["jeux de QI", "entraînement cérébral", "jeu gratuit en ligne", "sans téléchargement", "Granmed"];
+    return {
+      title: { absolute: title },
+      description: game.short[lang],
+      keywords: [...(game.keywords?.[lang] ?? []), ...portalKeywords],
+      alternates: {
+        canonical: realPath,
+        languages: {
+          fr: frPath,
+          en: enPath,
+          "x-default": frPath,
+        },
+      },
+      openGraph: {
+        type: "website",
+        siteName: "Granmed",
+        title,
+        description: game.short[lang],
+        url: `${SITE_URL}${realPath}`,
+        images: [
+          {
+            url: "/images/og-granmed.png",
+            width: 1344,
+            height: 768,
+            alt: game.title[lang],
+          },
+        ],
+        locale: isEn ? "en_US" : "fr_FR",
+        alternateLocale: [isEn ? "fr_FR" : "en_US"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description: game.short[lang],
+        images: ["/images/og-granmed.png"],
+      },
+    };
+  }
+
   const params = await searchParams;
   const lang: PageLang = params.lang === "en" ? "en" : "fr";
   const m = PAGE_META[lang];
@@ -220,7 +286,8 @@ function gamesJsonLd(lang: PageLang) {
         description: g.short[lang],
         /* Task 22 : mots-clés fort volume + longue traîne par jeu et par langue. */
         keywords: g.keywords?.[lang].join(', '),
-        url: `${SITE_URL}/#/${lang}/${g.paths[lang]}`,
+        /* Task 26 : chaque jeu pointe vers sa page réelle indexable. */
+        url: `${SITE_URL}${gameRealPath(lang, g.slug)}`,
         genre: CATEGORIES.find((c) => c.id === g.category)?.name[lang],
         gamePlatform: ["Web browser", "Mobile", "Desktop"],
         playMode: "SinglePlayer",
@@ -231,6 +298,54 @@ function gamesJsonLd(lang: PageLang) {
         publisher: { "@type": "Organization", name: "Granmed" },
       },
     })),
+  };
+}
+
+/** Task 26 — VideoGame dédié à la page individuelle d'un jeu. */
+function gameVideoJsonLd(lang: PageLang, g: GameDef) {
+  const other: PageLang = lang === "fr" ? "en" : "fr";
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    name: g.title[lang],
+    alternateName: g.title[other],
+    description: g.short[lang],
+    keywords: g.keywords?.[lang].join(', '),
+    url: `${SITE_URL}${gameRealPath(lang, g.slug)}`,
+    genre: CATEGORIES.find((c) => c.id === g.category)?.name[lang],
+    gamePlatform: ["Web browser", "Mobile", "Desktop"],
+    playMode: "SinglePlayer",
+    applicationCategory: "Game",
+    operatingSystem: "Any",
+    inLanguage: lang,
+    isAccessibleForFree: true,
+    publisher: { "@type": "Organization", name: "Granmed" },
+  };
+}
+
+/** Task 26 — fil d'Ariane (Accueil → jeu) pour résultats enrichis Google. */
+function gameBreadcrumbJsonLd(lang: PageLang, g: GameDef) {
+  const homeNames = {
+    fr: "Granmed — Jeux de QI gratuits",
+    en: "Granmed — Free IQ Games",
+  };
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: homeNames[lang],
+        item: lang === "fr" ? SITE_URL : `${SITE_URL}/?lang=en`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: g.title[lang],
+        item: `${SITE_URL}${gameRealPath(lang, g.slug)}`,
+      },
+    ],
   };
 }
 
@@ -256,11 +371,38 @@ function JsonLd({ data }: { data: object }) {
   );
 }
 
+/**
+ * Task 26 — script précoce : superpose le hash du routeur sur le chemin réel
+ * AVANT l'hydratation. `init()` du routeur lit alors `#/fr/jeu-memory` et ouvre
+ * le jeu sans rechargement ; l'URL affichée devient `/#/fr/jeu-memory` et toutes
+ * les navigations internes (hash) restent inchangées. Toujours exécuté : un
+ * éventuel fragment parasite sur un chemin de jeu est normalisé.
+ */
+const PATH_EARLY = `(function(){try{var p=window.location.pathname;if(p.indexOf('/fr/')===0||p.indexOf('/en/')===0){window.history.replaceState(null,'','/#'+p);}}catch(e){}})();`;
+
 export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  /* Task 26 — page jeu individuelle : métadonnées et JSON-LD dédiés au jeu. */
+  const h = await headers();
+  const realPath = h.get("x-granmed-path");
+  const found = realPath ? gameByRealPath(realPath) : undefined;
+  if (found) {
+    const { lang, game } = found;
+    return (
+      <>
+        <script dangerouslySetInnerHTML={{ __html: PATH_EARLY }} />
+        <JsonLd data={gameVideoJsonLd(lang, game)} />
+        <JsonLd data={gameBreadcrumbJsonLd(lang, game)} />
+        {/* Le HTML servi est déjà dans la langue du chemin (GEO/AIO sans JS). */}
+        <GranmedApp initialLang={lang} />
+        <PwaInstall />
+      </>
+    );
+  }
+
   const params = await searchParams;
   const lang: PageLang = params.lang === "en" ? "en" : "fr";
 

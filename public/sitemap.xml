@@ -18,4 +18,364 @@
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://www.granmed.store/fr/jeu-memory</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/jeu-memory"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/memory-match"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/jeu-memory"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/memory-match</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/jeu-memory"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/memory-match"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/jeu-memory"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/memoire-sequences</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/memoire-sequences"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/sequence-memory"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/memoire-sequences"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/sequence-memory</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/memoire-sequences"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/sequence-memory"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/memoire-sequences"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/table-schulte</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/table-schulte"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/schulte-table"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/table-schulte"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/schulte-table</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/table-schulte"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/schulte-table"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/table-schulte"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/calcul-mental-rapide</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/calcul-mental-rapide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/speed-math"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/calcul-mental-rapide"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/speed-math</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/calcul-mental-rapide"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/speed-math"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/calcul-mental-rapide"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/mots-croises</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mots-croises"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/mini-crossword"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mots-croises"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/mini-crossword</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mots-croises"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/mini-crossword"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mots-croises"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/quiz-sante</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/quiz-sante"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/health-true-false"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/quiz-sante"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/health-true-false</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/quiz-sante"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/health-true-false"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/quiz-sante"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/jardin-merge</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/jardin-merge"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/merge-garden"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/jardin-merge"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/merge-garden</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/jardin-merge"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/merge-garden"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/jardin-merge"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/2048-nutrition</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/2048-nutrition"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/2048-nutrition"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/2048-nutrition"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/2048-nutrition</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/2048-nutrition"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/2048-nutrition"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/2048-nutrition"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/sudoku</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/sudoku"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/sudoku"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/sudoku"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/sudoku</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/sudoku"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/sudoku"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/sudoku"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/mot-du-jour</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mot-du-jour"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/daily-word-game"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mot-du-jour"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/daily-word-game</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mot-du-jour"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/daily-word-game"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mot-du-jour"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/demineur</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/demineur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/minesweeper"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/demineur"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/minesweeper</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/demineur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/minesweeper"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/demineur"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/block-puzzle</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/block-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/block-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/block-puzzle"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/block-puzzle</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/block-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/block-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/block-puzzle"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/puzzle-images</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/puzzle-images"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/jigsaw-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/puzzle-images"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/jigsaw-puzzle</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/puzzle-images"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/jigsaw-puzzle"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/puzzle-images"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/lancer-de-pilules</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/lancer-de-pilules"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/pill-toss"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/lancer-de-pilules"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/pill-toss</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/lancer-de-pilules"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/pill-toss"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/lancer-de-pilules"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/pompier-de-gran</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/pompier-de-gran"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/fire-escape"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/pompier-de-gran"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/fire-escape</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/pompier-de-gran"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/fire-escape"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/pompier-de-gran"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/peche-zen</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/peche-zen"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/zen-fishing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/peche-zen"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/zen-fishing</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/peche-zen"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/zen-fishing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/peche-zen"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/decoupe-de-fruits</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/decoupe-de-fruits"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/fruit-slice"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/decoupe-de-fruits"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/fruit-slice</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/decoupe-de-fruits"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/fruit-slice"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/decoupe-de-fruits"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/devine-expression</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/devine-expression"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/guess-the-idiom"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/devine-expression"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/guess-the-idiom</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/devine-expression"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/guess-the-idiom"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/devine-expression"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/mot-le-plus-long</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mot-le-plus-long"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/longest-word-game"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mot-le-plus-long"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/longest-word-game</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/mot-le-plus-long"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/longest-word-game"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/mot-le-plus-long"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/histoire-interactive</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/histoire-interactive"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/interactive-story"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/histoire-interactive"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/interactive-story</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/histoire-interactive"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/interactive-story"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/histoire-interactive"/>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

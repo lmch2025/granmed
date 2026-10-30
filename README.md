@@ -40,7 +40,7 @@ Chaque partie alimente un **moteur QI** (précision · rapidité · difficulté 
 - **Next.js 16** (App Router, Turbopack) + **TypeScript 5** strict
 - **Tailwind CSS 4** + **shadcn/ui** (New York) + Lucide icons
 - **Prisma ORM** (SQLite) — Prisma ORM (SQLite)
-- SPA par hash-routing (`#/fr/…`, `#/en/…`) avec ancres crawlables
+- SPA hybride : 40 pages jeu réelles indexables (`/fr/jeu-…`, `/en/…` — proxy + métadonnées dédiées) + navigation interne hash sans rechargement
 - Runtime **Bun**
 
 ## 📁 Structure
@@ -84,7 +84,7 @@ Le dossier `protection/` gèle par SHA-256 l'intégralité de l'acquis (20 jeux,
 
 Every round feeds an **IQ engine** (accuracy · speed · difficulty → Wechsler-inspired scale, 70–150). At the end of each round, a **spectacular IQ card** reveals your score, percentile, level (Novice → Genius) and personal best — then invites you to play again to raise it.
 
-**Tech:** Next.js 16 (App Router) · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · Prisma (SQLite) · Bun. SPA via hash-routing (`#/en/…`, `#/fr/…`) with crawlable anchors.
+**Tech:** Next.js 16 (App Router) · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · Prisma (SQLite) · Bun. Hybrid SPA: 40 real indexable game pages (`/fr/jeu-…`, `/en/…` — dedicated metadata via proxy rewrite) + in-app hash navigation.
 
 ```bash
 bun install && bun run dev   # http://localhost:3000
