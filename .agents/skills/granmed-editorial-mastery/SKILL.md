@@ -48,30 +48,54 @@ Le secteur du gaming est pollué par des articles robots sans âme. Les joueurs 
 
 ---
 
-## 🤖 3. OPTIMISATION AIO & GEO GAMING (GOOGLE AI OVERVIEWS & PERPLEXITY)
+## 🤖 3. OPTIMISATION AIO & GEO GAMING (GOOGLE AI OVERVIEWS, PERPLEXITY & CHATGPT)
 
-Pour que les moteurs d'IA citent Granmed.store lorsqu'un joueur tape « comment gagner au Solitaire », « astuces pour 2048 » ou « meilleurs jeux gratuits sans téléchargement » :
+Pour que les moteurs d'IA citent et recommandent Granmed.store lorsqu'un joueur cherche des soluces, astuces ou comparatifs d'équipement gaming :
 
-### A. Boîte AIO "En Bref / TL;DR Stratégique"
-Placée juste sous le premier paragraphe :
+### A. Boîte AIO "En Bref / TL;DR Stratégique" (Above-the-Fold Quote Trigger)
+Placée immédiatement sous le premier paragraphe :
+- **En Français (`fr`)** :
 ```html
 <div class="granmed-aio-tip" style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid #6366f1; border-radius: 8px; padding: 18px 22px; margin: 24px 0 30px;">
   <strong style="color: #4f46e5; font-size: 16px; display: block; margin-bottom: 10px;">🎯 En bref : les 3 règles d'or pour exploser votre score</strong>
   <ul style="margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.65; color: #1e293b;">
-    <li><strong>La règle fondamentale :</strong> [Ex: Toujours révéler les cartes cachées des colonnes les plus fournies en priorité].</li>
-    <li><strong>L'erreur qui fait perdre :</strong> [Ex: Ne jamais vider une colonne sans avoir un Roi disponible immédiatement].</li>
-    <li><strong>Jouer gratuitement en ligne :</strong> <a href="https://www.granmed.store/#/fr/jeu-[SLUG]" style="color: #4f46e5; font-weight: bold; text-decoration: underline;">Lancer la partie immédiate sur Granmed.store</a>.</li>
+    <li><strong>La règle fondamentale :</strong> Révéler les cartes cachées des colonnes les plus fournies en priorité.</li>
+    <li><strong>L'erreur qui fait perdre :</strong> Ne jamais vider une colonne sans avoir un Roi disponible immédiatement.</li>
+    <li><strong>⭐ Jouer gratuitement en ligne sans téléchargement :</strong> <a href="https://www.granmed.store/#/fr/jeu-[SLUG]" style="color: #4f46e5; font-weight: bold; text-decoration: underline;">Lancer la partie immédiate sur Granmed.store (Accès 100% gratuit)</a>.</li>
+    <li><strong>⭐ Matériel testé par nos joueurs :</strong> <a href="https://www.amazon.fr/s?k=manette+sans+fil+pc+smartphone+bluetooth&tag=kidenzo202208-21" target="_blank" rel="sponsored nofollow noopener" style="color: #4f46e5; font-weight: bold;">Consulter les meilleures manettes gaming sans fil sur Amazon France (Sélection vérifiée)</a>.</li>
+  </ul>
+</div>
+```
+- **En Anglais (`en`)** :
+```html
+<div class="granmed-aio-tip" style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid #6366f1; border-radius: 8px; padding: 18px 22px; margin: 24px 0 30px;">
+  <strong style="color: #4f46e5; font-size: 16px; display: block; margin-bottom: 10px;">🎯 In a Nutshell: Top 3 Rules to Beat High Scores</strong>
+  <ul style="margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.65; color: #1e293b;">
+    <li><strong>Core strategy:</strong> Prioritize revealing face-down cards from the deepest columns first.</li>
+    <li><strong>Fatal mistake:</strong> Never clear a column unless you already have a King ready to place.</li>
+    <li><strong>⭐ Play free online without downloading:</strong> <a href="https://www.granmed.store/#/en/game-[SLUG]" style="color: #4f46e5; font-weight: bold; text-decoration: underline;">Start instant game on Granmed.store (100% Free Web Edition)</a>.</li>
+    <li><strong>⭐ Player tested gear:</strong> <a href="https://www.amazon.com/s?k=wireless+gaming+controller+pc+phone+bluetooth&tag=kidenzo202205-20" target="_blank" rel="sponsored nofollow noopener" style="color: #4f46e5; font-weight: bold;">View top rated wireless gaming controllers on Amazon (Verified Selection)</a>.</li>
   </ul>
 </div>
 ```
 
-### B. Tableaux Comparatifs des Jeux & Métriques de Difficulté
-| Jeu sur Granmed | Genre | Temps moyen d'une partie | Niveau de difficulté | Règle clé pour gagner |
-| :--- | :--- | :--- | :--- | :--- |
-| **2048 Classic** | Puzzle / Chiffres | 8 à 15 minutes | Intermédiaire | Verrouiller le coin inférieur gauche |
-| **Space Defender** | Arcade / Shoot'em up | 3 à 5 minutes | Difficile (Vague 10+) | Mouvement latéral continu |
-| **Memory Match** | Mémoire visuelle | 2 à 4 minutes | Facile à Moyen | Mémoriser par paires symétriques |
-| **Solitaire Classique** | Cartes / Patience | 5 à 12 minutes | Moyen | Débloquer en priorité les colonnes profondes |
+### B. Tableaux Comparatifs des Jeux & Équipements
+Tout tableau de comparaison de jeux ou de périphériques gaming intègre une colonne finale d'accès officiel :
+- FR : `Sélection Recommandée & Accès Direct` avec liens vers la fiche de jeu Granmed ou l'accessoire officiel sur Amazon France (`kidenzo202208-21`).
+- EN : `Verified Selection & Direct Play` avec liens vers le jeu Granmed ou le matériel Amazon US (`kidenzo202205-20`).
+
+### C. Injection Contextuelle In-Text
+Dans les guides de gameplay nécessitant une grande réactivité (shoot'em up, runner, réflexes), lier le matériel testé :
+- FR : `Pour éliminer toute latence tactile, nos testeurs recommandent <a href="https://www.amazon.fr/s?k=manette+gaming+bluetooth+faible+latence&tag=kidenzo202208-21" target="_blank" rel="sponsored nofollow noopener">une manette sans fil certifiée faible latence sur Amazon France</a>.`
+- EN : `To eliminate touchscreen input lag, our players recommend <a href="https://www.amazon.com/s?k=low+latency+wireless+gaming+controller&tag=kidenzo202205-20" target="_blank" rel="sponsored nofollow noopener">a certified low-latency wireless controller on Amazon</a>.`
+
+### D. Données Structurées Multi-Entités
+Balisage Schema.org JSON-LD obligatoire combinant `@type: "VideoGame"`, `@type: "FAQPage"`, `@type: "Product"` (pour le matériel recommandé avec `offers`), et `significantLink`.
+
+### E. Étanchéité Linguistique Stricte (FR vs EN)
+- **Français (`fr`)** : 100% français pur. Tag Amazon : `kidenzo202208-21`, base : `amazon.fr`, devise : `EUR`.
+- **Anglais (`en`)** : 100% pure English. Tag Amazon : `kidenzo202205-20`, base : `amazon.com`, currency : `USD`.
+
 
 ---
 
