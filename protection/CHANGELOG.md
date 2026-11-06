@@ -102,3 +102,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (27) : src/components/game/game-page.tsx, src/components/granmed-app.tsx, src/components/shared/hash-link.tsx, src/components/games/2048-nutrition.tsx, src/components/games/sequence-memory.tsx, src/components/games/fruit-slice.tsx, src/components/games/fire-escape.tsx, src/components/games/health-true-false.tsx, src/components/games/block-puzzle.tsx, src/components/games/guess-the-idiom.tsx, src/components/games/speed-math.tsx, src/components/games/zen-fishing.tsx, src/components/games/mini-crossword.tsx, src/components/games/memory-match.tsx, src/components/games/merge-garden.tsx, src/components/games/minesweeper.tsx, src/components/games/daily-word.tsx, src/components/games/jigsaw-puzzle.tsx, src/components/games/schulte-table.tsx, src/components/games/pill-toss.tsx, src/components/games/longest-word.tsx, src/components/games/sudoku.tsx, src/components/games/interactive-story.tsx, src/lib/app-store.ts, src/app/page.tsx, public/llms.txt, src/lib/games/catalog.ts
 - Suppressions (0) : aucune
 
+## 2026-11-06 12:02 — Task 28 (force majeure, demande utilisateur : ajout Google AdSense ca-pub-3034343595064419) : layout.tsx (balise meta google-adsense-account + script adsbygoogle.js dans <head>), public/ads.txt (ajout pur), proxy.ts (exclusion statique ads.txt), robots.txt (autorisation Mediapartners-Google/AdsBot-Google), static-views.tsx (mention conforme Google AdSense FR/EN dans Confidentialité), adsense-slot.tsx (composant emplacement réutilisable, ajout pur) — 0 suppression
+- Commit : ffe4cc922cc8
+- Jeux protégés : 20
+- Ajouts (2) : public/ads.txt, src/components/shared/adsense-slot.tsx
+- Modifications (4) : src/app/layout.tsx, src/proxy.ts, public/robots.txt, src/components/pages/static-views.tsx
+- Suppressions (0) : aucune
+

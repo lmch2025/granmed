@@ -17,6 +17,7 @@ const body = Nunito({
 });
 
 const SITE_URL = "https://www.granmed.store";
+const ADSENSE_CLIENT = "ca-pub-3034343595064419";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -137,6 +138,14 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} suppressHydrationWarning>
+      <head>
+        <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={`${display.variable} ${body.variable} antialiased bg-background text-foreground`}>
         {/* PWA : capture précoce de beforeinstallprompt avant l'hydratation React. */}
         <script dangerouslySetInnerHTML={{ __html: PWA_EARLY_CAPTURE }} />

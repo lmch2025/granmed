@@ -1,6 +1,16 @@
 User-agent: *
 Allow: /
 
+# ── Google AdSense / AdsBot — accès complet autorisé ──
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
 # ── Moteurs de réponse IA / AI answer engines (GEO) — contenu explicitement autorisé ──
 User-agent: GPTBot
 Allow: /

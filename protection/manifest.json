@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-10-30T19:34:31.565Z",
-  "reason": "Task 27 (force majeure, demande utilisateur explicite : double vérification pas-à-pas de la Task 26 et correction de tous les manquements SEO/GEO/AIO) : corps des 40 pages jeu rendu SSR dédié — le HTML brut contenait la vue accueil (H1 portail, corps identique ×40) invisible aux crawlers IA sans JS ; 20 composants de jeu : objet content déplacé verbatim en données pures data/<jeu>-seo.ts + ré-export (comportement de jeu inchangé), granmed-app.tsx initialView/initialGameContent (miroir LangOverrideContext), game-page.tsx fallback contenu SSR garde-fou par slug, page.tsx props SSR + FAQPage JSON-LD par jeu, catalog.ts 2 titles mots-clés tête (Quiz Santé/Pêche) + 3 ajouts keywords (0 suppression), hash-link.tsx accueil en URL réelle, app-store.ts setLang chemin cohérent sur page jeu, llms.txt 2 lignes alignées — ajouts ssr-context.tsx + content-registry.ts + 20 fichiers -seo.ts ; 0 suppression, 40/40 pages vérifiées (title/canonical/hreflang/lang/H1/3 JSON-LD/contenu éditorial brut), E2E navigateur 0 erreur, lint propre, sitemap:check 42/42",
-  "baselineCommit": "c7ea0930e986a4efa8c4b0c6f4e1cc7b788ffda6",
+  "generatedAt": "2026-11-06T11:02:01.215Z",
+  "reason": "Task 28 (force majeure, demande utilisateur : ajout Google AdSense ca-pub-3034343595064419) : layout.tsx (balise meta google-adsense-account + script adsbygoogle.js dans <head>), public/ads.txt (ajout pur), proxy.ts (exclusion statique ads.txt), robots.txt (autorisation Mediapartners-Google/AdsBot-Google), static-views.tsx (mention conforme Google AdSense FR/EN dans Confidentialité), adsense-slot.tsx (composant emplacement réutilisable, ajout pur) — 0 suppression",
+  "baselineCommit": "ffe4cc922cc826426fcf939589aff934e42b7fbb",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -320,8 +320,8 @@
   ],
   "frozen": {
     "src/proxy.ts": {
-      "sha256": "61927705dd4191e9e9a4146a5b5702ff9ef69134a474216e3a8e75973cc89216",
-      "bytes": 2307
+      "sha256": "b077c319b157a8c349ad166bab4d9e5d6f261dde6f8ffcd84e890dd1f161b152",
+      "bytes": 2343
     },
     "src/components/game/iq-banner.tsx": {
       "sha256": "68c3003204052b563200b1eddf9c2432d6cbcc0050a12e59b97ce50cb1f1b7bf",
@@ -580,8 +580,8 @@
       "bytes": 1900
     },
     "src/components/pages/static-views.tsx": {
-      "sha256": "e11beea80b4481ce87534cecc48fb2e57eec0642602f14201146fcf3846506a2",
-      "bytes": 13038
+      "sha256": "1f397d45d838303bca4e88cdd8479e51ceac6bd64c5e7efb7bc951b8ffee91ce",
+      "bytes": 13687
     },
     "src/components/ui/chart.tsx": {
       "sha256": "670849399b33fecf7e46aa222c52f6a7c294faac079f5227f8c01c594822fd5d",
@@ -864,8 +864,8 @@
       "bytes": 134
     },
     "src/app/layout.tsx": {
-      "sha256": "7cdefa65288ab43ac5e4d287e3c9e2a601e4d0e9335852cc243428a429fb4d47",
-      "bytes": 5917
+      "sha256": "b8f3fcc99376f1f4137011e623e36305a440f013cb99a93bfdd6929adb27d094",
+      "bytes": 6249
     },
     "src/app/favicon.ico": {
       "sha256": "50fe0ceb944f871352d4e6d00dd802c515b48630119017ca1ad4e1eba1dcc753",
@@ -912,8 +912,8 @@
       "bytes": 149725
     },
     "public/robots.txt": {
-      "sha256": "8369393ea64b4978b20dc1d28dfd8716787af552ff3eea45841b896590b1b57b",
-      "bytes": 832
+      "sha256": "6b99a365d3aaeb2eb4b289321dc56fb10e48f325ae34880f974c6fe9fc7da944",
+      "bytes": 1023
     },
     "public/sounds/levelup.mp3": {
       "sha256": "769bb423e175984234c0fe89bda2d36efa8c503c25a682b1086fa2bab3ab8de2",
@@ -1086,6 +1086,14 @@
     "prisma/schema.prisma": {
       "sha256": "322dc78c4d890abc89497e75e095c627eda8fefcdf130e992b8a5cbbcd5d99fe",
       "bytes": 794
+    },
+    "public/ads.txt": {
+      "sha256": "62e0ea60f42268c89bbde29c442a43231b576063373dd5e4e43ec5030aca80e2",
+      "bytes": 59
+    },
+    "src/components/shared/adsense-slot.tsx": {
+      "sha256": "1d5b7d151788daf087b269e0666f5e37c2942fd6500d4b9b81debb9e01ad0d94",
+      "bytes": 2021
     }
   },
   "appendOnly": {

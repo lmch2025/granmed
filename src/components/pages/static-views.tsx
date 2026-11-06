@@ -105,18 +105,20 @@ const LEGAL_TEXT: Record<'privacy' | 'terms', Record<'fr' | 'en', { title: strin
       title: 'Confidentialité',
       p: [
         "Granmed fonctionne sans compte utilisateur. Votre progression (records, succès, favoris, défis quotidiens, paramètres) est enregistrée exclusivement dans le stockage local de votre navigateur, sur votre appareil. Elle n'est transmise à aucun serveur.",
-        "Aucune donnée personnelle (nom, e-mail, identifiant) n'est collectée. Aucun cookie publicitaire ni traceur tiers n'est utilisé.",
-        "Vous pouvez à tout moment effacer l'intégralité de vos données en utilisant le bouton « Réinitialiser mon profil » dans Mon parcours, ou en vidant le stockage de votre navigateur.",
-        "En cas de future évolution (synchronisation entre appareils, statistiques d'audience), cette page sera mise à jour et votre consentement sera demandé avant tout déploiement, conformément à la réglementation applicable (RGPD).",
+        "Aucune donnée nominative (nom, e-mail, numéro de téléphone) n'est demandée ni collectée par Granmed pour jouer.",
+        "Pour financer l'accès gratuit aux 20 jeux, Granmed diffuse des annonces via Google AdSense. En tant que fournisseur tiers, Google utilise des cookies pour diffuser des annonces sur ce site en fonction de vos visites antérieures sur Granmed ou sur d'autres sites web.",
+        "Vous pouvez à tout moment désactiver la publicité personnalisée en consultant les Paramètres des annonces Google (https://adssettings.google.com) ou via la plateforme www.aboutads.info, et gérer vos préférences de cookies directement dans les réglages de votre navigateur.",
+        "Vous pouvez également effacer l'intégralité de votre progression locale à tout moment grâce au bouton « Réinitialiser mon profil » dans Mon parcours, ou en vidant le stockage de votre navigateur.",
       ],
     },
     en: {
       title: 'Privacy',
       p: [
         "Granmed works without user accounts. Your progress (records, achievements, favorites, daily challenges, settings) is stored exclusively in your browser's local storage, on your device. It is never sent to any server.",
-        "No personal data (name, email, identifier) is collected. No advertising cookies or third-party trackers are used.",
-        "You can erase all your data at any time using the “Reset my profile” button in My journey, or by clearing your browser storage.",
-        "Should future features be added (cross-device sync, audience analytics), this page will be updated and your consent will be requested before deployment, in accordance with applicable regulations (GDPR).",
+        "No personally identifiable information (name, email, phone number) is requested or collected by Granmed to play.",
+        "To keep all 20 games free to play, Granmed displays advertisements via Google AdSense. As a third-party vendor, Google uses cookies to serve ads on this site based on your prior visits to Granmed or other websites.",
+        "You may opt out of personalized advertising at any time by visiting Google Ads Settings (https://adssettings.google.com) or www.aboutads.info, and manage your cookie preferences directly in your browser settings.",
+        "You can also erase all your local game data at any time using the “Reset my profile” button in My journey, or by clearing your browser storage.",
       ],
     },
   },
@@ -169,7 +171,9 @@ export function LegalView({ doc }: { doc: 'privacy' | 'terms' }) {
           <p key={i}>{p}</p>
         ))}
       </div>
-      <p className="mt-8 text-xs text-muted-foreground">Dernière mise à jour : 2025-06-01</p>
+      <p className="mt-8 text-xs text-muted-foreground">
+        {lang === 'fr' ? 'Dernière mise à jour : 2026-11-06' : 'Last updated: 2026-11-06'}
+      </p>
     </div>
   )
 }
