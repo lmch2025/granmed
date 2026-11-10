@@ -116,3 +116,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (8) : src/components/layout/site-footer.tsx, src/components/layout/site-header.tsx, src/components/pages/guides-view.tsx, src/proxy.ts, public/llms.txt, public/sitemap.xml, protection/integrity.ts, package.json
 - Suppressions (0) : aucune
 
+## 2026-11-10 14:42 — Task 30 (force majeure, resolution 404 GSC) : redirection permanente 301 de /fr, /en, /index.html vers les accueils canoniques officiels - 0 suppression
+- Commit : `0990c50f7e41`
+- Jeux protégés : 20
+- Ajouts (0) : aucun
+- Modifications (3) : src/proxy.ts, public/sitemap.xml, next.config.ts
+- Suppressions (0) : aucune
+

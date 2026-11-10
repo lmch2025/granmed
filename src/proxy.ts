@@ -20,6 +20,9 @@ import { GAMES } from "@/lib/games/catalog";
  * superpose le hash du routeur AVANT l'hydratation. Les chemins non
  * canoniques (jeu inconnu, préfixe/langue incohérents) ne sont PAS
  * réécrits : Next sert un 404 légitime.
+ *
+ * Task 30 (résolution 404 GSC) : redirection permanente 301 de `/fr`, `/fr/`,
+ * `/en`, `/en/`, `/index.html` vers les accueils canoniques officiels (`/` et `/?lang=en`).
  */
 
 /** Chemins réels canoniques des 20 jeux × 2 langues. */
@@ -30,6 +33,17 @@ const GAME_REAL_PATHS: Set<string> = new Set(
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const headers = new Headers(request.headers);
+
+  /* Task 30 — redirection permanente 301 des racines linguistiques vers l'accueil canonique. */
+  if (pathname === "/fr" || pathname === "/fr/") {
+    return NextResponse.redirect(new URL("/", request.url), 301);
+  }
+  if (pathname === "/en" || pathname === "/en/") {
+    return NextResponse.redirect(new URL("/?lang=en", request.url), 301);
+  }
+  if (pathname === "/index.html" || pathname === "/home") {
+    return NextResponse.redirect(new URL("/", request.url), 301);
+  }
 
   /* Task 26 — page jeu individuelle : réécriture vers `/`, métadonnées dédiées. */
   if (GAME_REAL_PATHS.has(pathname)) {

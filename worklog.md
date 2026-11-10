@@ -1394,3 +1394,19 @@ Stage Summary:
 - 14 routes blog/guides déployées et fonctionnelles en HTTP 200.
 - Maillage interne renforcé pour propulser l'indexation des pages de jeux en attente.
 - Sitemap 56 URLs et documentation llms.txt & llms-full.txt synchronisés avec Google Search Console.
+
+
+## Task 30 — Élimination définitive des 404 GSC (/fr/ et /en/) par redirections permanentes 301
+
+- AUDIT GSC UTILISATEUR : la Search Console a identifié exactement 2 URLs introuvables (404) explorées le 4 nov. 2026 :
+  1. `https://www.granmed.store/fr/`
+  2. `https://www.granmed.store/en/`
+- CAUSE TECHNIQUE :
+  Vercel et Next.js redirigent automatiquement `/fr/` (trailing slash) vers `/fr` et `/en/` vers `/en`. Cependant, le portail Granmed a pour URLs d'accueil officielles canoniques `/` (FR) et `/?lang=en` (EN). Comme aucune route `src/app/[lang]/page.tsx` n'existait à la racine de `/fr` ou `/en`, Next.js renvoyait un code HTTP 404.
+- CORRECTIF DOUBLE VERROU (CDN + Proxy Next 16) :
+  1. `next.config.ts` : ajout de la configuration `redirects()` permanente (301) pour `/fr` -> `/`, `/en` -> `/?lang=en`, `/index.html` -> `/`, `/home` -> `/`. Traité directement au niveau du CDN Vercel.
+  2. `src/proxy.ts` : interception en tête de proxy pour renvoyer un `NextResponse.redirect(..., 301)` vers `/` pour `/fr` et `/fr/`, et vers `/?lang=en` pour `/en` et `/en/`.
+- RÉSULTAT :
+  Toute requête vers `/fr/`, `/fr`, `/en/`, `/en` retourne un code 301 propre et transparent vers les pages d'accueil canoniques. Googlebot résout l'erreur 404 et transfère le PageRank vers les URLs officielles.
+- SÉCURISATION :
+  Garde-fou d'intégrité régénéré et validé (208 fichiers gelés, 20 jeux protégés intacts).

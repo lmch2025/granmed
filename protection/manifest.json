@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "generatedAt": "2026-11-10T05:16:08.202Z",
-  "reason": "Task 29 (force majeure, deploiment blog et guides SEO/GEO/AIO) : routes blog FR/EN, guides FR/EN, header/footer, sitemap 56 URLs et llms.txt - 0 suppression",
-  "baselineCommit": "bc762d398c896bfe262aa39d187e32c9226e2abb",
+  "generatedAt": "2026-11-10T13:42:24.449Z",
+  "reason": "Task 30 (force majeure, resolution 404 GSC) : redirection permanente 301 de /fr, /en, /index.html vers les accueils canoniques officiels - 0 suppression",
+  "baselineCommit": "0990c50f7e41957c4aa3fc6f945c08cc2f16e905",
   "stableTag": "v1.0-stable",
   "games": [
     {
@@ -932,8 +932,8 @@
       "bytes": 166
     },
     "src/proxy.ts": {
-      "sha256": "569827b501f08d47a1172c031ba68859a28afba09c1f1fb83b17c8e49da0c1f3",
-      "bytes": 2434
+      "sha256": "e3f289380d330b91c9be459f181adc8814c45b27f8c6b2071caccc13776e81d3",
+      "bytes": 3090
     },
     "public/ads.txt": {
       "sha256": "62e0ea60f42268c89bbde29c442a43231b576063373dd5e4e43ec5030aca80e2",
@@ -1024,7 +1024,7 @@
       "bytes": 1023
     },
     "public/sitemap.xml": {
-      "sha256": "b01bd982980b4398d6eee74818834c584ee5f5edf7c8fadc6d19d00bde34041e",
+      "sha256": "9c40b93573e4cba96257778ac15e8c3f8ea57c2367cbce1f6aec98cd913f1411",
       "bytes": 28330
     },
     "public/sounds/achievement.mp3": {
@@ -1124,8 +1124,8 @@
       "bytes": 1696
     },
     "next.config.ts": {
-      "sha256": "f36ebda2bb1f8a5925ebd6a936a8ad33a74962ec5c9b35b3fd0face21165ad02",
-      "bytes": 396
+      "sha256": "24695729569c313a55c80c5651005e0a2901dba6b8c54b2e13b1460675a25369",
+      "bytes": 825
     },
     "tsconfig.json": {
       "sha256": "5627b3f441adc62af9e6420045fa0452d7c02bfcea664ec5758db46504631609",
