@@ -1,0 +1,60 @@
+name: Daily Bilingual Blog Automation & Verification
+
+on:
+  schedule:
+    # Tous les jours à 07:00 UTC (08:00 heure de Paris / Cameroun)
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      trigger_gsc:
+        description: "Déclencher la synchronisation Google Search Console"
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  daily-blog-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm run db:generate
+
+      - name: Generate Daily Bilingual Blog Pair (1 FR + 1 EN)
+        run: pnpm run blog:generate-daily
+        env:
+          GSC_AUTO_SYNC: ${{ github.event.inputs.trigger_gsc || 'true' }}
+
+      - name: Run Double Verification SEO / GEO / AIO
+        run: pnpm run blog:verify
+
+      - name: Run Sitemap Check
+        run: pnpm run sitemap:check
+
+      - name: Commit & Push Generated Articles, Sitemaps & Reports
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action [Daily Blog Automation]"
+          git add src/lib/blog/generated-articles.json public/sitemap.xml public/llms.txt public/llms-full.txt reports/
+          if git diff --staged --quiet; then
+            echo "Aucun nouvel article à committer."
+          else
+            git commit -m "chore(blog): publication quotidienne de 2 articles bilingues (FR + EN) [skip ci]"
+            git push
+          fi

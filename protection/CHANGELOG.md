@@ -109,3 +109,10 @@ force majeure justifiée. À ne jamais éditer à la main.
 - Modifications (4) : src/app/layout.tsx, src/proxy.ts, public/robots.txt, src/components/pages/static-views.tsx
 - Suppressions (0) : aucune
 
+## 2026-11-10 06:16 — Task 29 (force majeure, deploiment blog et guides SEO/GEO/AIO) : routes blog FR/EN, guides FR/EN, header/footer, sitemap 56 URLs et llms.txt - 0 suppression
+- Commit : `bc762d398c89`
+- Jeux protégés : 20
+- Ajouts (14) : src/app/[lang]/blog/page.tsx, src/app/[lang]/blog/[slug]/page.tsx, src/app/[lang]/guides/page.tsx, src/components/pages/blog-view.tsx, src/lib/blog/affiliate.ts, src/lib/blog/articles.ts, src/lib/blog/generated-articles.json, src/lib/blog/pairs/pair-1-chimp-memory.ts, src/lib/blog/pairs/pair-2-2048-hanoi.ts, src/lib/blog/pairs/pair-3-schulte-reflex.ts, src/lib/blog/pairs/pair-4-word-stroop.ts, src/lib/blog/sync-seo-files.ts, src/lib/blog/types.ts, public/llms-full.txt
+- Modifications (8) : src/components/layout/site-footer.tsx, src/components/layout/site-header.tsx, src/components/pages/guides-view.tsx, src/proxy.ts, public/llms.txt, public/sitemap.xml, protection/integrity.ts, package.json
+- Suppressions (0) : aucune
+

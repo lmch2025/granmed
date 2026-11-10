@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Volume2, VolumeX, Sun, Moon, Menu, Heart, Home, BookOpen, Compass, Info } from 'lucide-react'
+import { Volume2, VolumeX, Sun, Moon, Menu, Heart, Home, BookOpen, Compass, Info, Newspaper } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { sfx } from '@/lib/sound'
@@ -46,6 +46,13 @@ export function SiteHeader() {
       <HashLink view={{ type: 'guides' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.guides')}
       </HashLink>
+      <a
+        href={`/${lang}/blog`}
+        onClick={closeMenu}
+        className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+      >
+        {lang === 'fr' ? 'Blog & Dossiers' : 'Brain Blog'}
+      </a>
       <HashLink view={{ type: 'dashboard' }} onNavigate={closeMenu} className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
         {t('nav.dashboard')}
       </HashLink>
@@ -155,6 +162,16 @@ export function SiteHeader() {
               <nav aria-label="Navigation mobile" className="mt-2 flex flex-col gap-1 px-4">
                 <MobileNavItem icon={<Home className="h-4 w-4" />} label={t('nav.home')} onClick={closeMenu} view={{ type: 'home' }} />
                 <MobileNavItem icon={<BookOpen className="h-4 w-4" />} label={t('nav.guides')} onClick={closeMenu} view={{ type: 'guides' }} />
+                <a
+                  href={`/${lang}/blog`}
+                  onClick={closeMenu}
+                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  <span className="text-muted-foreground" aria-hidden="true">
+                    <Newspaper className="h-4 w-4" />
+                  </span>
+                  {lang === 'fr' ? 'Blog & Dossiers QI' : 'IQ & Brain Blog'}
+                </a>
                 <MobileNavItem icon={<Compass className="h-4 w-4" />} label={t('nav.dashboard')} onClick={closeMenu} view={{ type: 'dashboard' }} />
                 <MobileNavItem icon={<Info className="h-4 w-4" />} label={t('nav.about')} onClick={closeMenu} view={{ type: 'about' }} />
                 <MobileNavItem

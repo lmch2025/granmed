@@ -5,7 +5,7 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store"/>
-    <lastmod>2026-10-29</lastmod>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -14,7 +14,7 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/?lang=en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store"/>
-    <lastmod>2026-10-29</lastmod>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -375,6 +375,132 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/interactive-story"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/histoire-interactive"/>
     <lastmod>2026-10-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/guides</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/guides"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/guides"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/guides"/>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/guides</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/guides"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/guides"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/guides"/>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog"/>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog"/>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog/techniques-sudoku-expert-demineur-deduction-logique</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/techniques-sudoku-expert-demineur-deduction-logique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/expert-sudoku-techniques-minesweeper-deductive-logic"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/techniques-sudoku-expert-demineur-deduction-logique"/>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog/expert-sudoku-techniques-minesweeper-deductive-logic</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/techniques-sudoku-expert-demineur-deduction-logique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/expert-sudoku-techniques-minesweeper-deductive-logic"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/techniques-sudoku-expert-demineur-deduction-logique"/>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/stroop-effect-test-word-guess-cognitive-flexibility"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog/stroop-effect-test-word-guess-cognitive-flexibility</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/stroop-effect-test-word-guess-cognitive-flexibility"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/schulte-table-peripheral-vision-speed-reading-training"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog/schulte-table-peripheral-vision-speed-reading-training</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/schulte-table-peripheral-vision-speed-reading-training"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/2048-strategy-tower-of-hanoi-recursive-logic-guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog/2048-strategy-tower-of-hanoi-recursive-logic-guide</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/2048-strategy-tower-of-hanoi-recursive-logic-guide"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/chimp-memory-test-ayumu-visual-working-memory-training"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle"/>
+    <lastmod>2026-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.granmed.store/en/blog/chimp-memory-test-ayumu-visual-working-memory-training</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.granmed.store/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.granmed.store/en/blog/chimp-memory-test-ayumu-visual-working-memory-training"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.granmed.store/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle"/>
+    <lastmod>2026-11-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

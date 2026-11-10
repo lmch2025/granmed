@@ -36,7 +36,7 @@ import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync, appendFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // ─────────────────────────────────────────────────────────── chemins & règles
 
@@ -142,7 +142,12 @@ function hashFile(rel: string): FileEntry | null {
   const abs = join(ROOT, rel)
   if (!existsSync(abs)) return null
   const buf = readFileSync(abs)
-  return { sha256: createHash('sha256').update(buf).digest('hex'), bytes: buf.byteLength }
+  const isBinary = /\.(mp3|png|jpg|jpeg|webp|ico|woff2?)$/i.test(rel)
+  if (isBinary) {
+    return { sha256: createHash('sha256').update(buf).digest('hex'), bytes: buf.byteLength }
+  }
+  const normalized = buf.toString('utf8').replace(/\r\n/g, '\n')
+  return { sha256: createHash('sha256').update(normalized).digest('hex'), bytes: Buffer.byteLength(normalized) }
 }
 
 function readText(rel: string): string | null {
@@ -187,7 +192,7 @@ function stable(value: unknown): string {
 // ───────────────────────────────────────────── lecture du catalogue & registre
 
 async function loadCatalogGames(): Promise<GameDefSnapshot[]> {
-  const mod = (await import(join(ROOT, 'src', 'lib', 'games', 'catalog.ts'))) as {
+  const mod = (await import(pathToFileURL(join(ROOT, 'src', 'lib', 'games', 'catalog.ts')).href)) as {
     GAMES?: GameDefSnapshot[]
   }
   if (!Array.isArray(mod.GAMES)) {

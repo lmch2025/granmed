@@ -67,3 +67,11 @@ server.log
 
 # Skills directory
 /skills/
+# Cloned agent skills sources
+.agents/cloned-repos/
+
+
+# SQLite local databases
+*.db
+prisma/*.db
+pnpm-lock.yaml

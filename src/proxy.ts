@@ -38,7 +38,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL("/", request.url), { request: { headers } });
   }
 
-  const lang = request.nextUrl.searchParams.get("lang") === "en" ? "en" : "fr";
+  const lang =
+    pathname === "/en" ||
+    pathname.startsWith("/en/") ||
+    request.nextUrl.searchParams.get("lang") === "en"
+      ? "en"
+      : "fr";
   headers.set("x-granmed-lang", lang);
   return NextResponse.next({ request: { headers } });
 }
@@ -46,6 +51,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Tout sauf les fichiers statiques (aucune transformation nécessaire).
   matcher: [
-    "/((?!_next/static|_next/image|icons|images|sounds|favicon.ico|logo.svg|manifest.webmanifest|robots.txt|sitemap.xml|llms.txt|ads.txt|googlec5dc6c64480779bb.html|sw.js).*)",
+    "/((?!_next/static|_next/image|icons|images|sounds|favicon.ico|logo.svg|manifest.webmanifest|robots.txt|sitemap.xml|llms.txt|llms-full.txt|ads.txt|googlec5dc6c64480779bb.html|sw.js).*)",
   ],
 };

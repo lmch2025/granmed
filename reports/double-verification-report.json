@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-11-10T13:18:05.532Z",
+  "overallStatus": "100% PASS",
+  "totalArticles": 10,
+  "checks": {
+    "noPollution": true,
+    "affiliateAlignment": true,
+    "aioAffiliateCitation": true,
+    "internalLinking": true
+  },
+  "articles": [
+    {
+      "id": "fr-pair-5-sudoku-minesweeper",
+      "lang": "fr",
+      "route": "/fr/blog/techniques-sudoku-expert-demineur-deduction-logique",
+      "twinRoute": "/en/blog/expert-sudoku-techniques-minesweeper-deductive-logic",
+      "wordCount": 975,
+      "numericStatsCount": 6,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "en-pair-5-sudoku-minesweeper",
+      "lang": "en",
+      "route": "/en/blog/expert-sudoku-techniques-minesweeper-deductive-logic",
+      "twinRoute": "/fr/blog/techniques-sudoku-expert-demineur-deduction-logique",
+      "wordCount": 857,
+      "numericStatsCount": 6,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "fr-stroop-word-flexibility",
+      "lang": "fr",
+      "route": "/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire",
+      "twinRoute": "/en/blog/stroop-effect-test-word-guess-cognitive-flexibility",
+      "wordCount": 1363,
+      "numericStatsCount": 8,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "en-stroop-word-flexibility",
+      "lang": "en",
+      "route": "/en/blog/stroop-effect-test-word-guess-cognitive-flexibility",
+      "twinRoute": "/fr/blog/test-de-stroop-mot-mystere-flexibilite-cognitive-vocabulaire",
+      "wordCount": 1192,
+      "numericStatsCount": 6,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "fr-schulte-speed-reading",
+      "lang": "fr",
+      "route": "/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique",
+      "twinRoute": "/en/blog/schulte-table-peripheral-vision-speed-reading-training",
+      "wordCount": 1391,
+      "numericStatsCount": 23,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "en-schulte-speed-reading",
+      "lang": "en",
+      "route": "/en/blog/schulte-table-peripheral-vision-speed-reading-training",
+      "twinRoute": "/fr/blog/table-de-schulte-lecture-rapide-vision-peripherique",
+      "wordCount": 1172,
+      "numericStatsCount": 20,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "fr-2048-hanoi-logic",
+      "lang": "fr",
+      "route": "/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique",
+      "twinRoute": "/en/blog/2048-strategy-tower-of-hanoi-recursive-logic-guide",
+      "wordCount": 1521,
+      "numericStatsCount": 12,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "en-2048-hanoi-logic",
+      "lang": "en",
+      "route": "/en/blog/2048-strategy-tower-of-hanoi-recursive-logic-guide",
+      "twinRoute": "/fr/blog/strategie-2048-tour-de-hanoi-algorithmes-logique",
+      "wordCount": 1383,
+      "numericStatsCount": 13,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "fr-chimp-memory-ayumu",
+      "lang": "fr",
+      "route": "/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle",
+      "twinRoute": "/en/blog/chimp-memory-test-ayumu-visual-working-memory-training",
+      "wordCount": 1460,
+      "numericStatsCount": 18,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    },
+    {
+      "id": "en-chimp-memory-ayumu",
+      "lang": "en",
+      "route": "/en/blog/chimp-memory-test-ayumu-visual-working-memory-training",
+      "twinRoute": "/fr/blog/test-memoire-chimpanze-ayumu-entrainer-memoire-visuelle",
+      "wordCount": 1321,
+      "numericStatsCount": 20,
+      "sourcesCount": 3,
+      "faqCount": 5,
+      "longTailCount": 5,
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

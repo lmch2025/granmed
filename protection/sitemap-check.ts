@@ -30,11 +30,14 @@
  * ============================================================ */
 
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const SITE_ORIGIN = 'https://www.granmed.store'
 const LOCAL_ORIGIN = process.env.SITEMAP_CHECK_ORIGIN ?? 'http://localhost:3000'
-const ROOT = join(import.meta.dir, '..')
+const ROOT = (import.meta as unknown as { dir?: string }).dir
+  ? join((import.meta as unknown as { dir: string }).dir, '..')
+  : dirname(dirname(fileURLToPath(import.meta.url)))
 
 const failures: string[] = []
 const wins: string[] = []
@@ -306,7 +309,7 @@ function staticChecks(): SitemapUrl[] {
 async function liveChecks(urls: SitemapUrl[]): Promise<void> {
   let serverUp = false
   try {
-    const res = await fetch(`${LOCAL_ORIGIN}/sitemap.xml`, { redirect: 'manual' })
+    const res = await fetch(`${LOCAL_ORIGIN}/sitemap.xml`, { redirect: 'manual', signal: AbortSignal.timeout(1500) })
     serverUp = res.ok
   } catch {
     /* pas de serveur — contrôles live ignorés */

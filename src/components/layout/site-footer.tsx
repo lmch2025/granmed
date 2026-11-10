@@ -54,6 +54,9 @@ export function SiteFooter() {
           <HashLink view={{ type: 'guides' }} className={linkClass}>
             📚 {t('footer.guides')}
           </HashLink>
+          <a href={`/${lang}/blog`} className={linkClass}>
+            🧠 {lang === 'fr' ? 'Blog & Dossiers QI' : 'IQ & Brain Blog'}
+          </a>
           <HashLink view={{ type: 'home' }} className={linkClass}>
             ❓ {t('footer.faq')}
           </HashLink>

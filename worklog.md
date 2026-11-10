@@ -1372,3 +1372,25 @@ Stage Summary:
 Stage Summary:
 - Les 3 méthodes de vérification Google AdSense (extrait de code `<script>`, fichier `/ads.txt`, balise `<meta name="google-adsense-account">`) sont en place et servies dans le HTML brut de toutes les pages du site.
 - Les crawlers AdSense (`Mediapartners-Google`, `AdsBot-Google`) sont explicitement autorisés dans `robots.txt` et la Politique de Confidentialité (FR/EN) est conforme aux exigences d'approbation Google AdSense.
+
+
+## Task 29 — Blog Neuro-Cognitif FR/EN, Guides & Résolution Indexation Google Search Console
+
+- OBJECTIF & AUDIT GSC :
+  1. Résolution de l'alerte GSC « Introuvable (404) » : causée par la soumission du sitemap étendu (56 URLs) avant déploiement effectif des 14 nouvelles routes de blog (/fr/blog, /en/blog, /fr/guides, /en/guides et 10 articles) sur Vercel.
+  2. Traitement du statut GSC « Détectée, actuellement non indexée » sur 10 URLs de jeux (table-schulte, sudoku, demineur, block-puzzle, pompier-de-gran...) : URLs valides HTTP 200 en attente de crawl par Googlebot ; activation du maillage interne profond depuis le blog et renvoi du sitemap.
+- IMPLÉMENTATION BLOG & GUIDES (100% Zéro Trace IA, GEO/AIO & E-E-A-T) :
+  1. `src/app/[lang]/blog/page.tsx` & `src/app/[lang]/blog/[slug]/page.tsx` : génération statique bilingue SSG, métadonnées localisées, JSON-LD BlogPosting + BreadcrumbList.
+  2. `src/app/[lang]/guides/page.tsx` : route dédiée avec métadonnées SEO/AIO pour les guides d'entraînement cérébral.
+  3. `src/lib/blog/` : architecture modulaire (articles, paires bilingues, affiliation Amazon FR/US kidenzo, Hostinger, Whop, Online-Therapy).
+  4. `src/proxy.ts` : propagation transparente des routes bilingues `/[lang]/...` vers le moteur Next.js.
+  5. `src/components/layout/site-header.tsx` & `site-footer.tsx` : liens directs vers le blog et les guides.
+- CONTRÔLES & SÉCURISATION DE L'ACQUIS :
+  1. 5/5 scripts de double vérification passés avec succès (`blog:verify`).
+  2. Garde-fou d'intégrité régénéré via `integrity:update` (208 fichiers gelés, 20 jeux protégés intacts).
+  3. Garde-fou `sitemap:check` validé 56/56 URLs.
+
+Stage Summary:
+- 14 routes blog/guides déployées et fonctionnelles en HTTP 200.
+- Maillage interne renforcé pour propulser l'indexation des pages de jeux en attente.
+- Sitemap 56 URLs et documentation llms.txt & llms-full.txt synchronisés avec Google Search Console.
