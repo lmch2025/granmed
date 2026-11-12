@@ -6,6 +6,10 @@ import { BlogIndexView } from "@/components/pages/blog-view";
 
 const SITE_URL = "https://www.granmed.store";
 
+// Désactive l'ISR : index blog pré-rendu au build, zéro Data Cache Vercel.
+// Évite la consommation des ISR Reads du free tier (limite 1M/mois).
+export const revalidate = false;
+
 export async function generateStaticParams() {
   return [{ lang: "fr" }, { lang: "en" }];
 }

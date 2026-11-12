@@ -17,6 +17,10 @@ import { BlogArticleDetailView } from "@/components/pages/blog-view";
 
 const SITE_URL = "https://www.granmed.store";
 
+// Désactive l'ISR : articles pré-rendus au build, zéro Data Cache Vercel.
+// Évite la consommation des ISR Reads du free tier (limite 1M/mois).
+export const revalidate = false;
+
 export async function generateStaticParams() {
   return getAllBlogArticles().map((article) => ({
     lang: article.lang,

@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import type { Language } from "@/lib/i18n";
 import { GranmedApp } from "@/components/granmed-app";
 
+// Désactive l'ISR : page guides pré-rendue au build, zéro Data Cache Vercel.
+// Évite la consommation des ISR Reads du free tier (limite 1M/mois).
+export const revalidate = false;
+
 export async function generateStaticParams() {
   return [{ lang: "fr" }, { lang: "en" }];
 }
